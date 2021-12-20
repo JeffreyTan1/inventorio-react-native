@@ -41,7 +41,7 @@ export default function BagModel() {
       style={[styles.container, styles.canvas]}
     >
       <GLView
-        style={styles.container}
+        // style={styles.container}
         onContextCreate={async (gl) => {
           const { drawingBufferWidth: width, drawingBufferHeight: height } = gl;
 
