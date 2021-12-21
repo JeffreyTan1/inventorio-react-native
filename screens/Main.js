@@ -9,16 +9,13 @@ import CollectionBubble from "../components/CollectionBubble";
 import BagModel from "../components/BagModel";
 import Dialog from "react-native-dialog";
 import IconButton from "../components/IconButton";
-import Animated, { useAnimatedStyle, interpolate  } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, withDelay } from "react-native-reanimated";
 import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs} from '@gorhom/bottom-sheet';
-
-let bottomSheetData;
 
 export default function Main({navigation}) {
   const [visible, setVisible] = useState(false)
   const [collectionInput, setCollectionInput] = useState('')
   const bottomSheetRef = useRef(null);
-
   const snapPoints = useMemo(() => ['13%', '60%'], []);
 
   const showDialog = () => {
@@ -36,14 +33,44 @@ export default function Main({navigation}) {
     setVisible(false)
   }
 
+  const bottomSheetDataSHARED = useSharedValue(0)
+  const scaleIn = useSharedValue(0)
+
+  useEffect(() => {
+    scaleIn.value = withDelay(500, withTiming(1, {duration: 400}))
+  }, [])
+  
+  const animScaleIn = useAnimatedStyle(()=> {
+    return {
+      transform: [{scale: scaleIn.value}]
+    }
+  })
+
+  const animBag = useAnimatedStyle(()=> {
+    return {
+      transform: [{translateX: interpolate(bottomSheetDataSHARED.value, [0,1], [-75, 0])}, {translateY: interpolate(bottomSheetDataSHARED.value, [0,1], [-20, 0])}]
+    }
+  })
+
+  const animStats = useAnimatedStyle(()=> {
+    return {
+      // transform: [{translateY: interpolate(bottomSheetDataSHARED.value, [0,1], [250, 0])}]
+      opacity: bottomSheetDataSHARED.value,
+    }
+  })
+
+  
+
   const BottomSheetContent = () => {
-    bottomSheetData = useBottomSheet();
-    const animatedStyles = useAnimatedStyle(()=> {
+    const bottomSheetData = useBottomSheet()
+
+    const animBottomSheet = useAnimatedStyle(()=> {
+      // using this hook to also update the shared value outside
+      bottomSheetDataSHARED.value = bottomSheetData.animatedIndex.value
       return {
-        transform: [{scale: interpolate(bottomSheetData.animatedPosition.value, [314, 683], [1,0])}]
+        opacity: bottomSheetDataSHARED.value,
       }
     })
-
     return (
       <View style={styles.contentContainer}>
           <View style={styles.bottomSheetTitle}>
@@ -51,7 +78,7 @@ export default function Main({navigation}) {
             <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>5</CustomText>
           </View>
           <Animated.View
-            style={[styles.bottomSheet, animatedStyles]}
+            style={[styles.bottomSheet, animBottomSheet]}
           >
             <SortBy style={{right: 30}}/>
             <ScrollView horizontal={true} style={styles.bottomSheetScrollView}>
@@ -71,14 +98,14 @@ export default function Main({navigation}) {
             />
             
           </Animated.View>
-        </View >
+      </View >
     )
   }
 
   return (
     <View style={styles.container}>
-      <Animated.View style={styles.mainContent}>
-        <View style={styles.summaryStaticsGroup}>
+      <View style={styles.mainContent}>
+        <Animated.View style={[styles.summaryStaticsGroup, animStats]}>
           <SummaryStatistic
             title='Total Value'
             value='$1500'
@@ -91,11 +118,14 @@ export default function Main({navigation}) {
             title='Total Value'
             value='$1500'
           />
-        </View>
-        <View style={styles.container}>
+        </Animated.View>
+        <Animated.View style={[styles.container, animBag, animScaleIn]}>
           <BagModel/>
-        </View>
-      </Animated.View>
+        </Animated.View>
+      </View>
+
+      <ScrollView style={[styles.container]}>
+      </ScrollView>
       
       <BottomSheet
         ref={bottomSheetRef}
@@ -104,7 +134,7 @@ export default function Main({navigation}) {
         contentContainerStyle={styles.contentContainer}
         overDragResistanceFactor={1}
         backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 30, borderTopLeftRadius: 30}}
-        handleStyle={{backgroundColor: '#fff', borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 35}}
+        handleStyle={{backgroundColor: '#ebba3f', borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 35}}
         handleIndicatorStyle={{width: '10%', height: 8}}
         animationConfigs={useBottomSheetSpringConfigs({
           damping: 80,
@@ -155,6 +185,7 @@ const styles = StyleSheet.create({
     right:20,
     top: 5
   },
+
   iconButton: {
     borderRadius: 100,
     padding: 5,

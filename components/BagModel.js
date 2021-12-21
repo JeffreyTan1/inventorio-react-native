@@ -71,7 +71,7 @@ export default function BagModel() {
           // const axesHelper = new THREE.AxesHelper( 100 );
           // scene.add( axesHelper );
 
-          const object = await ExpoTHREE.loadObjAsync({asset: require('./../assets/backpack.obj')})
+          const object = await ExpoTHREE.loadObjAsync({asset: require('./../assets/default_backpack.obj')})
           setObject(object)
           
           function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
