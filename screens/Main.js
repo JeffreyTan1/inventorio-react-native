@@ -7,10 +7,12 @@ import globalStyles from "../styles/globalStyles";
 import SortBy from "../components/SortBy";
 import CollectionBubble from "../components/CollectionBubble";
 import BagModel from "../components/BagModel";
-import Dialog from "react-native-dialog";
 import IconButton from "../components/IconButton";
 import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, withDelay } from "react-native-reanimated";
 import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs} from '@gorhom/bottom-sheet';
+import GraphBubble from "../components/GraphBubble";
+import Carousel from 'react-native-reanimated-carousel';
+import { Provider, Dialog, Portal, TextInput, Button } from "react-native-paper";
 
 export default function Main({navigation}) {
   const [visible, setVisible] = useState(false)
@@ -37,7 +39,7 @@ export default function Main({navigation}) {
   const scaleIn = useSharedValue(0)
 
   useEffect(() => {
-    scaleIn.value = withDelay(500, withTiming(1, {duration: 400}))
+    scaleIn.value = withDelay(1000, withTiming(1, {duration: 500}))
   }, [])
   
   const animScaleIn = useAnimatedStyle(()=> {
@@ -54,12 +56,17 @@ export default function Main({navigation}) {
 
   const animStats = useAnimatedStyle(()=> {
     return {
-      // transform: [{translateY: interpolate(bottomSheetDataSHARED.value, [0,1], [250, 0])}]
+      transform: [{scale: interpolate(bottomSheetDataSHARED.value, [0,1], [0, 1])}],
       opacity: bottomSheetDataSHARED.value,
     }
   })
 
-  
+  const animGraph = useAnimatedStyle(()=> {
+    return {
+      opacity: (1 - bottomSheetDataSHARED.value),
+      transform: [{scale: interpolate(bottomSheetDataSHARED.value, [0,1], [1, 0])}],
+    }
+  })
 
   const BottomSheetContent = () => {
     const bottomSheetData = useBottomSheet()
@@ -76,18 +83,6 @@ export default function Main({navigation}) {
           <View style={styles.bottomSheetTitle}>
             <CustomText style={globalStyles.headingText}>Collections</CustomText>
             <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>5</CustomText>
-          </View>
-          <Animated.View
-            style={[styles.bottomSheet, animBottomSheet]}
-          >
-            <SortBy style={{right: 30}}/>
-            <ScrollView horizontal={true} style={styles.bottomSheetScrollView}>
-              <CollectionBubble navigation={navigation}/>
-              <CollectionBubble navigation={navigation}/>
-              <CollectionBubble navigation={navigation}/>
-              <CollectionBubble navigation={navigation}/>
-            </ScrollView>
-
             <IconButton
               style={[styles.iconButton, styles.plus]}
               activeOpacity={0.6}
@@ -96,7 +91,25 @@ export default function Main({navigation}) {
               iconName="add"
               size={43}
             />
-            
+          </View>
+          <Animated.View
+            style={[styles.bottomSheet, animBottomSheet]}
+          >
+            <SortBy style={{right: 30}}/>
+            <Carousel
+              width={450}
+              data={[{ data: {} }, { data: {} }, { data: {} }]}
+              renderItem={({ data }) => {
+                return (
+                  <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent:'center', flex:1}}>
+                    <CollectionBubble navigation={navigation}/>
+                    <CollectionBubble navigation={navigation}/>
+                    <CollectionBubble navigation={navigation}/>
+                    <CollectionBubble navigation={navigation}/>
+                  </View>
+                );
+              }}
+            />
           </Animated.View>
       </View >
     )
@@ -124,8 +137,16 @@ export default function Main({navigation}) {
         </Animated.View>
       </View>
 
-      <ScrollView style={[styles.container]}>
-      </ScrollView>
+      <Animated.View style={[{alignItems: 'center'}, animGraph]}>
+        <Carousel
+            style={{height: 350}}
+            width={390}
+            data={[{ stat: 'Total Value' }, { stat: 'Items' }, { stat: 'Collections' }]}
+            renderItem={({ stat }) => {
+              return <GraphBubble stat={stat}/>;
+            }}
+        />
+      </Animated.View>
       
       <BottomSheet
         ref={bottomSheetRef}
@@ -134,7 +155,7 @@ export default function Main({navigation}) {
         contentContainerStyle={styles.contentContainer}
         overDragResistanceFactor={1}
         backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 30, borderTopLeftRadius: 30}}
-        handleStyle={{backgroundColor: '#ebba3f', borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 35}}
+        handleStyle={{borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 30}}
         handleIndicatorStyle={{width: '10%', height: 8}}
         animationConfigs={useBottomSheetSpringConfigs({
           damping: 80,
@@ -146,7 +167,7 @@ export default function Main({navigation}) {
       >
         <BottomSheetContent />
       </BottomSheet>
-      
+   
       <IconButton
         style={[styles.iconButton, styles.settings]}
         activeOpacity={0.6}
@@ -156,21 +177,22 @@ export default function Main({navigation}) {
         size={43}
       />
 
-      
-      
-      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
-        <Dialog.Title>Add Collection</Dialog.Title>
-        <Dialog.Description>
-          Enter name of collection
-        </Dialog.Description>
-        <Dialog.Input
-          autoFocus={true}
-          onChangeText={val => setCollectionInput(val)}
-          value={collectionInput}
-        />
-        <Dialog.Button label="Cancel" onPress={handleCancel} />
-        <Dialog.Button label="Save" onPress={handleSave} />
-      </Dialog.Container>
+      <Provider>
+      <View>
+        <Portal>
+          <Dialog visible={visible} onDismiss={handleCancel}>
+            <Dialog.Title>Add Collection</Dialog.Title>
+            <Dialog.Content>
+              <TextInput value={collectionInput} onChangeText={val=>setCollectionInput(val)}/>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={handleCancel}>Cancel</Button>
+              <Button onPress={handleSave}>Done</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+        </View>
+      </Provider>
       
     </View>  
   )
@@ -196,7 +218,6 @@ const styles = StyleSheet.create({
     right: 20,
   },
   plus: {
-    width: '95%',
     alignItems: 'center',
     backgroundColor: '#fff',
     shadowColor: "#000",

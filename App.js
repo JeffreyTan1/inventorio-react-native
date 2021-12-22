@@ -12,7 +12,8 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [loaded] = useFonts({
-    Montserrat: require('./assets/Montserrat-Regular.ttf'),
+    'Montserrat': require('./assets/Montserrat-Regular.ttf'),
+    'Montserrat-bold' : require('./assets/Montserrat-Bold.ttf'),
   });
 
   if (!loaded) {

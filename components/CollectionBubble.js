@@ -9,7 +9,6 @@ const TouchableOpacity =
 export default function CollectionBubble({navigation}) {
   return (
     <TouchableOpacity
-    // style={{borderWidth: 1, borderColor: 'yellow'}}
     activeOpacity={0.9}
     underlayColor="#DDDDDD"
     onPress={()=>navigation.navigate('Collection')}>
@@ -28,8 +27,8 @@ export default function CollectionBubble({navigation}) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 210,
-    width: 210,
+    height: 150,
+    width: 150,
     backgroundColor: '#fff',
     borderRadius: 30,
     margin: 10,

@@ -3,11 +3,11 @@ import { View, ScrollView, StyleSheet, TouchableHighlight, Image } from 'react-n
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
-import ActionButton from '../components/ActionButton'
 import IconButton from '../components/IconButton'
-import Dialog from "react-native-dialog"
+// import Dialog from "react-native-dialog"
 import CustomTextInput from '../components/CustomTextInput'
-
+import ItemInfoBubble from '../components/ItemInfoBubble'
+import CustomChip from '../components/CustomChip'
 
 export default function Item({navigation}) {
   const [editingLabel, setEditingLabel] = useState(false)
@@ -27,7 +27,6 @@ export default function Item({navigation}) {
   return (
     <View style={styles.container}>
       <View style={globalStyles.navBar}>
-
         <IconButton
           style={styles.iconButton}
           activeOpacity={0.6}
@@ -36,7 +35,6 @@ export default function Item({navigation}) {
           iconName="arrow-back-ios"
           size={35}
         />
-
         <View style={{flexDirection: 'row'}}>
           <IconButton
             style={styles.iconButton}
@@ -76,9 +74,15 @@ export default function Item({navigation}) {
             size={35}
             />
           }
-          
         </View>
       </View>
+
+      {
+        editingLabel ?
+        <CustomTextInput style={[globalStyles.headingTextEdit, styles.textContainer, {fontFamily: 'Montserrat-bold'}]}/>
+        :
+        <CustomText style={[globalStyles.headingText, styles.textContainer, {fontFamily: 'Montserrat-bold'}]}>Logitech G Pro X</CustomText>
+      }
 
       <View style={styles.header}>
         <View style={styles.imageContainer}>
@@ -88,42 +92,31 @@ export default function Item({navigation}) {
           />
         </View>
       </View>
-      
+
       <View style={styles.panel}>
-        
-        {
-          editingLabel ?
-          <View style={styles.container}>
-            <CustomTextInput style={[globalStyles.headingTextEdit, styles.textContainer]}/>
-            <ScrollView style={styles.scrollView}>
-              <View style={{flexDirection: 'row'}}>
-                <CustomTextInput style={[styles.textEdit, styles.textContainer]}/> 
-                <CustomTextInput style={[styles.textEdit, styles.textContainer]}/>
-              </View>
-              <CustomTextInput style={[styles.textEdit, styles.textContainer]}/>
-            </ScrollView>
-          </View>
-          :
-          <View style={styles.container}>
-            <CustomText style={[globalStyles.headingText, styles.textContainer]}>Logitech G Pro X</CustomText>
-            <ScrollView style={styles.scrollView}>
-              <View style={{flexDirection: 'row'}}>
-                <CustomText style={[styles.subheadingText, styles.textContainer]}>$190</CustomText> 
-                <CustomText style={[styles.subheadingText, styles.textContainer]}>x1</CustomText>
-              </View>
-              <CustomText style={[styles.subheadingText, styles.textContainer]}>Total $190</CustomText>
-            </ScrollView>
-          </View>
-        }
+        <View style={{flexDirection: 'row', justifyContent: 'space-between', margin: 20}}>
+          <ItemInfoBubble label='Price' value="190"/>
+          <ItemInfoBubble label='Qty' value="2"/>
+          <ItemInfoBubble label='Total' value="380"/>
+        </View>
+
+        <View style={{flexDirection: 'row', margin: 20, flexWrap: 'wrap'}}>
+          <CustomChip>Example</CustomChip>
+          <CustomChip>Example</CustomChip>
+          <CustomChip>Example</CustomChip>
+          <CustomChip>Example</CustomChip>
+        </View>
+
       </View>
-      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
+
+      {/* <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
         <Dialog.Title>Delete Item?</Dialog.Title>
         <Dialog.Description>
           You cannot undo this action.
         </Dialog.Description>
         <Dialog.Button label="Cancel" onPress={handleCancel}/>
         <Dialog.Button label="Delete" onPress={handleDelete}/>
-      </Dialog.Container>
+      </Dialog.Container> */}
     </View>
   )
 }
@@ -142,6 +135,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     borderRadius: 30,
+    width: '92%',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -150,10 +144,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 4.65,
     elevation: 7,
-    marginBottom: 30
+    marginBottom: 20,
+    marginTop: 20
   },
   image: {
-    borderRadius: 30
+    width: '100%',
+    borderRadius: 30,
   },
   panel: {
     borderTopLeftRadius: 25,
@@ -175,25 +171,12 @@ const styles = StyleSheet.create({
   textContainer: {
     marginLeft: 25,
     marginRight: 25,
-    marginTop: 25,
   },
-  subheadingText: {
-    fontSize: 30
-  },
+
   actionButtonContainer: {
     marginBottom: 30,
     flexDirection: 'row',
     justifyContent: 'space-evenly'
-  },
-
-  textEdit: {
-    borderWidth: 1,
-    borderColor: 'grey', 
-    borderRadius: 15, 
-    marginRight: 15, 
-    padding: 10, 
-    flex: 1,
-    fontSize: 30,
   },
 
 })

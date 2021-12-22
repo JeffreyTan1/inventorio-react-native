@@ -5,7 +5,6 @@ import SortBy from '../components/SortBy'
 import ItemBubble from '../components/ItemBubble'
 import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
-import Dialog from "react-native-dialog";
 import CustomTextInput from '../components/CustomTextInput'
 
 export default function Collection({navigation}) {
@@ -109,14 +108,14 @@ export default function Collection({navigation}) {
       </View>
       
 
-      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
+      {/* <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
         <Dialog.Title>Delete Collection?</Dialog.Title>
         <Dialog.Description>
           You cannot undo this action. All items that don't belong to a collection will be placed in the "no collection" collection
         </Dialog.Description>
         <Dialog.Button label="Cancel" onPress={handleCancel}/>
         <Dialog.Button label="Delete" onPress={handleDelete}/>
-      </Dialog.Container>
+      </Dialog.Container> */}
 
     </View>
   )
