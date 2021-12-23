@@ -1,25 +1,58 @@
-import React, {useState} from 'react'
+import React, {useState, useEffect} from 'react'
 import { View, ScrollView, StyleSheet, TextInput } from 'react-native'
 import globalStyles from '../styles/globalStyles'
 import SortBy from '../components/SortBy'
 import ItemBubble from '../components/ItemBubble'
 import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
-import CustomTextInput from '../components/CustomTextInput'
+import { Dialog, Portal, Button, Paragraph } from "react-native-paper";
+import { getFromItems, deleteCollection } from '../utils/DAO'
+import { useIsFocused } from '@react-navigation/native'
 
-export default function Collection({navigation}) {
-  const [editingLabel, setEditingLabel] = useState(false)
+export default function Collection({route, navigation}) {
+  const isFocused = useIsFocused();
+
+  const [name, setName] = useState(route.params.name)
+  const [editingLabel, setEditingName] = useState(false)
+  const [newName, setNewName] = useState('')
   const [visible, setVisible] = useState(false)
-  const showDialog = () => {
+  const [items, setItems] = useState([])
+
+  useEffect(() => {
+    if(isFocused) {
+      getFromItems(name, setItems)
+    }
+  }, [isFocused])
+
+  const showDialogDelete = () => {
     setVisible(true)
   }
 
-  const handleCancel = () => {
+  const handleCancelDelete = () => {
     setVisible(false)
   }
 
   const handleDelete = () => {
+    deleteCollection(name)
     setVisible(false)
+    navigation.navigate('Main')
+  }
+
+  const showEdit = () => {
+    setEditingName(true)
+  }
+
+  const handleCancelEdit = () => {
+    setNewName('')
+    setEditingName(false)
+  }
+
+  const handleEdit = () => {
+    if(newName !== '') {
+      updateCollection(name, newName)
+      setName(newName)
+    }
+    setEditingName(false)
   }
 
   return (
@@ -40,7 +73,7 @@ export default function Collection({navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>showDialog()}
+            onPress={()=>showDialogDelete()}
             iconName="delete"
             size={35}
           />
@@ -51,7 +84,7 @@ export default function Collection({navigation}) {
               style={styles.iconButton}
               activeOpacity={0.6}
               underlayColor="#DDDDDD"
-              onPress={()=>setEditingLabel(false)}
+              onPress={()=>handleCancelEdit()}
               iconName="cancel"
               size={35}
               />
@@ -59,7 +92,7 @@ export default function Collection({navigation}) {
               style={styles.iconButton}
               activeOpacity={0.6}
               underlayColor="#DDDDDD"
-              onPress={()=>setEditingLabel(false)}
+              onPress={()=>handleEdit()}
               iconName="save"
               size={35}
               />
@@ -69,7 +102,7 @@ export default function Collection({navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>setEditingLabel(true)}
+            onPress={()=>showEdit()}
             iconName="edit"
             size={35}
             />
@@ -81,9 +114,9 @@ export default function Collection({navigation}) {
       <View style={styles.header}>
         <View style={styles.headingContainer}>
           {editingLabel ?
-            <CustomTextInput style={[globalStyles.headingTextEdit, styles.container]}/>
+            <TextInput style={[globalStyles.headingTextEdit, styles.container]} value={newName} onChangeText={val => setNewName(val)}/>
           :
-            <CustomText style={globalStyles.headingText}>Entertainment</CustomText>
+            <CustomText style={globalStyles.headingText}>{name}</CustomText>
           }
           <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>5</CustomText>
         </View>
@@ -94,28 +127,48 @@ export default function Collection({navigation}) {
       </View>
 
       <View style={styles.container}>
-        <View styles={styles.sortPanel}>
+        <View styles={styles.options}>
           <SortBy style={{marginLeft: 30}}/>
+          <IconButton
+            style={[styles.iconButton, styles.plus]}
+            activeOpacity={0.6}
+            underlayColor="#ffdd85"
+            onPress={()=>navigation.navigate('Item', {collection: name})}
+            iconName="add"
+            size={43}
+          />
         </View>
+        
         <View style={styles.panel}>
             <ScrollView style={styles.scrollView}>
-              <ItemBubble navigation={navigation}/>
-              <ItemBubble navigation={navigation}/>
-              <ItemBubble navigation={navigation}/>
-              <ItemBubble navigation={navigation}/>
+              {
+                items.map((item) => (
+                  <ItemBubble navigation={navigation} key={item.id} 
+                  id={item.id} name={item.name} photo={item.photo} 
+                  price={item.price} quantity={item.quantity} 
+                  total={item.total}
+                  />
+                ))
+              }
             </ScrollView>
         </View>
       </View>
       
 
-      {/* <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
-        <Dialog.Title>Delete Collection?</Dialog.Title>
-        <Dialog.Description>
-          You cannot undo this action. All items that don't belong to a collection will be placed in the "no collection" collection
-        </Dialog.Description>
-        <Dialog.Button label="Cancel" onPress={handleCancel}/>
-        <Dialog.Button label="Delete" onPress={handleDelete}/>
-      </Dialog.Container> */}
+      <Portal>
+        <Dialog visible={visible} onDismiss={handleCancelDelete}>
+          <Dialog.Title>Delete Collection - {name}</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Are you sure you want to delete this collection?
+            All items in this collection will be dissociated from this collection.</Paragraph>
+            
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleCancelDelete}>No</Button>
+            <Button onPress={handleDelete}>Yes</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
     </View>
   )
@@ -127,7 +180,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     borderRadius: 100,
-    padding: 10
+    padding: 10,
   },
   header: {
     marginLeft: 25,
@@ -155,10 +208,28 @@ const styles = StyleSheet.create({
     flex: 1,
     overflow: 'hidden'
   },
-  sortPanel: {
+  options: {
+    flexDirection: 'row',
   },
   scrollView: {
 
+  },
+  plus: {
+    width:54,
+    position: 'absolute',
+    right: 23,
+    bottom: 10,
+    alignItems: 'center',
+    backgroundColor: '#fcca47',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.29,
+    shadowRadius: 2.65,
+    elevation: 4,
+    padding: 5,
   },
   
 })

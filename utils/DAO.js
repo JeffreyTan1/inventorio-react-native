@@ -7,7 +7,7 @@ const dbTransaction = (sql) => {
   db.transaction(tx => {
     tx.executeSql(
       sql, null,
-      (txObj, resultSet) => (console.log('Success', JSON.stringify(resultSet))),
+      (txObj, resultSet) => (console.log('')),
       (txObj, error) => console.log('Error', error))
     });
 }
@@ -65,18 +65,24 @@ export const dropTables = () => {
 }
 
 // CRUD Items
-export const createItem = (name, photo, receipt, price, quantity, total, notes, tags) => {
-  db.transaction(tx => {
+export const createItem = (name, photo, receipt, price, quantity, total, notes, assocCollections) => {
+  var assocCollections = assocCollections
+  db.transaction((tx) => {
     tx.executeSql(
-    `INSERT INTO items (name, photo, receipt, price, quantity, total, notes, tags) 
-      values (?, ?, ?, ?, ?, ?, ?, ?)`, 
-      [name, photo, receipt, price, quantity, total, notes, tags],
-      (txObj, resultSet) => (console.log(`inserted ${JSON.stringify(resultSet)}`)),
+    `INSERT INTO items (name, photo, receipt, price, quantity, total, notes) 
+      values (?, ?, ?, ?, ?, ?, ?)`, 
+      [name, photo, receipt, price, quantity, total, notes],
+      (txObj, resultSet) => {
+        console.log(`inserted ${JSON.stringify(resultSet)}`)
+        assocCollections.forEach(collection => {
+          associate(resultSet.insertId, collection)
+        });
+      },
       (txObj, error) => console.log('Error', error))
   });
 }
 
-export const getFromItems = (collection) => {
+export const getFromItems = (collection, callback) => {
   let sql = 'SELECT * FROM items';
   if(collection) {
     sql = `SELECT * FROM items WHERE id IN (
@@ -86,22 +92,40 @@ export const getFromItems = (collection) => {
 
   db.transaction(tx => {
     tx.executeSql(sql, null, 
-      (txObj, { rows: { _array } }) => {
-        return _array
-      },
+    (txObj, resultSet) => (callback(resultSet.rows._array)),
     (txObj, error) => console.log('Error ', error)
     ) 
   }) 
 }
 
-export const updateItem = (name, photo, receipt, price, quantity, total, notes, id) => {  
+export const getItem = (id, callback) => {
+  let sql = 'SELECT * FROM items WHERE id = ?';
+  db.transaction(tx => {
+    tx.executeSql(sql, [id], 
+    (txObj, resultSet) => (callback(resultSet.rows._array[0])),
+    (txObj, error) => console.log('Error ', error)
+    ) 
+  }) 
+}
+
+export const updateItem = (name, photo, receipt, price, quantity, total, notes, id, assocCollections, dissocCollections) => {  
+  var assocCollections = assocCollections 
+  var dissocCollections = dissocCollections
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE items 
       SET name = ?, photo = ?, receipt = ?, price = ?, quantity = ?, total = ?, notes = ?
       WHERE id = ?`, 
       [name, photo, receipt, price, quantity, total, notes, id],
-      (txObj, resultSet) => (console.log(`updated ${JSON.stringify(resultSet)}`)),
+      (txObj, resultSet) => {
+        console.log(`updated ${JSON.stringify(resultSet)}`)
+        assocCollections.forEach(collection => {
+          associate(id, collection)
+        });
+        dissocCollections.forEach(collection => {
+          dissociate(id, collection)
+        });
+      },
       (txObj, error) => console.log('Error', error))
   });
 }
@@ -122,25 +146,24 @@ export const deleteItem = (id) => {
 }
 
 // CRUD Collections
-export const getAllCollections = () => {
+export const getAllCollections = (callback) => {
   let sql = 'SELECT * FROM collections';
   db.transaction(tx => {
     tx.executeSql(sql, null, 
-      (txObj, { rows: { _array } }) => {
-        return _array
-      },
-    (txObj, error) => console.log('Error ', error)
+      (txObj, resultSet) => (callback(resultSet.rows._array)),
+      (txObj, error) => console.log('Error ', error)
     ) 
-  }) 
+  }
+  )
 }
 
 export const createCollection = (name) => {
   db.transaction(tx => {
     tx.executeSql(
-    `INSERT INTO labels (name) 
+    `INSERT INTO collections (name) 
       values (?)`, 
       [name],
-      (txObj, resultSet) => (onLabelInsert(txObj, resultSet, label)),
+      (txObj, resultSet) => (console.log(`inserted ${JSON.stringify(resultSet)}`)),
       (txObj, error) => console.log('Error', error))
   })
 }
@@ -174,13 +197,15 @@ export const deleteCollection = (name) => {
 }
 
 // Manage many-to-many table: items_collections
+
 const associate = (item_id, collection_name) => {
+  console.log(`Associating item_id:${item_id} collection_name:${collection_name}`)
   db.transaction(tx => {
     tx.executeSql(
     `INSERT INTO items_collections (item_id, collection_name) 
       values (?, ?)`, 
       [item_id, collection_name],
-      (txObj, resultSet) => (console.log(`inserted ${JSON.stringify(resultSet)}`)),
+      (txObj, resultSet) => (console.log(`insert ${JSON.stringify(resultSet)}`)),
       (txObj, error) => console.log('Error', error))
   })
 }
@@ -188,11 +213,11 @@ const associate = (item_id, collection_name) => {
 const dissociate = (item_id, collection_name) => {
   db.transaction(tx => {
     tx.executeSql(
-    `DELETE FROM items_collections WHERE item_id = ?, collection_name = ?`, 
+    `DELETE FROM items_collections WHERE item_id = ? AND collection_name = ?`, 
       [item_id, collection_name],
       (txObj, resultSet) => {
         if (resultSet.rowsAffected > 0) {
-          (console.log(`deleted ${JSON.stringify(resultSet)}`))
+          (console.log(`dissociate delete ${JSON.stringify(resultSet)}`))
         }
       },
       (txObj, error) => console.log('Error', error))
@@ -239,17 +264,30 @@ const handleUpdateCollection = (old_collection_name, new_collection_name) => {
 
 
 // Other methods
-export const getItemsWithoutCollection = () => {
+export const getItemsWithoutCollection = (callback) => {
   sql = `SELECT * FROM items WHERE id NOT IN (
     SELECT item_id FROM items_collections)
   `
 
   db.transaction(tx => {
     tx.executeSql(sql, null, 
-      (txObj, { rows: { _array } }) => {
-        return _array
-      },
+    (txObj, resultSet) => (callback(resultSet.rows._array)),
     (txObj, error) => console.log('Error ', error)
     ) 
   }) 
+}
+
+export const getCollectionStats = () => {
+
+}
+
+export const getItemCollections = (id, callback) => {
+  let sql = 'SELECT collection_name FROM items_collections WHERE item_id = ?';
+  db.transaction(tx => {
+    tx.executeSql(sql, [id], 
+      (txObj, resultSet) => (callback(resultSet.rows._array)),
+      (txObj, error) => console.log('Error ', error)
+    ) 
+  }
+  )
 }

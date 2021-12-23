@@ -6,19 +6,19 @@ import { Platform } from 'react-native';
 const TouchableOpacity = 
     Platform.OS === 'ios' ? require('react-native').TouchableOpacity : require('react-native-gesture-handler').TouchableOpacity;
 
-export default function CollectionBubble({navigation}) {
+export default function CollectionBubble({navigation, name, image}) {
   return (
     <TouchableOpacity
     activeOpacity={0.9}
     underlayColor="#DDDDDD"
-    onPress={()=>navigation.navigate('Collection')}>
+    onPress={()=>navigation.navigate('Collection', {name: name})}>
       <View style={styles.container}>
         <Image
           style={styles.image}
           source={require('./../assets/gprox.png')}
         />
         <View style={styles.details}>
-          <CustomText>Entertainment</CustomText>
+          <CustomText>{name}</CustomText>
         </View>
       </View>
     </TouchableOpacity>

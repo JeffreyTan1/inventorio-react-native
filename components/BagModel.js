@@ -12,17 +12,17 @@ import ExpoTHREE, { Renderer, TextureLoader } from 'expo-three';
 import {ExpoWebRenderingContext, GLView} from 'expo-gl'
 
 
-let speed = 0;
+let speed = 0.005;
 
 export default function BagModel() {
   const [object, setObject] = useState(null);
 
   const onSwipeLeft = () => {
-    speed -= 0.009
+    speed -= 0.005
   }
 
   const onSwipeRight = () => {
-    speed += 0.009
+    speed += 0.005
 
   }
 

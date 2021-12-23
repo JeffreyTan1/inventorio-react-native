@@ -4,12 +4,12 @@ import Icon from 'react-native-vector-icons/FontAwesome5'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
 
-export default function ItemBubble({navigation}) {
+export default function ItemBubble({navigation, id, name, photo, price, quantity, total}) {
   return (
     <TouchableOpacity
     activeOpacity={0.95}
     underlayColor="#DDDDDD"
-    onPress={()=>navigation.navigate('Item')}>
+    onPress={()=>navigation.navigate('Item', {id: id})}>
       <View style={styles.container}>
         <Image
           style={styles.image}
@@ -20,22 +20,22 @@ export default function ItemBubble({navigation}) {
         >
           <View style={styles.title}>
             <CustomText style={styles.titleText}>
-              Logitech G Pro X
+              {name}
             </CustomText>
             <CustomText style={[styles.titleText, globalStyles.halfOpacity]}>
-              1
+              {quantity}
             </CustomText>
           </View>
           <View style={styles.iconInfo}>
             <Icon name="money-bill-alt"/>
             <CustomText>
-              190
+              {price}
             </CustomText>
           </View>
           <View style={styles.iconInfo}>
             <Icon name="dollar-sign"/>
             <CustomText>
-              190
+              {total}
             </CustomText>
           </View>
           <View>

@@ -1,7 +1,6 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
 import { View, StyleSheet } from 'react-native'
 import SummaryStatistic from '../components/SummaryStatistic';
-import { ScrollView } from "react-native-gesture-handler";
 import CustomText from "../components/CustomText";
 import globalStyles from "../styles/globalStyles";
 import SortBy from "../components/SortBy";
@@ -12,13 +11,38 @@ import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, wi
 import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs} from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
 import Carousel from 'react-native-reanimated-carousel';
-import { Provider, Dialog, Portal, TextInput, Button } from "react-native-paper";
+import { Dialog, Portal, TextInput, Button } from "react-native-paper";
+import { getAllCollections, createCollection } from "../utils/DAO";
 
-export default function Main({navigation}) {
+export default function Main({route, navigation}) {
   const [visible, setVisible] = useState(false)
   const [collectionInput, setCollectionInput] = useState('')
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '60%'], []);
+  const [collections, setCollections] = useState([]);
+
+  useEffect(() => {
+    getAllCollections(setCollections)
+  }, [])
+
+  // takes an array of objects 
+  // splits it into an array of size-4 arrays of objects
+  const splitInFours = () => {
+    if (!collections) return
+    var perChunk = 4 // items per chunk    
+    var inputArray = collections
+    var result = inputArray.reduce((resultArray, item, index) => { 
+      const chunkIndex = Math.floor(index/perChunk)
+      if(!resultArray[chunkIndex]) {
+        resultArray[chunkIndex] = [] // start a new chunk
+      }
+      resultArray[chunkIndex].push(item)
+      return resultArray
+    }, [])
+    
+    result = result.map(x => ({data: x}))
+    return result
+  }
 
   const showDialog = () => {
     setVisible(true)
@@ -30,7 +54,10 @@ export default function Main({navigation}) {
   }
 
   const handleSave = () => {
-    console.log(collectionInput)
+    if(collectionInput !== ''){
+      createCollection(collectionInput)
+      getAllCollections(setCollections)
+    }
     setCollectionInput('')
     setVisible(false)
   }
@@ -91,25 +118,34 @@ export default function Main({navigation}) {
               iconName="add"
               size={43}
             />
+            
           </View>
           <Animated.View
             style={[styles.bottomSheet, animBottomSheet]}
           >
             <SortBy style={{right: 30}}/>
-            <Carousel
+            {
+              collections.length !== 0 ?
+              <Carousel
               width={450}
-              data={[{ data: {} }, { data: {} }, { data: {} }]}
+              data={splitInFours()}
               renderItem={({ data }) => {
+                
                 return (
                   <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent:'center', flex:1}}>
-                    <CollectionBubble navigation={navigation}/>
-                    <CollectionBubble navigation={navigation}/>
-                    <CollectionBubble navigation={navigation}/>
-                    <CollectionBubble navigation={navigation}/>
+                    {
+                      data.map((collection) => (
+                        <CollectionBubble navigation={navigation} name={collection.name} key={collection.name} />
+                      ))
+                    }
+                  
                   </View>
                 );
               }}
             />
+            :
+            <CustomText>Add a collection to get started!</CustomText>
+          }
           </Animated.View>
       </View >
     )
@@ -177,23 +213,29 @@ export default function Main({navigation}) {
         size={43}
       />
 
-      <Provider>
-      <View>
-        <Portal>
-          <Dialog visible={visible} onDismiss={handleCancel}>
-            <Dialog.Title>Add Collection</Dialog.Title>
-            <Dialog.Content>
-              <TextInput value={collectionInput} onChangeText={val=>setCollectionInput(val)}/>
-            </Dialog.Content>
-            <Dialog.Actions>
-              <Button onPress={handleCancel}>Cancel</Button>
-              <Button onPress={handleSave}>Done</Button>
-            </Dialog.Actions>
-          </Dialog>
-        </Portal>
-        </View>
-      </Provider>
-      
+      <Portal>
+        <Dialog visible={visible} onDismiss={handleCancel}>
+          <Dialog.Title>Add Collection</Dialog.Title>
+          <Dialog.Content>
+            <TextInput value={collectionInput} onChangeText={val=>setCollectionInput(val)}/>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={handleCancel}>Cancel</Button>
+            <Button onPress={handleSave}>Done</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+{/* 
+      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
+        <Dialog.Title>Add Collection</Dialog.Title>
+        <Dialog.Description>
+          Enter the name of the collection.
+        </Dialog.Description>
+        <Dialog.Input/>
+        <Dialog.Button label="Cancel" onPress={handleCancel}/>
+        <Dialog.Button label="Delete" onPress={handleSave}/>
+      </Dialog.Container> */}
+
     </View>  
   )
 }
@@ -207,7 +249,10 @@ const styles = StyleSheet.create({
     right:20,
     top: 5
   },
-
+  fab: {
+    paddingBottom: 60,
+    paddingRight: 10,
+  },
   iconButton: {
     borderRadius: 100,
     padding: 5,
