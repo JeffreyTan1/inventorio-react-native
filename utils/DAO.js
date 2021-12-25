@@ -20,7 +20,6 @@ export const createTables = () => {
       id INTEGER PRIMARY KEY AUTOINCREMENT, 
       name TEXT, 
       photo TEXT,
-      receipt TEXT,
       price REAL,
       quantity INTEGER,
       total REAL,
@@ -65,18 +64,19 @@ export const dropTables = () => {
 }
 
 // CRUD Items
-export const createItem = (name, photo, receipt, price, quantity, total, notes, assocCollections) => {
+export const createItem = (name, photo, price, quantity, total, notes, assocCollections, callback) => {
   var assocCollections = assocCollections
   db.transaction((tx) => {
     tx.executeSql(
-    `INSERT INTO items (name, photo, receipt, price, quantity, total, notes) 
-      values (?, ?, ?, ?, ?, ?, ?)`, 
-      [name, photo, receipt, price, quantity, total, notes],
+    `INSERT INTO items (name, photo, price, quantity, total, notes) 
+      values (?, ?, ?, ?, ?, ?)`, 
+      [name, photo, price, quantity, total, notes],
       (txObj, resultSet) => {
         console.log(`inserted ${JSON.stringify(resultSet)}`)
         assocCollections.forEach(collection => {
           associate(resultSet.insertId, collection)
         });
+        callback(resultSet.insertId)
       },
       (txObj, error) => console.log('Error', error))
   });
@@ -108,15 +108,15 @@ export const getItem = (id, callback) => {
   }) 
 }
 
-export const updateItem = (name, photo, receipt, price, quantity, total, notes, id, assocCollections, dissocCollections) => {  
+export const updateItem = (name, photo, price, quantity, total, notes, id, assocCollections, dissocCollections) => {  
   var assocCollections = assocCollections 
   var dissocCollections = dissocCollections
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE items 
-      SET name = ?, photo = ?, receipt = ?, price = ?, quantity = ?, total = ?, notes = ?
+      SET name = ?, photo = ?, price = ?, quantity = ?, total = ?, notes = ?
       WHERE id = ?`, 
-      [name, photo, receipt, price, quantity, total, notes, id],
+      [name, photo, price, quantity, total, notes, id],
       (txObj, resultSet) => {
         console.log(`updated ${JSON.stringify(resultSet)}`)
         assocCollections.forEach(collection => {

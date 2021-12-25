@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, ScrollView, TextInput} from 'react-native'
+import { View, StyleSheet, Image, ScrollView, TextInput, TouchableOpacity} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
@@ -8,27 +8,43 @@ import CustomChip from '../components/CustomChip'
 import { Portal, Button, Dialog, Paragraph, Checkbox } from 'react-native-paper'
 import { createItem, deleteItem, getAllCollections, getItem, getItemCollections, updateItem } from '../utils/DAO'
 import CustomCheckBox from '../components/CustomCheckBox'
+import * as ImagePicker from 'expo-image-picker';
+import Carousel from 'react-native-reanimated-carousel';
+import ImageView from 'react-native-image-viewing'
 
 export default function Item({route, navigation}) {
-  const id =  route.params?.id
+  // data from navigation
+  const [id, setId] = useState(route.params?.id)
   const collection = route.params?.collection
+  const returnUri = route.params?.uri
 
+  // data from database
   const [item, setItem] = useState(null)
   const [collectionsIn, setCollectionsIn] = useState(null)
   const [allCollections, setAllCollections] = useState(null)
 
+  // states for conditional rendering
   const [editing, setEditing] = useState(id ? false : true) // default to edit if new item
   const [delDialogVis, setDelDialogVis] = useState(false)
   const [collectionsDialogVis, setCollectionsDialogVis] = useState(false)
+  const [imageChoiceVis, setImageChoiceVis] = useState(false)
+  const [imageViewerVis, setImageViewerVis] = useState(false)
 
+  // store values of edits
   const [name, setName] = useState('')
   const [photo, setPhoto] = useState('')
-  const [receipt, setReceipt] = useState('')
   const [price, setPrice] = useState('0')
   const [quantity, setQuantity] = useState('0')
   const [total, setTotal] = useState('0')
   const [notes, setNotes] = useState('')
   const [collectionsEdit, setCollectionsEdit] = useState({})
+
+  // set photo after camera has taken it
+  useEffect(() => {
+    if(returnUri) {
+      setPhoto(returnUri)
+    }
+  }, [route.params.uri])
 
   // get data
   useEffect(() => {
@@ -37,10 +53,10 @@ export default function Item({route, navigation}) {
       getItemCollections(id, setCollectionsIn)
     }
     getAllCollections(setAllCollections)
-  }, [])
+  }, [id])
 
+  // set collections that are selected by chips
   useEffect(() => {
-    
     if(allCollections) {
       const tempAllCollections = {}
       allCollections.forEach(e => {
@@ -61,21 +77,15 @@ export default function Item({route, navigation}) {
         setCollectionsEdit({...tempAllCollections, ...tempObj})
       }
     }
-    
   }, [collectionsIn, allCollections])
 
+  // set edit data to begin at the database data
   useEffect(() => {
     if(item){
-      setName(item.name); setPhoto(item.photo); setReceipt(item.receipt); setPrice(item.price.toString()); 
+      setName(item.name); setPhoto(item.photo); setPrice(item.price.toString()); 
       setQuantity(item.quantity.toString());setTotal(item.total.toString()); setNotes(item.notes);
     }
   }, [item]);
-
-  useEffect(() => {
-    if(collectionsIn){
-      setCollectionsIn(collectionsIn)
-    }
-  }, [collectionsIn]);
 
   // modify total when price & qty change
   useEffect(() => {
@@ -88,7 +98,37 @@ export default function Item({route, navigation}) {
     deleteItem(id)
     navigation.goBack()
   }
+  
+  // handle camera vs image picker dialog
+  const handleImageChoice = (choice) => {
+    setImageChoiceVis(false)
+    if(choice === 'camera') {
+      navigation.navigate('CameraModule')
+    } else if (choice === 'image-picker') {
+      pickImage()
+    }
+  }
 
+  const pickImage = async () => {
+    const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync()
+    if (status !== 'granted') {
+      alert('Permission denied!')
+      return
+    }
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.cancelled) {
+      setPhoto(result.uri);
+    }
+  };
+
+  // returns list of collections to associate and to dissociate from/to item
   const getCollectionsLists = () => {
     const assocCollections=[]
     const dissocCollections=[]
@@ -119,20 +159,23 @@ export default function Item({route, navigation}) {
     return {assocCollections, dissocCollections}
   }
 
-  // creates item if no id, otherwise updates it
+  // creates item, otherwise updates it if already exists
   const handleSave = () => {
     const {assocCollections, dissocCollections} = getCollectionsLists()
 
     if(id){
       setEditing(false)
-      updateItem(name, photo, receipt, price, quantity, total, notes, id, assocCollections, dissocCollections) 
-      setItem({name, photo, receipt, price, quantity, total, notes, id})
+      updateItem(name, photo, price, quantity, total, notes, id, assocCollections, dissocCollections) 
+      setItem({name, photo, price, quantity, total, notes, id})
+      // TODO: logic for setCollectionsIn()
     } else {
-      createItem(name, photo, receipt, price, quantity, total, notes, assocCollections) 
-      navigation.goBack()
+      createItem(name, photo, price, quantity, total, notes, assocCollections, setId)
+      // TODO: logic for setCollectionsIn()
+      setEditing(false)
     }
   }
 
+  // onchange handler for editing collections
   const handleCollectionsEditChange = (collection) => {
     const tempObj = {}
     tempObj[collection] = !collectionsEdit[collection]
@@ -141,7 +184,6 @@ export default function Item({route, navigation}) {
 
   return (
     <View style={styles.container}>
-
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <IconButton
@@ -216,12 +258,46 @@ export default function Item({route, navigation}) {
 
       {/* Image */}
       <View style={styles.imageHeader}>
-        <View style={styles.imageContainer}>
-          <Image
-            style={styles.image}
-            source={require('./../assets/gprox.png')}
-          />
-        </View>
+        {/* <Carousel
+          style={{height: 250}}
+          width={450}
+          data={[{img: photo}]}
+          renderItem={({ img }) => {
+            return (
+              <TouchableOpacity
+                onPress={() => setImageChoiceVis(true)}
+                activeOpacity={0.8}
+              >
+                <Image style={styles.image} 
+                  source={{uri: img}} 
+                />
+              </TouchableOpacity>
+            );
+        }} /> */}
+
+       
+      <View style={styles.imageContainer}>
+        <TouchableOpacity
+          onPress={() => {
+            if(editing) {setImageChoiceVis(true)}
+            else {setImageViewerVis(true)}
+          }}
+          activeOpacity={0.8}
+        >    
+          {
+            photo ?
+            <Image style={styles.image} 
+              source={{uri: photo}} 
+            />
+            :
+            <Image style={styles.image} 
+              source={require('./../assets/4x3-placeholder.png')}
+            />
+          }
+          
+        </TouchableOpacity>
+      </View>
+        
       </View>
 
       {/* Yellow panel */}
@@ -325,7 +401,26 @@ export default function Item({route, navigation}) {
           </Dialog.Actions>
         </Dialog>
 
+        <Dialog visible={imageChoiceVis} onDismiss={()=>setImageChoiceVis(false)}>
+          <Dialog.Title>Choose One</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph></Paragraph>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={()=>handleImageChoice('camera')}>Take a Photo</Button>
+            <Button onPress={()=>handleImageChoice('image-picker')}>Choose from Gallery</Button>
+          </Dialog.Actions>
+        </Dialog>
+
+
       </Portal>
+
+      <ImageView
+        images={[{uri: item?.photo}]}
+        imageIndex={0}
+        visible={imageViewerVis}
+        onRequestClose={() => setImageViewerVis(false)}
+      />
 
     </View>
   )
@@ -359,6 +454,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
+    height: 250,
     borderRadius: 30,
   },
   panel: {

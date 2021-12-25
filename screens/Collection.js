@@ -6,7 +6,7 @@ import ItemBubble from '../components/ItemBubble'
 import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
 import { Dialog, Portal, Button, Paragraph } from "react-native-paper";
-import { getFromItems, deleteCollection } from '../utils/DAO'
+import { getFromItems, deleteCollection, updateCollection } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
 
 export default function Collection({route, navigation}) {

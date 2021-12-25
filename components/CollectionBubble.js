@@ -15,7 +15,7 @@ export default function CollectionBubble({navigation, name, image}) {
       <View style={styles.container}>
         <Image
           style={styles.image}
-          source={require('./../assets/gprox.png')}
+          source={require('./../assets/4x3-placeholder.png')}
         />
         <View style={styles.details}>
           <CustomText>{name}</CustomText>

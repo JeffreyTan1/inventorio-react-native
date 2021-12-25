@@ -11,10 +11,11 @@ import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, wi
 import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs} from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
 import Carousel from 'react-native-reanimated-carousel';
+// import Carousel from 'react-native-snap-carousel'
 import { Dialog, Portal, TextInput, Button } from "react-native-paper";
 import { getAllCollections, createCollection } from "../utils/DAO";
 
-export default function Main({route, navigation}) {
+export default function Main({navigation}) {
   const [visible, setVisible] = useState(false)
   const [collectionInput, setCollectionInput] = useState('')
   const bottomSheetRef = useRef(null);
@@ -141,8 +142,7 @@ export default function Main({route, navigation}) {
                   
                   </View>
                 );
-              }}
-            />
+              }} />
             :
             <CustomText>Add a collection to get started!</CustomText>
           }

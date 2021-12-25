@@ -9,6 +9,7 @@ import Settings from './screens/Settings';
 import { createTables, dropTables } from './utils/DAO';
 import { Provider as PaperProvider } from 'react-native-paper';
 import Item from './screens/Item';
+import CameraModule from './screens/CameraModule';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,6 +42,7 @@ export default function App() {
           <Stack.Screen name="Collection" component={Collection} />
           <Stack.Screen name="Item" component={Item} />
           <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="CameraModule" component={CameraModule} />
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>

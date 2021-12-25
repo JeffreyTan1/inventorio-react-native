@@ -11,10 +11,19 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
     underlayColor="#DDDDDD"
     onPress={()=>navigation.navigate('Item', {id: id})}>
       <View style={styles.container}>
-        <Image
-          style={styles.image}
-          source={require('./../assets/gprox.png')}
-        />
+        {
+          photo === '' ?
+          <Image
+            style={styles.image}
+            source={require('./../assets/4x3-placeholder.png')}
+          />
+          :
+          <Image
+            style={styles.image}
+            source={{uri: photo}}
+          />
+        }
+        
         <View 
           style={styles.details}
         >

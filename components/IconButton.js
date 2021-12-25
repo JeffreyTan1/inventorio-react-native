@@ -2,7 +2,7 @@ import React from 'react'
 import { TouchableHighlight } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
-export default function IconButton({style, activeOpacity, underlayColor, onPress, iconName, size}) {
+export default function IconButton({style, activeOpacity, underlayColor, onPress, iconName, size, color}) {
   return (
     <TouchableHighlight
     style={style}
@@ -10,7 +10,7 @@ export default function IconButton({style, activeOpacity, underlayColor, onPress
     underlayColor={underlayColor}
     onPress={onPress}
     >
-      <Icon name={iconName} size={size}/>
+      <Icon name={iconName} size={size} color={color}/>
     </TouchableHighlight>
   )
 }
