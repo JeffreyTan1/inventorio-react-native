@@ -5,12 +5,13 @@ import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
 import ItemInfoBubble from '../components/ItemInfoBubble'
 import CustomChip from '../components/CustomChip'
-import { Portal, Button, Dialog, Paragraph, Checkbox } from 'react-native-paper'
+import Dialog from 'react-native-dialog'
 import { createItem, deleteItem, getAllCollections, getItem, getItemCollections, updateItem } from '../utils/DAO'
 import CustomCheckBox from '../components/CustomCheckBox'
 import * as ImagePicker from 'expo-image-picker';
 import Carousel from 'react-native-reanimated-carousel';
 import ImageView from 'react-native-image-viewing'
+import { TouchableHighlight } from 'react-native-gesture-handler'
 
 export default function Item({route, navigation}) {
   // data from navigation
@@ -159,6 +160,16 @@ export default function Item({route, navigation}) {
     return {assocCollections, dissocCollections}
   }
 
+  const mutateCollectionsEdit = () => {
+    const tempArray = []
+    for (const key in collectionsEdit) {
+      if (collectionsEdit[key]) {
+        tempArray.push({collection_name: key})
+      }
+    }
+    return tempArray
+  }
+
   // creates item, otherwise updates it if already exists
   const handleSave = () => {
     const {assocCollections, dissocCollections} = getCollectionsLists()
@@ -167,11 +178,12 @@ export default function Item({route, navigation}) {
       setEditing(false)
       updateItem(name, photo, price, quantity, total, notes, id, assocCollections, dissocCollections) 
       setItem({name, photo, price, quantity, total, notes, id})
-      // TODO: logic for setCollectionsIn()
+      setCollectionsIn(mutateCollectionsEdit())
+      
     } else {
       createItem(name, photo, price, quantity, total, notes, assocCollections, setId)
-      // TODO: logic for setCollectionsIn()
       setEditing(false)
+      setCollectionsIn(mutateCollectionsEdit())
     }
   }
 
@@ -277,12 +289,13 @@ export default function Item({route, navigation}) {
 
        
       <View style={styles.imageContainer}>
-        <TouchableOpacity
+        <TouchableHighlight
           onPress={() => {
             if(editing) {setImageChoiceVis(true)}
             else {setImageViewerVis(true)}
           }}
           activeOpacity={0.8}
+          style={styles.imagePressableContainer}
         >    
           {
             photo ?
@@ -295,7 +308,7 @@ export default function Item({route, navigation}) {
             />
           }
           
-        </TouchableOpacity>
+        </TouchableHighlight>
       </View>
         
       </View>
@@ -360,60 +373,43 @@ export default function Item({route, navigation}) {
         </ScrollView>
       </View>
 
+        <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
+          <Dialog.Title>Delete item {item?.name}?</Dialog.Title>
+          <Dialog.Description>
+              Are you sure you want to delete this item? All collections
+              with this item will lose this item.
+          </Dialog.Description>
+          <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
+          <Dialog.Button label="Delete" onPress={() => handleDelete()}/>
+        </Dialog.Container>
 
+        <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
+          <Dialog.Title>Labels</Dialog.Title>
+          {
+            Object.keys(collectionsEdit).map((collection) => {
+              if(collectionsEdit[collection]){
+                return(
+                  <CustomCheckBox key={collection} isChecked={true} onPress={() => handleCollectionsEditChange(collection)}>
+                    {collection}
+                  </CustomCheckBox>
+                )
+              } else {
+                return (
+                  <CustomCheckBox key={collection} isChecked={false} onPress={() => handleCollectionsEditChange(collection)}>
+                    {collection}
+                  </CustomCheckBox>
+                )
+              }
+            })
+          }
+          <Dialog.Button label="Done" onPress={() => setCollectionsDialogVis(false)}/>
+        </Dialog.Container>
 
-      <Portal>
-        <Dialog visible={delDialogVis} onDismiss={()=>setDelDialogVis(false)}>
-          <Dialog.Title>Delete Item - {item?.name}</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>Are you sure you want to delete this item? All collections
-              with this item will lose this item.</Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={()=>setDelDialogVis(false)}>No</Button>
-            <Button onPress={()=>handleDelete()}>Yes</Button>
-          </Dialog.Actions>
-        </Dialog>
-
-        <Dialog visible={collectionsDialogVis} onDismiss={()=>setCollectionsDialogVis(false)}>
-          <Dialog.Title>Choose collections</Dialog.Title>
-          <Dialog.Content>
-            {
-              Object.keys(collectionsEdit).map((collection) => {
-                if(collectionsEdit[collection]){
-                  return(
-                    <CustomCheckBox key={collection} status='checked' onPress={() => handleCollectionsEditChange(collection)}>
-                      {collection}
-                    </CustomCheckBox>
-                  )
-                } else {
-                  return (
-                    <CustomCheckBox key={collection} status='unchecked' onPress={() => handleCollectionsEditChange(collection)}>
-                      {collection}
-                    </CustomCheckBox>
-                  )
-                }
-              })
-            }
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={()=>setCollectionsDialogVis(false)}>Done</Button>
-          </Dialog.Actions>
-        </Dialog>
-
-        <Dialog visible={imageChoiceVis} onDismiss={()=>setImageChoiceVis(false)}>
-          <Dialog.Title>Choose One</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph></Paragraph>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={()=>handleImageChoice('camera')}>Take a Photo</Button>
-            <Button onPress={()=>handleImageChoice('image-picker')}>Choose from Gallery</Button>
-          </Dialog.Actions>
-        </Dialog>
-
-
-      </Portal>
+        <Dialog.Container visible={imageChoiceVis} onBackdropPress={() => setImageChoiceVis(false)}>
+          <Dialog.Title>Choose one</Dialog.Title>
+          <Dialog.Button label="Camera" onPress={()=>handleImageChoice('camera')}/>
+          <Dialog.Button label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
+        </Dialog.Container>
 
       <ImageView
         images={[{uri: item?.photo}]}
@@ -451,6 +447,9 @@ const styles = StyleSheet.create({
     elevation: 7,
     marginBottom: 20,
     marginTop: 20
+  },
+  imagePressableContainer: {
+    borderRadius: 30,
   },
   image: {
     width: '100%',

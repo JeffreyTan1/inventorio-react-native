@@ -1,7 +1,7 @@
 import { MotiView } from 'moti'
 import React from 'react'
-import { StyleSheet } from 'react-native'
-import { Chip } from 'react-native-paper'
+import { StyleSheet, View } from 'react-native'
+import CustomText from './CustomText'
 
 export default function CustomChip({children, onPress}) {
   return (
@@ -14,7 +14,7 @@ export default function CustomChip({children, onPress}) {
       duration: 200
     }}
     >
-      <Chip onPress={onPress} style={styles.chip} textStyle={styles.chipText}>{children}</Chip>
+      <View style={styles.chip} textStyle={styles.chipText}><CustomText style={styles.chipText}>{children}</CustomText></View>
     </MotiView>
   )
 }
@@ -25,6 +25,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: 'black',
+    padding: 5,
+    borderRadius: 16
   },
   chipText: {
     fontSize: 18,

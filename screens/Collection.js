@@ -5,60 +5,76 @@ import SortBy from '../components/SortBy'
 import ItemBubble from '../components/ItemBubble'
 import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
-import { Dialog, Portal, Button, Paragraph } from "react-native-paper";
-import { getFromItems, deleteCollection, updateCollection } from '../utils/DAO'
+import Dialog from 'react-native-dialog'
+import { getFromItems, deleteCollection, updateCollection, createCollection } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
 
 export default function Collection({route, navigation}) {
+  // data from navigation
   const isFocused = useIsFocused();
+  const [collection, setCollection] = useState(route.params?.collection);
 
-  const [name, setName] = useState(route.params.name)
-  const [editingLabel, setEditingName] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [visible, setVisible] = useState(false)
+  // data from database
   const [items, setItems] = useState([])
 
+  // states for conditional rendering
+  const [editing, setEditing] = useState(collection ? false : true)
+  const [newName, setNewName] = useState('')
+  const [delDialogVis, setDelDialogVis] = useState(false)
+  
+  // calculated values
+  const [itemsTotal, setItemsTotal] = useState(0)
+  const [quantitiesTotal, setQuantitiesTotal] = useState(0)
+
   useEffect(() => {
-    if(isFocused) {
-      getFromItems(name, setItems)
+    if(isFocused && collection) {
+      getFromItems(collection, setItems)
     }
   }, [isFocused])
 
-  const showDialogDelete = () => {
-    setVisible(true)
-  }
+  useEffect(() => {
+    let tempItemsTotal = 0
+    let tempQuantitiesTotal = 0
+    items.forEach(item => {
+      tempItemsTotal += item.total
+      tempQuantitiesTotal += item.quantity
+    });
 
-  const handleCancelDelete = () => {
-    setVisible(false)
-  }
+    setItemsTotal(tempItemsTotal)
+    setQuantitiesTotal(tempQuantitiesTotal)
+  }, [items])
 
   const handleDelete = () => {
-    deleteCollection(name)
-    setVisible(false)
+    deleteCollection(collection)
+    setDelDialogVis(false)
     navigation.navigate('Main')
   }
 
-  const showEdit = () => {
-    setEditingName(true)
-  }
-
   const handleCancelEdit = () => {
-    setNewName('')
-    setEditingName(false)
+    if(collection) {
+      setNewName('')
+      setEditing(false)
+    } else {
+      navigation.goBack()
+    }
   }
 
   const handleEdit = () => {
     if(newName !== '') {
-      updateCollection(name, newName)
-      setName(newName)
+      if(collection) {
+        updateCollection(collection, newName)
+      } else {
+        createCollection(newName)
+      }
+      setCollection(newName)
     }
-    setEditingName(false)
+    setEditing(false)
   }
 
   return (
     <View style={[styles.container, {backgroundColor: '#fff'}]}>
+      {/* Navbar */}
       <View style={globalStyles.navBar}>
-
         <IconButton
           style={styles.iconButton}
           activeOpacity={0.6}
@@ -69,16 +85,20 @@ export default function Collection({route, navigation}) {
         />
 
         <View style={{flexDirection: 'row'}}>
-          <IconButton
-            style={styles.iconButton}
-            activeOpacity={0.6}
-            underlayColor="#DDDDDD"
-            onPress={()=>showDialogDelete()}
-            iconName="delete"
-            size={35}
-          />
           {
-            editingLabel ?
+            collection &&
+            <IconButton
+              style={styles.iconButton}
+              activeOpacity={0.6}
+              underlayColor="#DDDDDD"
+              onPress={()=>setDelDialogVis(true)}
+              iconName="delete"
+              size={35}
+            />
+          }
+          
+          {
+            editing ?
             <View style={{flexDirection:'row'}}>
               <IconButton
               style={styles.iconButton}
@@ -102,7 +122,7 @@ export default function Collection({route, navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>showEdit()}
+            onPress={()=>setEditing(true)}
             iconName="edit"
             size={35}
             />
@@ -111,34 +131,40 @@ export default function Collection({route, navigation}) {
         </View>
       </View>
 
+      {/* Name of collection */}
       <View style={styles.header}>
         <View style={styles.headingContainer}>
-          {editingLabel ?
+          {editing ?
             <TextInput style={[globalStyles.headingTextEdit, styles.container]} value={newName} onChangeText={val => setNewName(val)}/>
           :
-            <CustomText style={globalStyles.headingText}>{name}</CustomText>
+            <CustomText style={globalStyles.headingText}>{collection}</CustomText>
           }
-          <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>5</CustomText>
+          <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{items.length}</CustomText>
         </View>
         <View style={styles.subHeadingContainer}>
-          <CustomText style={styles.subHeading}>Total: $99.99</CustomText>
-          <CustomText style={[styles.subHeading, styles.ml]}>Items: 15</CustomText>
+          <CustomText style={styles.subHeading}>Total: ${itemsTotal}</CustomText>
+          <CustomText style={[styles.subHeading, styles.ml]}>Qty: {quantitiesTotal }</CustomText>
         </View>
       </View>
 
-      <View style={styles.container}>
-        <View styles={styles.options}>
+      {/* Sort and add item */}
+      <View styles={styles.options}>
           <SortBy style={{marginLeft: 30}}/>
-          <IconButton
-            style={[styles.iconButton, styles.plus]}
-            activeOpacity={0.6}
-            underlayColor="#ffdd85"
-            onPress={()=>navigation.navigate('Item', {collection: name})}
-            iconName="add"
-            size={43}
-          />
-        </View>
-        
+          {
+            !editing &&
+            <IconButton
+              style={[styles.iconButton, styles.plus]}
+              activeOpacity={0.6}
+              underlayColor="#ffdd85"
+              onPress={()=>navigation.navigate('Item', {collection: collection})}
+              iconName="add"
+              size={43}
+            />
+          }
+      </View>
+
+      {/* Items */}
+      <View style={styles.container}>
         <View style={styles.panel}>
             <ScrollView style={styles.scrollView}>
               {
@@ -154,21 +180,17 @@ export default function Collection({route, navigation}) {
         </View>
       </View>
       
+      <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
+        <Dialog.Title>Delete collection - {collection}?</Dialog.Title>
+        <Dialog.Description>
+          Do you want to delete this collection? You cannot undo this action.
+          All items will remain either in other collections or the 'no collections' collection.
+        </Dialog.Description>
+        <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
+        <Dialog.Button label="Delete" onPress={handleDelete}/>
+      </Dialog.Container>
 
-      <Portal>
-        <Dialog visible={visible} onDismiss={handleCancelDelete}>
-          <Dialog.Title>Delete Collection - {name}</Dialog.Title>
-          <Dialog.Content>
-            <Paragraph>Are you sure you want to delete this collection?
-            All items in this collection will be dissociated from this collection.</Paragraph>
-            
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={handleCancelDelete}>No</Button>
-            <Button onPress={handleDelete}>Yes</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+
 
     </View>
   )

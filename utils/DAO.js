@@ -30,7 +30,8 @@ export const createTables = () => {
   dbTransaction(
     `
       CREATE TABLE IF NOT EXISTS collections (
-      name TEXT PRIMARY KEY
+      name TEXT PRIMARY KEY,
+      photo TEXT
       );
       `
   )

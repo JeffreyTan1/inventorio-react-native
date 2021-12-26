@@ -1,14 +1,15 @@
 import React from 'react'
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Image, TouchableHighlight } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
 
 export default function ItemBubble({navigation, id, name, photo, price, quantity, total}) {
   return (
-    <TouchableOpacity
+    <TouchableHighlight
+    style={styles.pressableContainer}
     activeOpacity={0.95}
-    underlayColor="#DDDDDD"
+    underlayColor="#f2f2f2"
     onPress={()=>navigation.navigate('Item', {id: id})}>
       <View style={styles.container}>
         {
@@ -36,14 +37,14 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
             </CustomText>
           </View>
           <View style={styles.iconInfo}>
-            <Icon name="money-bill-alt"/>
-            <CustomText>
+            <Icon name="dollar-sign"/>
+            <CustomText style={styles.ml}>
               {price}
             </CustomText>
           </View>
           <View style={styles.iconInfo}>
-            <Icon name="dollar-sign"/>
-            <CustomText>
+            <Icon name="money-bill-alt"/>
+            <CustomText style={styles.ml}>
               {total}
             </CustomText>
           </View>
@@ -52,14 +53,17 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+    </TouchableHighlight>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 150,
     flexDirection: 'row',
+    flex: 1
+  },
+  pressableContainer: {
+    minHeight: 150,
     backgroundColor: '#fff',
     borderRadius: 30,
     margin: 10,
@@ -97,5 +101,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     
-  }
+  },
+  ml: {
+    marginLeft: 10,
+  },
 })

@@ -12,23 +12,31 @@ import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs} from '@gorhom/
 import GraphBubble from "../components/GraphBubble";
 import Carousel from 'react-native-reanimated-carousel';
 // import Carousel from 'react-native-snap-carousel'
-import { Dialog, Portal, TextInput, Button } from "react-native-paper";
-import { getAllCollections, createCollection } from "../utils/DAO";
+import { getAllCollections } from "../utils/DAO";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function Main({navigation}) {
-  const [visible, setVisible] = useState(false)
-  const [collectionInput, setCollectionInput] = useState('')
+  // data from navigation
+  const ref = useRef(0)
+  const focusRef = useRef(0)
+  const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '60%'], []);
   const [collections, setCollections] = useState([]);
+  
 
   useEffect(() => {
-    getAllCollections(setCollections)
-  }, [])
+    if(isFocused){
+      focusRef.current = focusRef.current + 1
+      getAllCollections(setCollections)
+    }
+  }, [isFocused])
 
   // takes an array of objects 
   // splits it into an array of size-4 arrays of objects
+  
   const splitInFours = () => {
+    console.log('split in fours')
     if (!collections) return
     var perChunk = 4 // items per chunk    
     var inputArray = collections
@@ -45,23 +53,7 @@ export default function Main({navigation}) {
     return result
   }
 
-  const showDialog = () => {
-    setVisible(true)
-  }
-
-  const handleCancel = () => {
-    setCollectionInput('')
-    setVisible(false)
-  }
-
-  const handleSave = () => {
-    if(collectionInput !== ''){
-      createCollection(collectionInput)
-      getAllCollections(setCollections)
-    }
-    setCollectionInput('')
-    setVisible(false)
-  }
+  const carouselData = useMemo(() => splitInFours(), [collections])
 
   const bottomSheetDataSHARED = useSharedValue(0)
   const scaleIn = useSharedValue(0)
@@ -97,6 +89,11 @@ export default function Main({navigation}) {
   })
 
   const BottomSheetContent = () => {
+
+    useEffect(() => {
+      ref.current = ref.current + 1
+    }, [])
+
     const bottomSheetData = useBottomSheet()
 
     const animBottomSheet = useAnimatedStyle(()=> {
@@ -110,12 +107,12 @@ export default function Main({navigation}) {
       <View style={styles.contentContainer}>
           <View style={styles.bottomSheetTitle}>
             <CustomText style={globalStyles.headingText}>Collections</CustomText>
-            <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>5</CustomText>
+            <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{collections.length}</CustomText>
             <IconButton
               style={[styles.iconButton, styles.plus]}
               activeOpacity={0.6}
               underlayColor="#DDDDDD"
-              onPress={()=>showDialog()}
+              onPress={()=>navigation.navigate('Collection')}
               iconName="add"
               size={43}
             />
@@ -129,7 +126,7 @@ export default function Main({navigation}) {
               collections.length !== 0 ?
               <Carousel
               width={450}
-              data={splitInFours()}
+              data={carouselData}
               renderItem={({ data }) => {
                 
                 return (
@@ -145,7 +142,7 @@ export default function Main({navigation}) {
               }} />
             :
             <CustomText>Add a collection to get started!</CustomText>
-          }
+            }
           </Animated.View>
       </View >
     )
@@ -169,6 +166,7 @@ export default function Main({navigation}) {
           />
         </Animated.View>
         <Animated.View style={[styles.container, animBag, animScaleIn]}>
+          {/* TODO: loading bag on every render using await that clogs js thread */}
           <BagModel/>
         </Animated.View>
       </View>
@@ -183,7 +181,7 @@ export default function Main({navigation}) {
             }}
         />
       </Animated.View>
-      
+
       <BottomSheet
         ref={bottomSheetRef}
         index={1}
@@ -201,7 +199,7 @@ export default function Main({navigation}) {
           stiffness: 500,
         })}
       >
-        <BottomSheetContent />
+        <BottomSheetContent/>
       </BottomSheet>
    
       <IconButton
@@ -212,29 +210,6 @@ export default function Main({navigation}) {
         iconName="settings"
         size={43}
       />
-
-      <Portal>
-        <Dialog visible={visible} onDismiss={handleCancel}>
-          <Dialog.Title>Add Collection</Dialog.Title>
-          <Dialog.Content>
-            <TextInput value={collectionInput} onChangeText={val=>setCollectionInput(val)}/>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={handleCancel}>Cancel</Button>
-            <Button onPress={handleSave}>Done</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
-{/* 
-      <Dialog.Container visible={visible} onBackdropPress={handleCancel}>
-        <Dialog.Title>Add Collection</Dialog.Title>
-        <Dialog.Description>
-          Enter the name of the collection.
-        </Dialog.Description>
-        <Dialog.Input/>
-        <Dialog.Button label="Cancel" onPress={handleCancel}/>
-        <Dialog.Button label="Delete" onPress={handleSave}/>
-      </Dialog.Container> */}
 
     </View>  
   )

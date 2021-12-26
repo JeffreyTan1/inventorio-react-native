@@ -1,17 +1,13 @@
 import React from 'react'
-import { View, StyleSheet, Image } from 'react-native'
+import { View, StyleSheet, Image, TouchableHighlight } from 'react-native'
 import CustomText from './CustomText'
-import { Platform } from 'react-native';
-
-const TouchableOpacity = 
-    Platform.OS === 'ios' ? require('react-native').TouchableOpacity : require('react-native-gesture-handler').TouchableOpacity;
-
 export default function CollectionBubble({navigation, name, image}) {
   return (
-    <TouchableOpacity
+    <TouchableHighlight
+    style={styles.pressableContainer}
     activeOpacity={0.9}
-    underlayColor="#DDDDDD"
-    onPress={()=>navigation.navigate('Collection', {name: name})}>
+    underlayColor="#f2f2f2"
+    onPress={()=>navigation.navigate('Collection', {collection: name})}>
       <View style={styles.container}>
         <Image
           style={styles.image}
@@ -21,18 +17,21 @@ export default function CollectionBubble({navigation, name, image}) {
           <CustomText>{name}</CustomText>
         </View>
       </View>
-    </TouchableOpacity>
+    </TouchableHighlight>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'column',
+    flex: 1
+  },
+  pressableContainer: {
     height: 150,
     width: 150,
     backgroundColor: '#fff',
     borderRadius: 30,
     margin: 10,
-    flexDirection: 'column',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -41,7 +40,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 2.65,
     elevation: 4,
-
   },
   image: {
     width: '100%',
