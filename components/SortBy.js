@@ -3,15 +3,9 @@ import { View, Text, StyleSheet } from 'react-native'
 import DropDownPicker from 'react-native-dropdown-picker';
 import CustomText from '../components/CustomText'
 
-export default function SortBy({style}) {
+export default function SortBy({style, value, setValue, labels}) {
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    {label: 'A-Z', value: 'A-Z'},
-    {label: 'Price', value: 'Price'},
-    {label: 'Qty', value: 'Qty'},
-    {label: 'Total Value', value: 'Total Value'},
-  ]);
+  const [items, setItems] = useState(labels);
 
   return (
     <View style={[styles.container, style]}>

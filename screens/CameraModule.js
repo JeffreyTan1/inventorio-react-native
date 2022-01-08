@@ -58,7 +58,7 @@ export default function CameraModule({navigation}) {
                 : Camera.Constants.FlashMode.on
             );
           }}
-          iconName={flashMode === Camera.Constants.FlashMode.on ? "flash-off" : "flash-on"}
+          iconName={flashMode === Camera.Constants.FlashMode.on ? "flash-on" : "flash-off"}
           size={40}
           color='#fff'
         /> 

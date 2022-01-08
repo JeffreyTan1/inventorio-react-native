@@ -1,11 +1,11 @@
 import React from 'react'
-import { TouchableHighlight } from 'react-native'
+import { TouchableHighlight } from 'react-native-gesture-handler'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 
 export default function IconButton({style, activeOpacity, underlayColor, onPress, iconName, size, color}) {
   return (
     <TouchableHighlight
-    style={style}
+    style={[style, {minWidth:10, minHeight: 10}]}
     activeOpacity={activeOpacity}
     underlayColor={underlayColor}
     onPress={onPress}

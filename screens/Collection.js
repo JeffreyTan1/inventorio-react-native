@@ -9,6 +9,17 @@ import Dialog from 'react-native-dialog'
 import { getFromItems, deleteCollection, updateCollection, createCollection } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
 
+const sortingLabels = [
+  {label: 'A-Z', value: 'A-Z'},
+  {label: 'Z-A', value: 'Z-A'},
+  {label: 'Price Highest', value: 'Price Highest'},
+  {label: 'Price Lowest', value: 'Price Lowest'},
+  {label: 'Qty Highest', value: 'Qty Highest'},
+  {label: 'Qty Lowest', value: 'Qty Lowest'},
+  {label: 'Total Value Highest', value: 'Total Value Highest'},
+  {label: 'Total Value Lowest', value: 'Total Value Lowest'},
+]
+
 export default function Collection({route, navigation}) {
   // data from navigation
   const isFocused = useIsFocused();
@@ -25,6 +36,64 @@ export default function Collection({route, navigation}) {
   // calculated values
   const [itemsTotal, setItemsTotal] = useState(0)
   const [quantitiesTotal, setQuantitiesTotal] = useState(0)
+
+  // sorting
+  const [option, setOption] = useState('A-Z')
+  useEffect(() => {
+    let tempItems = items
+    switch (option) {
+      case 'A-Z':
+        setItems(tempItems.sort(compareAlpha))
+        break;
+      case 'Z-A':
+        setItems(tempItems.sort(compareAlpha).reverse())
+        break;
+      case 'Price Highest':
+        setItems(tempItems.sort(comparePrice))
+        break;
+      case 'Price Lowest':
+        setItems(tempItems.sort(comparePrice).reverse())
+        break;
+      case 'Qty Highest':
+        setItems(tempItems.sort(compareQty))
+        break;
+      case 'Qty Lowest':
+        setItems(tempItems.sort(compareQty).reverse())
+        break;
+      case 'Total Value Highest':
+        setItems(tempItems.sort(compareTV))
+        break;
+      case 'Total Value Lowest':
+        setItems(tempItems.sort(compareTV).reverse())
+        break;
+      default:
+        break;
+    }
+  }, [option])
+
+  const compareAlpha = (a,b) => {
+    if(a.name > b.name) { return -1 }
+    if(b.name > a.name) { return 1 }
+    return 0
+  }
+
+  const comparePrice = (a,b) => {
+    if(a.price > b.price) { return 1 }
+    if(b.price > a.price) { return -1 }
+    return 0
+  }
+
+  const compareQty = (a,b) => {
+    if(a.quantity > b.quantity) { return 1 }
+    if(b.quantity > a.quantity) { return -1 }
+    return 0
+  }
+
+  const compareTV = (a,b) => {
+    if(a.total > b.total) { return 1 }
+    if(b.total > a.total) { return -1 }
+    return 0
+  }
 
   useEffect(() => {
     if(isFocused && collection) {
@@ -148,8 +217,8 @@ export default function Collection({route, navigation}) {
       </View>
 
       {/* Sort and add item */}
-      <View styles={styles.options}>
-          <SortBy style={{marginLeft: 30}}/>
+      <View style={styles.options}>
+          <SortBy style={{marginLeft:30}} value={option} setValue={setOption} labels={sortingLabels}/>
           {
             !editing &&
             <IconButton
@@ -238,9 +307,6 @@ const styles = StyleSheet.create({
   },
   plus: {
     width:54,
-    position: 'absolute',
-    right: 23,
-    bottom: 10,
     alignItems: 'center',
     backgroundColor: '#fcca47',
     shadowColor: "#000",
@@ -252,6 +318,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2.65,
     elevation: 4,
     padding: 5,
+    marginBottom: 10,
+    marginLeft: 28
   },
   
 })

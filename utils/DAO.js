@@ -54,6 +54,15 @@ export const createTables = () => {
       );
       `
   )
+  db.transaction(tx => {
+    tx.executeSql(`INSERT INTO history (item_count, collection_count, item_quantity, total_value, time) 
+    values (?, ?, ?, ?, ?)`, [0, 0, 0, 0, (new Date()).getTime()], 
+      (txObj, resultSet) => {
+        console.log('History recorded', JSON.stringify(resultSet))
+      },
+      (txObj, error) => console.log('Error', error)
+      ) 
+  });
 }
 
 // Run when app needs to be updated
@@ -81,6 +90,7 @@ export const createItem = (name, photo, price, quantity, total, notes, assocColl
       },
       (txObj, error) => console.log('Error', error))
   });
+  recordHistory()
 }
 
 export const getFromItems = (collection, callback) => {
@@ -129,6 +139,7 @@ export const updateItem = (name, photo, price, quantity, total, notes, id, assoc
       },
       (txObj, error) => console.log('Error', error))
   });
+  recordHistory()
 }
 
 export const deleteItem = (id) => {
@@ -144,6 +155,7 @@ export const deleteItem = (id) => {
     },
     (txObj, error) => console.log('Error', error))
   });
+  recordHistory()
 }
 
 // CRUD Collections
@@ -167,6 +179,7 @@ export const createCollection = (name) => {
       (txObj, resultSet) => (console.log(`inserted ${JSON.stringify(resultSet)}`)),
       (txObj, error) => console.log('Error', error))
   })
+  recordHistory()
 }
 
 export const updateCollection = (oldName, newName) => {
@@ -180,6 +193,7 @@ export const updateCollection = (oldName, newName) => {
       (txObj, error) => console.log('Error', error))
   });
   handleUpdateCollection(oldName, newName)
+  recordHistory()
 }
 
 export const deleteCollection = (name) => {
@@ -195,6 +209,7 @@ export const deleteCollection = (name) => {
     },
     (txObj, error) => console.log('Error', error))
   });
+  recordHistory()
 }
 
 // Manage many-to-many table: items_collections
@@ -278,10 +293,6 @@ export const getItemsWithoutCollection = (callback) => {
   }) 
 }
 
-export const getCollectionStats = () => {
-
-}
-
 export const getItemCollections = (id, callback) => {
   let sql = 'SELECT collection_name FROM items_collections WHERE item_id = ?';
   db.transaction(tx => {
@@ -292,3 +303,108 @@ export const getItemCollections = (id, callback) => {
   }
   )
 }
+
+export const getItemsCount = (callback) => {
+  db?.transaction(tx => {
+    tx.executeSql('SELECT COUNT(*) FROM items', null, 
+      (txObj, { rows: { _array } }) => {
+        callback(_array[0]['COUNT(*)'])
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+}
+
+export const getCollectionsCount = (callback) => {
+  db?.transaction(tx => {
+    tx.executeSql('SELECT COUNT(*) FROM collections', null, 
+      (txObj, { rows: { _array } }) => {
+        callback(_array[0]['COUNT(*)'])
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });  
+}
+
+export const getItemsQuantitySum = (callback) => {
+  db?.transaction(tx => {
+    tx.executeSql('SELECT SUM(quantity) FROM items', null, 
+      (txObj, { rows: { _array } }) => {
+        callback(_array[0]['SUM(quantity)'] ? _array[0]['SUM(quantity)'] : 0);
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+}
+
+export const getItemsTotalSum = (callback) => {
+  db?.transaction(tx => {
+    tx.executeSql('SELECT SUM(total) FROM items', null, 
+      (txObj, { rows: { _array } }) => {
+        callback(_array[0]['SUM(total)'] ? _array[0]['SUM(total)'] : 0)
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+}
+
+
+// History related
+export const getHistory = (callback) => {
+  db?.transaction(tx => {
+    tx.executeSql('SELECT * FROM history', null, 
+      (txObj, { rows: { _array } }) => {
+        callback(_array)
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+}
+
+const recordHistory = () => {
+  let itemCount, collectionCount, itemQuantity, totalValue = null;
+  console.log('Generating history record...')
+  db.transaction(tx => {
+    tx.executeSql('SELECT COUNT(*) FROM items', null, 
+      (txObj, { rows: { _array } }) => {
+        itemCount = (_array[0]['COUNT(*)']) ? (_array[0]['COUNT(*)']) : 0
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+  db.transaction(tx => {
+    tx.executeSql('SELECT COUNT(*) FROM collections', null, 
+      (txObj, { rows: { _array } }) => {
+        collectionCount = (_array[0]['COUNT(*)']) ? (_array[0]['COUNT(*)']) : 0
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+  db.transaction(tx => {
+    tx.executeSql('SELECT SUM(quantity) FROM items', null, 
+      (txObj, { rows: { _array } }) => {
+        itemQuantity = _array[0]['SUM(quantity)'] ? _array[0]['SUM(quantity)'] : 0;
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+  db.transaction(tx => {
+    tx.executeSql('SELECT SUM(total) FROM items', null, 
+      (txObj, { rows: { _array } }) => {
+        totalValue = _array[0]['SUM(total)'] ? _array[0]['SUM(total)'] : 0;
+      },
+      (txObj, error) => console.log('Error ', error)
+      ) 
+  });
+  db.transaction(tx => {
+    tx.executeSql(`INSERT INTO history (item_count, collection_count, item_quantity, total_value, time) 
+    values (?, ?, ?, ?, ?)`, [itemCount, collectionCount, itemQuantity, totalValue, (new Date()).getTime()], 
+      (txObj, resultSet) => {
+        console.log('History recorded', JSON.stringify(resultSet))
+      },
+      (txObj, error) => console.log('Error', error)
+      ) 
+  });
+}
+
+

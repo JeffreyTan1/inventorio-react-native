@@ -6,7 +6,7 @@ import Main from './screens/Main';
 import Collection from './screens/Collection';
 import {useFonts} from 'expo-font';
 import Settings from './screens/Settings';
-import { createTables, dropTables } from './utils/DAO';
+import { createTables } from './utils/DAO';
 import Item from './screens/Item';
 import CameraModule from './screens/CameraModule';
 import AppLoading from 'expo-app-loading';
@@ -21,7 +21,6 @@ export default function App() {
 
   useEffect(() => {
     // create tables if not already existing
-    // dropTables()
     createTables()
 
   }, [])

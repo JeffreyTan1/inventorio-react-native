@@ -1,11 +1,21 @@
-import React from 'react'
-import { View, StyleSheet, TouchableHighlight, ScrollView } from 'react-native'
+import React,{useState} from 'react'
+import { View, StyleSheet, TouchableHighlight, ScrollView, Button } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomText from '../components/CustomText';
 import globalStyles from '../styles/globalStyles';
-
+import { createTables, dropTables } from './../utils/DAO';
+import Dialog from 'react-native-dialog'
 
 export default function Settings({navigation}) {
+  const [delDialogVis, setDelDialogVis] = useState(false)
+
+  const handleDeleteData = () => {
+    dropTables()
+    createTables()
+    console.log('All data deleted')
+    setDelDialogVis(false)
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.navBar}>
@@ -25,7 +35,26 @@ export default function Settings({navigation}) {
       </View>
       
       <ScrollView style={styles.panel}>
+        <CustomText style={styles.subHeading}>Delete all data</CustomText>
+        <TouchableHighlight 
+        onPress={() => setDelDialogVis(true)}
+        style={styles.delButton}
+        activeOpacity={0.9}
+        underlayColor="pink"
+        >
+          <CustomText style={styles.delButtonText}>Delete</CustomText>
+        </TouchableHighlight>
       </ScrollView>
+
+      <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
+        <Dialog.Title>Delete all data?</Dialog.Title>
+        <Dialog.Description>
+          This action is irriversible!
+        </Dialog.Description>
+        <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
+        <Dialog.Button label="Delete" onPress={handleDeleteData}/>
+      </Dialog.Container>
+
     </View>
   )
 }
@@ -60,8 +89,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   subHeading: {
-    
-    fontSize: 20,
+    fontSize: 30,
+    marginHorizontal: 20,
+    marginTop: 30
   },
   ml: {
     marginLeft: 10,
@@ -70,12 +100,27 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',
-    flex: 1
-  },
-  sortPanel: {
-    borderRadius: 16,
+    flex: 1,
   },
   scrollView: {
     flex: 1,
+  },
+  delButton: {
+    width: 200,
+    padding: 10,
+    backgroundColor: 'red',
+    borderWidth: 1,
+    borderColor: '#fff',
+    marginHorizontal: 20,
+    marginVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16
+  },
+  delButtonText: {
+    fontSize: 25,
+    color: '#fff',
+    fontWeight: 'bold',
+    padding: 3
   }
 })

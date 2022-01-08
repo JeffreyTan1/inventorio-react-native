@@ -270,25 +270,38 @@ export default function Item({route, navigation}) {
 
       {/* Image */}
       <View style={styles.imageHeader}>
-        {/* <Carousel
-          style={{height: 250}}
+        <Carousel
+          style={{height: 280}}
           width={450}
           data={[{img: photo}]}
           renderItem={({ img }) => {
             return (
-              <TouchableOpacity
-                onPress={() => setImageChoiceVis(true)}
-                activeOpacity={0.8}
-              >
-                <Image style={styles.image} 
-                  source={{uri: img}} 
-                />
-              </TouchableOpacity>
+              <TouchableHighlight
+                onPress={() => {
+                  if(editing) {setImageChoiceVis(true)}
+                  else {setImageViewerVis(true)}
+                }}
+                activeOpacity={0.95}
+                style={styles.imagePressableContainer}
+              >    
+                {
+                  photo ?
+                  <Image style={styles.image} 
+                    source={{uri: photo}} 
+                  />
+                  :
+                  <Image style={styles.image} 
+                    source={require('./../assets/4x3-placeholder.png')}
+                  />
+                }
+                
+              </TouchableHighlight>
             );
-        }} /> */}
+        }} />
+        
 
        
-      <View style={styles.imageContainer}>
+      {/* <View style={styles.imageContainer}>
         <TouchableHighlight
           onPress={() => {
             if(editing) {setImageChoiceVis(true)}
@@ -309,7 +322,7 @@ export default function Item({route, navigation}) {
           }
           
         </TouchableHighlight>
-      </View>
+      </View> */}
         
       </View>
 
@@ -450,6 +463,9 @@ const styles = StyleSheet.create({
   },
   imagePressableContainer: {
     borderRadius: 30,
+    marginLeft: 50,
+    marginRight: 50,
+    marginTop: 10,
   },
   image: {
     width: '100%',
@@ -494,6 +510,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Montserrat'
   },
   plus: {
+    marginTop: 9,
     padding: 5,
     alignSelf: 'center',
     alignItems: 'center',

@@ -1,42 +1,115 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
-import { View, StyleSheet } from 'react-native'
+import { View, StyleSheet, TouchableHighlight  } from 'react-native'
 import SummaryStatistic from '../components/SummaryStatistic';
 import CustomText from "../components/CustomText";
 import globalStyles from "../styles/globalStyles";
-import SortBy from "../components/SortBy";
+import Icon from 'react-native-vector-icons/MaterialIcons'
 import CollectionBubble from "../components/CollectionBubble";
 import BagModel from "../components/BagModel";
 import IconButton from "../components/IconButton";
 import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, withDelay } from "react-native-reanimated";
-import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs} from '@gorhom/bottom-sheet';
+import BottomSheet, {useBottomSheet, useBottomSheetSpringConfigs, useBottomSheetTimingConfigs} from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
 import Carousel from 'react-native-reanimated-carousel';
-// import Carousel from 'react-native-snap-carousel'
-import { getAllCollections } from "../utils/DAO";
+import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum, getHistory } from "../utils/DAO";
 import { useIsFocused } from "@react-navigation/native";
+import { NativeViewGestureHandler, ScrollView } from "react-native-gesture-handler";
+
+const fallbackGraphData = 
+  {
+    labels: ["January"],
+    datasets: [
+      {
+        data: [
+          Math.random() * 100,
+  
+        ]
+      }
+    ]
+  }
+
 
 export default function Main({navigation}) {
   // data from navigation
-  const ref = useRef(0)
-  const focusRef = useRef(0)
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '60%'], []);
   const [collections, setCollections] = useState([]);
-  
+  const [carouselData, setCarouselData] = useState([]);
+
+  // statistics
+  const [itemCount, setItemCount] = useState(null);
+  const [collectionCount, setCollectionCount] = useState(null);
+  const [itemQuantity, setItemQuantity] = useState(null);
+  const [totalValue, setTotalValue] = useState(null);
+  const [history, setHistory] = useState(null);
+  const [itemCountHistory, setItemCountHistory] = useState(fallbackGraphData);
+  const [collectionCountHistory, setCollectionCountHistory] = useState(fallbackGraphData);
+  const [itemQuantityHistory, setItemQuantityHistory] = useState(fallbackGraphData);
+  const [totalValueHistory, setTotalValueHistory] = useState(fallbackGraphData);
+
+  const fields = ['Items', 'Collections', 'Quantity', 'Total Value'];
+  const values = [itemCount, collectionCount, itemQuantity, totalValue];
+  const histories = [itemCountHistory, collectionCountHistory,
+    itemQuantityHistory, totalValueHistory];
+
+
+  useEffect(() => {
+    if(history) {
+      const timeLabels = history.map(e => e.time) ? history.map(e => e.time):[0];
+      setItemCountHistory({
+        labels: timeLabels,
+        datasets: [
+          {
+            data: history.map(e => e.item_count) ? history.map(e => e.item_count):[0]
+          }
+        ]
+      })
+      setCollectionCountHistory({
+        labels: timeLabels,
+        datasets: [
+          {
+            data: history.map(e => e.collection_count) ? history.map(e => e.collection_count):[0]
+          }
+        ]
+      })
+      setItemQuantityHistory({
+        labels: timeLabels,
+        datasets: [
+          {
+            data: history.map(e => e.item_quantity) ? history.map(e => e.item_quantity):[0]
+          }
+        ]
+      })
+      setTotalValueHistory({
+        labels: timeLabels,
+        datasets: [
+          {
+            data: history.map(e => e.total_value) ? history.map(e => e.total_value):[0]
+          }
+        ]
+      })
+    }   
+  }, [history])
 
   useEffect(() => {
     if(isFocused){
-      focusRef.current = focusRef.current + 1
       getAllCollections(setCollections)
+      getItemsCount(setItemCount)
+      getCollectionsCount(setCollectionCount)
+      getItemsQuantitySum(setItemQuantity)
+      getItemsTotalSum(setTotalValue)
+      getHistory(setHistory)
     }
   }, [isFocused])
 
+  useEffect(() => {
+    setCarouselData(splitInFours())
+  }, [collections])
+
   // takes an array of objects 
-  // splits it into an array of size-4 arrays of objects
-  
+  // splits it into an array of size-4 arrays of objects 
   const splitInFours = () => {
-    console.log('split in fours')
     if (!collections) return
     var perChunk = 4 // items per chunk    
     var inputArray = collections
@@ -52,8 +125,6 @@ export default function Main({navigation}) {
     result = result.map(x => ({data: x}))
     return result
   }
-
-  const carouselData = useMemo(() => splitInFours(), [collections])
 
   const bottomSheetDataSHARED = useSharedValue(0)
   const scaleIn = useSharedValue(0)
@@ -89,11 +160,6 @@ export default function Main({navigation}) {
   })
 
   const BottomSheetContent = () => {
-
-    useEffect(() => {
-      ref.current = ref.current + 1
-    }, [])
-
     const bottomSheetData = useBottomSheet()
 
     const animBottomSheet = useAnimatedStyle(()=> {
@@ -103,6 +169,19 @@ export default function Main({navigation}) {
         opacity: bottomSheetDataSHARED.value,
       }
     })
+
+    const _renderItem = (item, index) => {
+      return (
+        <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent:'center', flex:1}} key={index}>
+          {
+            item.data.map((collection) => (
+              <CollectionBubble navigation={navigation} name={collection.name} key={collection.name} />
+            ))
+          }
+        </View>
+      );
+    }
+
     return (
       <View style={styles.contentContainer}>
           <View style={styles.bottomSheetTitle}>
@@ -115,33 +194,26 @@ export default function Main({navigation}) {
               onPress={()=>navigation.navigate('Collection')}
               iconName="add"
               size={43}
-            />
-            
+            />  
           </View>
           <Animated.View
             style={[styles.bottomSheet, animBottomSheet]}
           >
-            <SortBy style={{right: 30}}/>
+            {/* <SortBy style={{right: 30}}/> */}
             {
               collections.length !== 0 ?
-              <Carousel
-              width={450}
-              data={carouselData}
-              renderItem={({ data }) => {
-                
-                return (
-                  <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent:'center', flex:1}}>
-                    {
-                      data.map((collection) => (
-                        <CollectionBubble navigation={navigation} name={collection.name} key={collection.name} />
-                      ))
-                    }
-                  
-                  </View>
-                );
-              }} />
+              <ScrollView style={styles.collectionsView}>
+                {
+                  carouselData.map((item, index) => (
+                    _renderItem(item, index)
+                  ))
+                }
+              </ScrollView>
             :
-            <CustomText>Add a collection to get started!</CustomText>
+            <View style={styles.callToActionWrapper}> 
+              <CustomText style={styles.callToAction}>Add a collection to get started!</CustomText>
+            </View>
+            
             }
           </Animated.View>
       </View >
@@ -150,38 +222,49 @@ export default function Main({navigation}) {
 
   return (
     <View style={styles.container}>
+      
       <View style={styles.mainContent}>
+        
         <Animated.View style={[styles.summaryStaticsGroup, animStats]}>
-          <SummaryStatistic
-            title='Total Value'
-            value='$1500'
-          />
-          <SummaryStatistic
-            title='Total Value'
-            value='$1500'
-          />
-          <SummaryStatistic
-            title='Total Value'
-            value='$1500'
-          />
+          {
+            fields.map((field, index) => (
+              <SummaryStatistic
+                key={field}
+                title={field}
+                value={values[index]}
+              />
+            )) 
+          }
         </Animated.View>
         <Animated.View style={[styles.container, animBag, animScaleIn]}>
           {/* TODO: loading bag on every render using await that clogs js thread */}
           <BagModel/>
         </Animated.View>
+        <TouchableHighlight style={styles.settings}
+          activeOpacity={0.6}
+          underlayColor="#DDDDDD"
+          onPress={()=>navigation.navigate('Settings')}
+          iconName="settings"
+          size={43}
+        >
+              <Icon name="settings" size={30} />
+        </TouchableHighlight>
+ 
       </View>
-
+      
       <Animated.View style={[{alignItems: 'center'}, animGraph]}>
         <Carousel
             style={{height: 350}}
             width={390}
-            data={[{ stat: 'Total Value' }, { stat: 'Items' }, { stat: 'Collections' }]}
-            renderItem={({ stat }) => {
-              return <GraphBubble stat={stat}/>;
+            data={[{ stat: 'Item Count', history: histories[0] }, { stat: 'Collection Count', history: histories[1] }, 
+            { stat: 'Item Quantity', history: histories[2] }, { stat: 'Total Value', history: histories[3] }
+          ]}
+            renderItem={({ stat, history }) => {
+              return <GraphBubble stat={stat} data={history}/>;
             }}
         />
       </Animated.View>
-
+      
       <BottomSheet
         ref={bottomSheetRef}
         index={1}
@@ -202,14 +285,7 @@ export default function Main({navigation}) {
         <BottomSheetContent/>
       </BottomSheet>
    
-      <IconButton
-        style={[styles.iconButton, styles.settings]}
-        activeOpacity={0.6}
-        underlayColor="#DDDDDD"
-        onPress={()=>navigation.navigate('Settings')}
-        iconName="settings"
-        size={43}
-      />
+      
 
     </View>  
   )
@@ -233,9 +309,13 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   settings: {
-    position: 'absolute',
-    top: 20,
+    position: "absolute",
+    top: 0,
     right: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 100,
+    borderWidth: 0.5
   },
   plus: {
     alignItems: 'center',
@@ -258,7 +338,7 @@ const styles = StyleSheet.create({
   bottomSheet: {
     alignItems: 'center',
     justifyContent: 'flex-start',
-    height: '100%'
+    flex: 1
   },
   bottomSheetScrollView: {
     marginBottom: 10,
@@ -273,12 +353,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: '10%',
-    height: '33%'
+    height: '33%',
+    
   },
   
   summaryStaticsGroup: {
     justifyContent: 'space-evenly',
     alignItems: 'center',
     flex: 1,
+  },
+  collectionsView: { 
+ 
+  },
+  contentContainer:{
+    flex:1,
+   
+  },
+  callToActionWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: 'center'
+  },
+  callToAction : {
+    fontSize: 25,
+    marginRight: 5, 
+    marginLeft:5,
+    textAlign: "center"
+
   }
 })
