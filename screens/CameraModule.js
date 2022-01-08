@@ -15,7 +15,7 @@ export default function CameraModule({navigation}) {
     if(camera) {
       const data = await camera.takePictureAsync(null);
       navigation.navigate('Item', {
-        uri: data.uri
+        uri: data.uri,
       })
     }
     

@@ -19,7 +19,7 @@ export const createTables = () => {
       CREATE TABLE IF NOT EXISTS items (
       id INTEGER PRIMARY KEY AUTOINCREMENT, 
       name TEXT, 
-      photo TEXT,
+      photos TEXT,
       price REAL,
       quantity INTEGER,
       total REAL,
@@ -74,13 +74,13 @@ export const dropTables = () => {
 }
 
 // CRUD Items
-export const createItem = (name, photo, price, quantity, total, notes, assocCollections, callback) => {
+export const createItem = (name, photos, price, quantity, total, notes, assocCollections, callback) => {
   var assocCollections = assocCollections
   db.transaction((tx) => {
     tx.executeSql(
-    `INSERT INTO items (name, photo, price, quantity, total, notes) 
+    `INSERT INTO items (name, photos, price, quantity, total, notes) 
       values (?, ?, ?, ?, ?, ?)`, 
-      [name, photo, price, quantity, total, notes],
+      [name, JSON.stringify(photos), price, quantity, total, notes],
       (txObj, resultSet) => {
         console.log(`inserted ${JSON.stringify(resultSet)}`)
         assocCollections.forEach(collection => {
@@ -103,7 +103,7 @@ export const getFromItems = (collection, callback) => {
 
   db.transaction(tx => {
     tx.executeSql(sql, null, 
-    (txObj, resultSet) => (callback(resultSet.rows._array)),
+    (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array))),
     (txObj, error) => console.log('Error ', error)
     ) 
   }) 
@@ -113,21 +113,21 @@ export const getItem = (id, callback) => {
   let sql = 'SELECT * FROM items WHERE id = ?';
   db.transaction(tx => {
     tx.executeSql(sql, [id], 
-    (txObj, resultSet) => (callback(resultSet.rows._array[0])),
+    (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array)[0])),
     (txObj, error) => console.log('Error ', error)
     ) 
   }) 
 }
 
-export const updateItem = (name, photo, price, quantity, total, notes, id, assocCollections, dissocCollections) => {  
+export const updateItem = (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections) => {  
   var assocCollections = assocCollections 
   var dissocCollections = dissocCollections
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE items 
-      SET name = ?, photo = ?, price = ?, quantity = ?, total = ?, notes = ?
+      SET name = ?, photos = ?, price = ?, quantity = ?, total = ?, notes = ?
       WHERE id = ?`, 
-      [name, photo, price, quantity, total, notes, id],
+      [name, JSON.stringify(photos), price, quantity, total, notes, id],
       (txObj, resultSet) => {
         console.log(`updated ${JSON.stringify(resultSet)}`)
         assocCollections.forEach(collection => {
@@ -173,9 +173,9 @@ export const getAllCollections = (callback) => {
 export const createCollection = (name) => {
   db.transaction(tx => {
     tx.executeSql(
-    `INSERT INTO collections (name) 
-      values (?)`, 
-      [name],
+    `INSERT INTO collections (name, photo) 
+      values (?, ?)`, 
+      [name, null],
       (txObj, resultSet) => (console.log(`inserted ${JSON.stringify(resultSet)}`)),
       (txObj, error) => console.log('Error', error))
   })
@@ -287,7 +287,7 @@ export const getItemsWithoutCollection = (callback) => {
 
   db.transaction(tx => {
     tx.executeSql(sql, null, 
-    (txObj, resultSet) => (callback(resultSet.rows._array)),
+    (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array))),
     (txObj, error) => console.log('Error ', error)
     ) 
   }) 
@@ -363,7 +363,6 @@ export const getHistory = (callback) => {
 
 const recordHistory = () => {
   let itemCount, collectionCount, itemQuantity, totalValue = null;
-  console.log('Generating history record...')
   db.transaction(tx => {
     tx.executeSql('SELECT COUNT(*) FROM items', null, 
       (txObj, { rows: { _array } }) => {
@@ -407,4 +406,7 @@ const recordHistory = () => {
   });
 }
 
-
+// Utils
+const parseJSONToArray = (array) => {
+  return array.map((item) => ({...item, photos: JSON.parse(item.photos)}))
+}

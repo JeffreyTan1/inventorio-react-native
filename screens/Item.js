@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, ScrollView, TextInput, TouchableOpacity} from 'react-native'
+import { View, StyleSheet, Image, ScrollView, TextInput} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
@@ -12,6 +12,8 @@ import * as ImagePicker from 'expo-image-picker';
 import Carousel from 'react-native-reanimated-carousel';
 import ImageView from 'react-native-image-viewing'
 import { TouchableHighlight } from 'react-native-gesture-handler'
+import placeholder from './../assets/4x3-placeholder.png'
+const placeholderUri = Image.resolveAssetSource(placeholder).uri
 
 export default function Item({route, navigation}) {
   // data from navigation
@@ -33,19 +35,27 @@ export default function Item({route, navigation}) {
 
   // store values of edits
   const [name, setName] = useState('')
-  const [photo, setPhoto] = useState('')
+  const [photos, setPhotos] = useState([])
   const [price, setPrice] = useState('0')
   const [quantity, setQuantity] = useState('0')
   const [total, setTotal] = useState('0')
   const [notes, setNotes] = useState('')
   const [collectionsEdit, setCollectionsEdit] = useState({})
 
-  // set photo after camera has taken it
+
+  // set photos after camera has taken it
   useEffect(() => {
     if(returnUri) {
-      setPhoto(returnUri)
+      let tempPhotos = photos
+      tempPhotos.push(returnUri)
+      setPhotos(tempPhotos);
     }
   }, [route.params.uri])
+
+  useEffect(() => {
+    // console.log('photos', photos)
+    // console.log('itemphotos', item?.photos)
+  }, [photos, item])
 
   // get data
   useEffect(() => {
@@ -83,7 +93,7 @@ export default function Item({route, navigation}) {
   // set edit data to begin at the database data
   useEffect(() => {
     if(item){
-      setName(item.name); setPhoto(item.photo); setPrice(item.price.toString()); 
+      setName(item.name); setPhotos(item.photos); setPrice(item.price.toString()); 
       setQuantity(item.quantity.toString());setTotal(item.total.toString()); setNotes(item.notes);
     }
   }, [item]);
@@ -119,13 +129,14 @@ export default function Item({route, navigation}) {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
     });
 
     if (!result.cancelled) {
-      setPhoto(result.uri);
+      let tempPhotos = photos
+      tempPhotos.push(result.uri)
+      setPhotos(tempPhotos);
     }
   };
 
@@ -173,15 +184,13 @@ export default function Item({route, navigation}) {
   // creates item, otherwise updates it if already exists
   const handleSave = () => {
     const {assocCollections, dissocCollections} = getCollectionsLists()
-
     if(id){
       setEditing(false)
-      updateItem(name, photo, price, quantity, total, notes, id, assocCollections, dissocCollections) 
-      setItem({name, photo, price, quantity, total, notes, id})
+      updateItem(name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections) 
+      setItem({name, photos, price, quantity, total, notes, id})
       setCollectionsIn(mutateCollectionsEdit())
-      
     } else {
-      createItem(name, photo, price, quantity, total, notes, assocCollections, setId)
+      createItem(name, photos, price, quantity, total, notes, assocCollections, setId)
       setEditing(false)
       setCollectionsIn(mutateCollectionsEdit())
     }
@@ -273,21 +282,28 @@ export default function Item({route, navigation}) {
         <Carousel
           style={{height: 280}}
           width={450}
-          data={[{img: photo}]}
-          renderItem={({ img }) => {
+          data={
+            editing ? 
+            photos.map((photo, index) => ({img: photo, index: index})).concat({img: placeholderUri, index: null})
+            :
+            item?.photos.map((photo, index) => ({img: photo, index: index}))
+          }
+          renderItem={({ img, index }) => {
             return (
               <TouchableHighlight
                 onPress={() => {
-                  if(editing) {setImageChoiceVis(true)}
+                  if(editing) {
+                    setImageChoiceVis(true)
+                  }
                   else {setImageViewerVis(true)}
                 }}
                 activeOpacity={0.95}
                 style={styles.imagePressableContainer}
               >    
                 {
-                  photo ?
+                  img ?
                   <Image style={styles.image} 
-                    source={{uri: photo}} 
+                    source={{uri: img}} 
                   />
                   :
                   <Image style={styles.image} 
@@ -298,32 +314,6 @@ export default function Item({route, navigation}) {
               </TouchableHighlight>
             );
         }} />
-        
-
-       
-      {/* <View style={styles.imageContainer}>
-        <TouchableHighlight
-          onPress={() => {
-            if(editing) {setImageChoiceVis(true)}
-            else {setImageViewerVis(true)}
-          }}
-          activeOpacity={0.8}
-          style={styles.imagePressableContainer}
-        >    
-          {
-            photo ?
-            <Image style={styles.image} 
-              source={{uri: photo}} 
-            />
-            :
-            <Image style={styles.image} 
-              source={require('./../assets/4x3-placeholder.png')}
-            />
-          }
-          
-        </TouchableHighlight>
-      </View> */}
-        
       </View>
 
       {/* Yellow panel */}
@@ -425,7 +415,7 @@ export default function Item({route, navigation}) {
         </Dialog.Container>
 
       <ImageView
-        images={[{uri: item?.photo}]}
+        images={photos.map((photo) => ({uri: photo}))}
         imageIndex={0}
         visible={imageViewerVis}
         onRequestClose={() => setImageViewerVis(false)}

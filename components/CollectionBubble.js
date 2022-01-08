@@ -10,12 +10,8 @@ export default function CollectionBubble({navigation, name, image}) {
     underlayColor="#f2f2f2"
     onPress={()=>navigation.navigate('Collection', {collection: name})}>
       <View style={styles.container}>
-        <Image
-          style={styles.image}
-          source={require('./../assets/4x3-placeholder.png')}
-        />
         <View style={styles.details}>
-          <CustomText>{name}</CustomText>
+          <CustomText style={styles.collectionText}>{name}</CustomText>
         </View>
       </View>
     </TouchableHighlight>
@@ -53,4 +49,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  collectionText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginHorizontal: 10
+  }
 })

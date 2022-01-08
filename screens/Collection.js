@@ -239,7 +239,7 @@ export default function Collection({route, navigation}) {
               {
                 items.map((item) => (
                   <ItemBubble navigation={navigation} key={item.id} 
-                  id={item.id} name={item.name} photo={item.photo} 
+                  id={item.id} name={item.name} photo={item.photos[0]} 
                   price={item.price} quantity={item.quantity} 
                   total={item.total}
                   />
