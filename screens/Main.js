@@ -17,7 +17,7 @@ import { NativeViewGestureHandler, ScrollView } from "react-native-gesture-handl
 
 const fallbackGraphData = 
   {
-    labels: ["January"],
+    labels: ["Error"],
     datasets: [
       {
         data: [

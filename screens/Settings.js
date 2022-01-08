@@ -106,9 +106,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   delButton: {
-    width: 200,
-    padding: 10,
-    backgroundColor: 'red',
+    width: '40%',
+    paddingVertical: 5,
+    backgroundColor: '#e90b0b',
     borderWidth: 1,
     borderColor: '#fff',
     marginHorizontal: 20,

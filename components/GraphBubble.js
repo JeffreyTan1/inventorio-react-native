@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import { View, StyleSheet, Dimensions } from 'react-native'
 import CustomText from './CustomText'
 import {LineChart} from "react-native-chart-kit";
@@ -13,6 +13,11 @@ export default function GraphBubble({stat, data}) {
   const [displayDT, setDisplayDT] = useState(data.labels[data.labels.length - 1])
   const [highlightedPoint, setHighlightedPoint] = useState(data.labels.length - 1)
   
+  useEffect(() => {
+    setDisplayDT(data.labels[data.labels.length - 1])
+    setHighlightedPoint(data.labels.length - 1)
+  }, [data])
+
   const chartConfig = {
     backgroundGradientFrom: "#fcca47",
     backgroundGradientTo: "#fcca47",
