@@ -263,8 +263,8 @@ export default function Collection({route, navigation}) {
           Do you want to delete this collection? You cannot undo this action.
           All items will remain either in other collections or the 'no collections' collection.
         </Dialog.Description>
-        <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
-        <Dialog.Button label="Delete" onPress={handleDelete}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Cancel" onPress={() => setDelDialogVis(false)}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Delete" onPress={handleDelete}/>
       </Dialog.Container>
 
 

@@ -443,8 +443,8 @@ export default function Item({route, navigation}) {
             Are you sure you want to delete this item? All collections
             with this item will lose this item.
         </Dialog.Description>
-        <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
-        <Dialog.Button label="Delete" onPress={() => handleDelete()}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Cancel" onPress={() => setDelDialogVis(false)}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Delete" onPress={() => handleDelete()}/>
       </Dialog.Container>
 
       <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
@@ -466,13 +466,13 @@ export default function Item({route, navigation}) {
             }
           })
         }
-        <Dialog.Button label="Done" onPress={() => setCollectionsDialogVis(false)}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
       </Dialog.Container>
 
       <Dialog.Container visible={imageChoiceVis} onBackdropPress={() => setImageChoiceVis(false)}>
         <Dialog.Title>Choose one</Dialog.Title>
-        <Dialog.Button label="Camera" onPress={()=>handleImageChoice('camera')}/>
-        <Dialog.Button label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Camera" onPress={()=>handleImageChoice('camera')}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
       </Dialog.Container>
       <ImageView
         images={item?.photos.map((photo) => ({uri: photo}))}
@@ -585,6 +585,6 @@ const styles = StyleSheet.create({
   indexText: {
     fontSize: 25,
     color: '#000',
-  }
+  },
 
 })

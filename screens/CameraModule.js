@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import { Camera } from 'expo-camera';
 import globalStyles from '../styles/globalStyles';
 import IconButton from '../components/IconButton';
@@ -13,12 +13,13 @@ export default function CameraModule({navigation}) {
 
   const takePicture = async () => {
     if(camera) {
-      const data = await camera.takePictureAsync(null);
+      const data = await camera.takePictureAsync({
+        skipProcessing: true
+      });
       navigation.navigate('Item', {
         uri: data.uri,
       })
     }
-    
   }
 
   useEffect(() => {
@@ -28,14 +29,12 @@ export default function CameraModule({navigation}) {
     })();
   }, []);
 
-  if (hasPermission === null) {
-    return <View />;
-  }
-  if (hasPermission === false) {
+  if (hasPermission === false || hasPermission === null) {
     return <Text>No access to camera</Text>;
   }
   return (
-    <View style={{flex: 1}}>
+    <View style={styles.container}>
+      <View style={styles.positionIndicator}/>
       <View style={styles.cameraContainer}>
         <Camera 
           ref={ref=>setCamera(ref)}
@@ -60,7 +59,7 @@ export default function CameraModule({navigation}) {
           }}
           iconName={flashMode === Camera.Constants.FlashMode.on ? "flash-on" : "flash-off"}
           size={40}
-          color='#fff'
+          color='#000'
         /> 
         <IconButton
           style={styles.cameraIcon}
@@ -69,7 +68,7 @@ export default function CameraModule({navigation}) {
           onPress={takePicture}
           iconName="circle"
           size={60}
-          color='#fff'
+          color='#000'
         /> 
         <IconButton
           style={styles.cameraIcon}
@@ -84,7 +83,7 @@ export default function CameraModule({navigation}) {
           }}
           iconName="flip-camera-android"
           size={40}
-          color='#fff'
+          color='#000'
         /> 
       </View>
       
@@ -101,7 +100,13 @@ export default function CameraModule({navigation}) {
   )
 }
 
+const deviceWidth = Dimensions.get('window').width
+const deviceHeight = Dimensions.get('window').height
+
 const styles = StyleSheet.create({
+  container: {
+    flex: 1
+  },
   iconButton: {
     borderRadius: 100,
     padding: 10
@@ -110,11 +115,11 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     padding: 10,
     borderWidth: 2,
-    borderColor: '#fff'
+    borderColor: '#000'
   },
   cameraButtons: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#fcca47',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center'
@@ -123,8 +128,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   fixedRatio: {
-    width: '100%',
-    height: 1.33 * 450
+    width: deviceWidth,
+    height: 1.33 * deviceWidth
   },
   back: {
     position: 'absolute',

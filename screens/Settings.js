@@ -51,8 +51,8 @@ export default function Settings({navigation}) {
         <Dialog.Description>
           This action is irriversible!
         </Dialog.Description>
-        <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
-        <Dialog.Button label="Delete" onPress={handleDeleteData}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Cancel" onPress={() => setDelDialogVis(false)}/>
+        <Dialog.Button bold={true} color='#fcca47'  label="Delete" onPress={handleDeleteData}/>
       </Dialog.Container>
 
     </View>
