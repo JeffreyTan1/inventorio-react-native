@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, ScrollView, TextInput} from 'react-native'
+import { View, StyleSheet, Image, ScrollView, TextInput, ImageBackground} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
@@ -42,20 +42,14 @@ export default function Item({route, navigation}) {
   const [notes, setNotes] = useState('')
   const [collectionsEdit, setCollectionsEdit] = useState({})
 
-
   // set photos after camera has taken it
   useEffect(() => {
     if(returnUri) {
-      let tempPhotos = photos
+      const tempPhotos = photos
       tempPhotos.push(returnUri)
-      setPhotos(tempPhotos);
+      setPhotos(JSON.parse(JSON.stringify(tempPhotos)));  // cannot explain why
     }
   }, [route.params.uri])
-
-  useEffect(() => {
-    // console.log('photos', photos)
-    // console.log('itemphotos', item?.photos)
-  }, [photos, item])
 
   // get data
   useEffect(() => {
@@ -93,10 +87,14 @@ export default function Item({route, navigation}) {
   // set edit data to begin at the database data
   useEffect(() => {
     if(item){
-      setName(item.name); setPhotos(item.photos); setPrice(item.price.toString()); 
-      setQuantity(item.quantity.toString());setTotal(item.total.toString()); setNotes(item.notes);
+      setEditData(item)
     }
   }, [item]);
+
+  const setEditData = (item) => {
+    setName(item.name); setPhotos(item.photos); setPrice(item.price.toString()); 
+    setQuantity(item.quantity.toString());setTotal(item.total.toString()); setNotes(item.notes);
+  }
 
   // modify total when price & qty change
   useEffect(() => {
@@ -134,9 +132,9 @@ export default function Item({route, navigation}) {
     });
 
     if (!result.cancelled) {
-      let tempPhotos = photos
+      const tempPhotos = photos
       tempPhotos.push(result.uri)
-      setPhotos(tempPhotos);
+      setPhotos(JSON.parse(JSON.stringify(tempPhotos)));  // cannot explain why
     }
   };
 
@@ -203,6 +201,14 @@ export default function Item({route, navigation}) {
     setCollectionsEdit({...collectionsEdit, ...tempObj})
   }
 
+  const handleRemovePhoto = (uri) => {
+    const tempArray = [...photos]
+    const index = tempArray.indexOf(uri)
+    tempArray.splice(index, 1)
+    setPhotos(JSON.parse(JSON.stringify(tempArray))) // cannot explain why
+  }
+  
+
   return (
     <View style={styles.container}>
       {/* Navbar */}
@@ -242,7 +248,9 @@ export default function Item({route, navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>setEditing(true)}
+            onPress={()=>{
+              setEditData(item)
+              setEditing(true)}}
             iconName="edit"
             size={35}
             />
@@ -279,41 +287,94 @@ export default function Item({route, navigation}) {
 
       {/* Image */}
       <View style={styles.imageHeader}>
-        <Carousel
+        {
+          editing?
+          <Carousel
           style={{height: 280}}
           width={450}
           data={
-            editing ? 
+            photos &&
             photos.map((photo, index) => ({img: photo, index: index})).concat({img: placeholderUri, index: null})
-            :
-            item?.photos.map((photo, index) => ({img: photo, index: index}))
           }
           renderItem={({ img, index }) => {
             return (
-              <TouchableHighlight
-                onPress={() => {
-                  if(editing) {
-                    setImageChoiceVis(true)
-                  }
-                  else {setImageViewerVis(true)}
-                }}
-                activeOpacity={0.95}
-                style={styles.imagePressableContainer}
+              <View
+                style={[styles.imagePressableContainer, styles.bubble]}
               >    
                 {
-                  img ?
-                  <Image style={styles.image} 
+                  img != placeholderUri ?
+                  <ImageBackground 
+                    style={[styles.image, {flexDirection: 'row', alignItems: 'flex-start', padding: 10, justifyContent: 'space-between',}]} 
+                    imageStyle={styles.bubble}
                     source={{uri: img}} 
-                  />
+                  >
+                    <CustomText style={styles.indexText}>{index + 1}/{photos.length}</CustomText>
+                    <IconButton 
+                      style={styles.removeImageButton} 
+                      activeOpacity={0.5} 
+                      underlayColor='#ed7777' 
+                      onPress={() => handleRemovePhoto(img)} 
+                      iconName='remove' size={25} 
+                      color='#fff'
+                    />
+                  </ImageBackground>
                   :
-                  <Image style={styles.image} 
+                  <TouchableHighlight
+                    style={styles.bubble}
+                    onPress={() => {
+                        setImageChoiceVis(true)
+                    }}
+                    activeOpacity={0.95}
+                  >
+                    <Image style={styles.image} 
                     source={require('./../assets/4x3-placeholder.png')}
-                  />
+                    />
+                  </TouchableHighlight>
                 }
-                
-              </TouchableHighlight>
+              </View>
             );
-        }} />
+          }} />
+          :
+          item?.photos.length > 0 ?
+          <Carousel
+          style={{height: 280}}
+          width={450}
+          data={
+            item &&
+            item.photos.map((photo, index) => ({img: photo, index: index}))
+          }
+          renderItem={({ img, index }) => {
+            return (
+              <View
+                style={[styles.imagePressableContainer, styles.bubble]}
+              >    
+                <TouchableHighlight
+                    style={styles.bubble}
+                    onPress={() => {
+                      setImageViewerVis(true)
+                    }}
+                    activeOpacity={0.95}
+                  >
+                    {/* <Image style={styles.image} 
+                    source={{uri: img}}
+                    /> */}
+                    <ImageBackground 
+                    style={[styles.image, {flexDirection: 'row', padding: 10}]} 
+                    imageStyle={styles.bubble}
+                    source={{uri: img}} 
+                    >
+                      <CustomText style={styles.indexText}>{index + 1}/{item.photos.length}</CustomText>
+                    </ImageBackground>
+                  </TouchableHighlight>
+              </View>
+            );
+          }} />
+          :
+          <View style={styles.noImagesWrapper}>
+            <CustomText style={styles.noImagesText}>No images</CustomText>
+          </View>
+        }
+        
       </View>
 
       {/* Yellow panel */}
@@ -376,51 +437,49 @@ export default function Item({route, navigation}) {
         </ScrollView>
       </View>
 
-        <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
-          <Dialog.Title>Delete item {item?.name}?</Dialog.Title>
-          <Dialog.Description>
-              Are you sure you want to delete this item? All collections
-              with this item will lose this item.
-          </Dialog.Description>
-          <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
-          <Dialog.Button label="Delete" onPress={() => handleDelete()}/>
-        </Dialog.Container>
+      <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
+        <Dialog.Title>Delete item {item?.name}?</Dialog.Title>
+        <Dialog.Description>
+            Are you sure you want to delete this item? All collections
+            with this item will lose this item.
+        </Dialog.Description>
+        <Dialog.Button label="Cancel" onPress={() => setDelDialogVis(false)}/>
+        <Dialog.Button label="Delete" onPress={() => handleDelete()}/>
+      </Dialog.Container>
 
-        <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
-          <Dialog.Title>Labels</Dialog.Title>
-          {
-            Object.keys(collectionsEdit).map((collection) => {
-              if(collectionsEdit[collection]){
-                return(
-                  <CustomCheckBox key={collection} isChecked={true} onPress={() => handleCollectionsEditChange(collection)}>
-                    {collection}
-                  </CustomCheckBox>
-                )
-              } else {
-                return (
-                  <CustomCheckBox key={collection} isChecked={false} onPress={() => handleCollectionsEditChange(collection)}>
-                    {collection}
-                  </CustomCheckBox>
-                )
-              }
-            })
-          }
-          <Dialog.Button label="Done" onPress={() => setCollectionsDialogVis(false)}/>
-        </Dialog.Container>
+      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
+        <Dialog.Title>Labels</Dialog.Title>
+        {
+          Object.keys(collectionsEdit).map((collection) => {
+            if(collectionsEdit[collection]){
+              return(
+                <CustomCheckBox key={collection} isChecked={true} onPress={() => handleCollectionsEditChange(collection)}>
+                  {collection}
+                </CustomCheckBox>
+              )
+            } else {
+              return (
+                <CustomCheckBox key={collection} isChecked={false} onPress={() => handleCollectionsEditChange(collection)}>
+                  {collection}
+                </CustomCheckBox>
+              )
+            }
+          })
+        }
+        <Dialog.Button label="Done" onPress={() => setCollectionsDialogVis(false)}/>
+      </Dialog.Container>
 
-        <Dialog.Container visible={imageChoiceVis} onBackdropPress={() => setImageChoiceVis(false)}>
-          <Dialog.Title>Choose one</Dialog.Title>
-          <Dialog.Button label="Camera" onPress={()=>handleImageChoice('camera')}/>
-          <Dialog.Button label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
-        </Dialog.Container>
-
+      <Dialog.Container visible={imageChoiceVis} onBackdropPress={() => setImageChoiceVis(false)}>
+        <Dialog.Title>Choose one</Dialog.Title>
+        <Dialog.Button label="Camera" onPress={()=>handleImageChoice('camera')}/>
+        <Dialog.Button label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
+      </Dialog.Container>
       <ImageView
-        images={photos.map((photo) => ({uri: photo}))}
+        images={item?.photos.map((photo) => ({uri: photo}))}
         imageIndex={0}
         visible={imageViewerVis}
         onRequestClose={() => setImageViewerVis(false)}
       />
-
     </View>
   )
 }
@@ -437,25 +496,13 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  imageContainer: {
-    borderRadius: 30,
-    width: '92%',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.29,
-    shadowRadius: 4.65,
-    elevation: 7,
-    marginBottom: 20,
-    marginTop: 20
-  },
   imagePressableContainer: {
-    borderRadius: 30,
     marginLeft: 50,
     marginRight: 50,
     marginTop: 10,
+  },
+  bubble: {
+    borderRadius: 30,
   },
   image: {
     width: '100%',
@@ -517,5 +564,27 @@ const styles = StyleSheet.create({
     shadowRadius: 2.65,
     elevation: 1,
   },
+  noImagesWrapper: {
+    height: 250,
+    width: 450,
+    justifyContent:'center',
+    alignItems: 'center'
+  },
+  noImagesText: {
+    fontSize: 35
+  },
+
+  removeImageButton: {
+    backgroundColor: '#ff0505',
+    width: 35,
+    height: 35,
+    borderRadius: 100,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  indexText: {
+    fontSize: 25,
+    color: '#000',
+  }
 
 })

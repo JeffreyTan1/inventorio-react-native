@@ -33,7 +33,7 @@ export default function Main({navigation}) {
   // data from navigation
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['13%', '60%'], []);
+  const snapPoints = useMemo(() => ['12%', '60%'], []);
   const [collections, setCollections] = useState([]);
   const [carouselData, setCarouselData] = useState([]);
 
@@ -166,7 +166,6 @@ export default function Main({navigation}) {
       // using this hook to also update the shared value outside
       bottomSheetDataSHARED.value = bottomSheetData.animatedIndex.value
       return {
-        opacity: bottomSheetDataSHARED.value,
       }
     })
 
@@ -197,17 +196,22 @@ export default function Main({navigation}) {
             />  
           </View>
           <Animated.View
-            style={[styles.bottomSheet, animBottomSheet]}
+            style={[styles.bottomSheet]}
           >
             {/* <SortBy style={{right: 30}}/> */}
             {
               collections.length !== 0 ?
-              <ScrollView style={styles.collectionsView}>
-                {
-                  carouselData.map((item, index) => (
-                    _renderItem(item, index)
-                  ))
-                }
+              <ScrollView style={styles.collectionsView}
+              >
+
+                  <View style={[styles.collections]}>
+                  {
+                    collections.map((item, index) => (
+                      <CollectionBubble navigation={navigation} name={item.name} key={item.name} />
+                    ))
+                  }
+                  </View>
+               
               </ScrollView>
             :
             <View style={styles.callToActionWrapper}> 
@@ -274,13 +278,7 @@ export default function Main({navigation}) {
         backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 30, borderTopLeftRadius: 30}}
         handleStyle={{borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 30}}
         handleIndicatorStyle={{width: '10%', height: 8}}
-        animationConfigs={useBottomSheetSpringConfigs({
-          damping: 80,
-          overshootClamping: true,
-          restDisplacementThreshold: 0.1,
-          restSpeedThreshold: 0.1,
-          stiffness: 500,
-        })}
+        animateOnMount={false}
       >
         <BottomSheetContent/>
       </BottomSheet>
@@ -295,6 +293,9 @@ export default function Main({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  collections: {
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center'
   },
   canvas: {
     right:20,
@@ -363,7 +364,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   collectionsView: { 
- 
+
   },
   contentContainer:{
     flex:1,

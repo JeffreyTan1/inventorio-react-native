@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons'
 export default function IconButton({style, activeOpacity, underlayColor, onPress, iconName, size, color}) {
   return (
     <TouchableHighlight
-    style={[style, {minWidth:10, minHeight: 10}]}
+    style={style}
     activeOpacity={activeOpacity}
     underlayColor={underlayColor}
     onPress={onPress}

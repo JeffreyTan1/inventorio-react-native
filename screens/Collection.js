@@ -30,7 +30,7 @@ export default function Collection({route, navigation}) {
 
   // states for conditional rendering
   const [editing, setEditing] = useState(collection ? false : true)
-  const [newName, setNewName] = useState('')
+  const [newName, setNewName] = useState(route.params?.collection ? route.params.collection : '')
   const [delDialogVis, setDelDialogVis] = useState(false)
   
   // calculated values
@@ -235,17 +235,25 @@ export default function Collection({route, navigation}) {
       {/* Items */}
       <View style={styles.container}>
         <View style={styles.panel}>
-            <ScrollView style={styles.scrollView}>
-              {
-                items.map((item) => (
-                  <ItemBubble navigation={navigation} key={item.id} 
-                  id={item.id} name={item.name} photo={item.photos[0]} 
-                  price={item.price} quantity={item.quantity} 
-                  total={item.total}
-                  />
-                ))
-              }
-            </ScrollView>
+          {
+          items.length > 0 ?
+          <ScrollView style={styles.scrollView}>
+            {
+              items.map((item) => (
+                <ItemBubble navigation={navigation} key={item.id} 
+                id={item.id} name={item.name} photo={item.photos[0]} 
+                price={item.price} quantity={item.quantity} 
+                total={item.total}
+                />
+              ))
+            }
+          </ScrollView>
+          :
+          <View style={styles.callToActionWrapper}> 
+              <CustomText style={styles.callToAction}>Add an item to get started!</CustomText>
+          </View>
+          }
+          
         </View>
       </View>
       
@@ -321,5 +329,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 28
   },
+  callToActionWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: 'center'
+  },
+  callToAction : {
+    fontSize: 20,
+    marginRight: 5, 
+    marginLeft:5,
+    textAlign: "center"
+
+  }
   
 })
