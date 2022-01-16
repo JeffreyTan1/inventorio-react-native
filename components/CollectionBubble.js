@@ -1,8 +1,9 @@
 import React from 'react'
-import { View, StyleSheet, Image } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import {TouchableHighlight} from 'react-native-gesture-handler'
 import CustomText from './CustomText'
-export default function CollectionBubble({navigation, name, image}) {
+
+export default function CollectionBubble({navigation, name}) {
   return (
     <TouchableHighlight
     style={styles.pressableContainer}
@@ -20,12 +21,10 @@ export default function CollectionBubble({navigation, name, image}) {
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'column',
     flex: 1
   },
   pressableContainer: {
     height: 155,
-    width: 165,
     backgroundColor: '#fff',
     borderRadius: 30,
     margin: 10,
@@ -37,12 +36,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 2.65,
     elevation: 4,
-  },
-  image: {
-    width: '100%',
-    height: '70%',
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30
   },
   details: {
     flex: 1,

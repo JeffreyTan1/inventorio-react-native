@@ -18,6 +18,7 @@ export default function ItemInfoBubble({label, data, editing, value, onChangeTex
 
 const styles = StyleSheet.create({
   container: {
+    borderWidth: 1,
     flex: 1,
     borderRadius: 13,
     padding: 10,

@@ -191,7 +191,10 @@ export default function Collection({route, navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>setEditing(true)}
+            onPress={()=>{
+              setNewName(route.params?.collection ? route.params.collection : '')
+              setEditing(true)
+            }}
             iconName="edit"
             size={35}
             />
@@ -249,9 +252,12 @@ export default function Collection({route, navigation}) {
             }
           </ScrollView>
           :
+          !editing ?
           <View style={styles.callToActionWrapper}> 
               <CustomText style={styles.callToAction}>Add an item to get started!</CustomText>
           </View>
+          :
+          <View></View>
           }
           
         </View>

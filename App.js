@@ -11,18 +11,42 @@ import Item from './screens/Item';
 import CameraModule from './screens/CameraModule';
 import AppLoading from 'expo-app-loading';
 import { Asset } from 'expo-asset';
-
+import * as FileSystem from 'expo-file-system';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false)
 
+  const createDirectories = async () => {
+    const imagesDir = FileSystem.documentDirectory + 'images'
+    const dirInfo = await FileSystem.getInfoAsync(imagesDir);
+    if(!dirInfo.exists){
+      await FileSystem.makeDirectoryAsync(imagesDir, {intermediates: true})
+      console.log('directory:', imagesDir, 'created!')
+    }
+  }
+
+  const deleteCache = async () => {
+
+    const camCacheDir = FileSystem.cacheDirectory + 'Camera/'
+    let files = await FileSystem.readDirectoryAsync(camCacheDir)
+    for (const file of files) {
+      FileSystem.deleteAsync(camCacheDir + file)
+    }
+
+    const ipCacheDir = FileSystem.cacheDirectory + 'ImagePicker/'
+    files = await FileSystem.readDirectoryAsync(ipCacheDir)
+    for (const file of files) {
+      FileSystem.deleteAsync(ipCacheDir + file)
+    }
+  }
 
   useEffect(() => {
-    // create tables if not already existing
+    // create tables & directories if not already existing
     createTables()
-
+    createDirectories()
+    deleteCache()
   }, [])
 
   const [loaded] = useFonts({

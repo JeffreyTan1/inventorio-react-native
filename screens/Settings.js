@@ -5,15 +5,25 @@ import CustomText from '../components/CustomText';
 import globalStyles from '../styles/globalStyles';
 import { createTables, dropTables } from './../utils/DAO';
 import Dialog from 'react-native-dialog'
+import * as FileSystem from 'expo-file-system';
 
 export default function Settings({navigation}) {
   const [delDialogVis, setDelDialogVis] = useState(false)
 
+  const deleteDirContents = async (dir) => {
+    const files = await FileSystem.readDirectoryAsync(dir)
+    for (const file of files) {
+      FileSystem.deleteAsync(dir + file)
+    }
+  }
+
   const handleDeleteData = () => {
     dropTables()
     createTables()
-    console.log('All data deleted')
     setDelDialogVis(false)
+    deleteDirContents(FileSystem.documentDirectory + 'images/')
+    deleteDirContents(FileSystem.cacheDirectory + 'Camera/')
+    deleteDirContents(FileSystem.cacheDirectory + 'ImagePicker/')
   }
 
   return (
@@ -35,15 +45,17 @@ export default function Settings({navigation}) {
       </View>
       
       <ScrollView style={styles.panel}>
-        <CustomText style={styles.subHeading}>Delete all data</CustomText>
-        <TouchableHighlight 
-        onPress={() => setDelDialogVis(true)}
-        style={styles.delButton}
-        activeOpacity={0.9}
-        underlayColor="pink"
-        >
-          <CustomText style={styles.delButtonText}>Delete</CustomText>
-        </TouchableHighlight>
+        <View style={styles.field}>
+          <CustomText style={styles.fieldName}>Delete all data</CustomText>
+          <TouchableHighlight 
+          onPress={() => setDelDialogVis(true)}
+          style={styles.button}
+          activeOpacity={0.9}
+          underlayColor="white"
+          >
+            <Icon name='delete' style={styles.delButtonText}/>
+          </TouchableHighlight>
+        </View>    
       </ScrollView>
 
       <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
@@ -85,14 +97,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  subHeadingContainer: {
-    flexDirection: 'row',
-  },
-  subHeading: {
-    fontSize: 30,
-    marginHorizontal: 20,
-    marginTop: 30
-  },
   ml: {
     marginLeft: 10,
   },
@@ -101,26 +105,30 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',
     flex: 1,
+    padding: 20
   },
-  scrollView: {
-    flex: 1,
-  },
-  delButton: {
-    width: '40%',
-    paddingVertical: 5,
-    backgroundColor: '#e90b0b',
-    borderWidth: 1,
-    borderColor: '#fff',
-    marginHorizontal: 20,
+  field: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginVertical: 10,
+  },
+  fieldName: {
+    fontSize: 25,
+  },
+  button: {
+    flexGrow: 1,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 16
+    borderRadius: 16,
+    marginLeft: 30
   },
   delButtonText: {
-    fontSize: 25,
-    color: '#fff',
+    fontSize: 30,
+    color: '#000',
     fontWeight: 'bold',
-    padding: 3
+    padding: 5,
+    
   }
 })

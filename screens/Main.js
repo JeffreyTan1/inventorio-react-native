@@ -13,7 +13,7 @@ import GraphBubble from "../components/GraphBubble";
 import Carousel from 'react-native-reanimated-carousel';
 import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum, getHistory } from "../utils/DAO";
 import { useIsFocused } from "@react-navigation/native";
-import { NativeViewGestureHandler, ScrollView } from "react-native-gesture-handler";
+import { ScrollView } from "react-native-gesture-handler";
 
 const fallbackGraphData = 
   {
@@ -35,7 +35,6 @@ export default function Main({navigation}) {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['12%', '60%'], []);
   const [collections, setCollections] = useState([]);
-  const [carouselData, setCarouselData] = useState([]);
 
   // statistics
   const [itemCount, setItemCount] = useState(null);
@@ -48,8 +47,8 @@ export default function Main({navigation}) {
   const [itemQuantityHistory, setItemQuantityHistory] = useState(fallbackGraphData);
   const [totalValueHistory, setTotalValueHistory] = useState(fallbackGraphData);
 
-  const fields = ['Items', 'Collections', 'Quantity', 'Total Value'];
-  const values = [itemCount, collectionCount, itemQuantity, totalValue];
+  const fields = ['Items', 'Collections',  'Total Value'];
+  const values = [itemCount, collectionCount,  totalValue];
   const histories = [itemCountHistory, collectionCountHistory,
     itemQuantityHistory, totalValueHistory];
 
@@ -103,28 +102,6 @@ export default function Main({navigation}) {
     }
   }, [isFocused])
 
-  useEffect(() => {
-    setCarouselData(splitInFours())
-  }, [collections])
-
-  // takes an array of objects 
-  // splits it into an array of size-4 arrays of objects 
-  const splitInFours = () => {
-    if (!collections) return
-    var perChunk = 4 // items per chunk    
-    var inputArray = collections
-    var result = inputArray.reduce((resultArray, item, index) => { 
-      const chunkIndex = Math.floor(index/perChunk)
-      if(!resultArray[chunkIndex]) {
-        resultArray[chunkIndex] = [] // start a new chunk
-      }
-      resultArray[chunkIndex].push(item)
-      return resultArray
-    }, [])
-    
-    result = result.map(x => ({data: x}))
-    return result
-  }
 
   const bottomSheetDataSHARED = useSharedValue(0)
   const scaleIn = useSharedValue(0)
@@ -169,20 +146,8 @@ export default function Main({navigation}) {
       }
     })
 
-    const _renderItem = (item, index) => {
-      return (
-        <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent:'center', flex:1}} key={index}>
-          {
-            item.data.map((collection) => (
-              <CollectionBubble navigation={navigation} name={collection.name} key={collection.name} />
-            ))
-          }
-        </View>
-      );
-    }
-
     return (
-      <View style={styles.contentContainer}>
+      <View style={styles.container}>
           <View style={styles.bottomSheetTitle}>
             <CustomText style={globalStyles.headingText}>Collections</CustomText>
             <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{collections.length}</CustomText>
@@ -201,13 +166,15 @@ export default function Main({navigation}) {
             {/* <SortBy style={{right: 30}}/> */}
             {
               collections.length !== 0 ?
-              <ScrollView style={styles.collectionsView}
+              <ScrollView style={[styles.collectionsView]}
               >
 
                   <View style={[styles.collections]}>
                   {
                     collections.map((item, index) => (
-                      <CollectionBubble navigation={navigation} name={item.name} key={item.name} />
+                      <View style={[styles.container, {flexBasis: 165}]} key={item.name}>
+                        <CollectionBubble navigation={navigation} name={item.name}  />
+                      </View>
                     ))
                   }
                   </View>
@@ -273,7 +240,7 @@ export default function Main({navigation}) {
         ref={bottomSheetRef}
         index={1}
         snapPoints={snapPoints}
-        contentContainerStyle={styles.contentContainer}
+        containerStyle={styles.container}
         overDragResistanceFactor={1}
         backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 30, borderTopLeftRadius: 30}}
         handleStyle={{borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 30}}
@@ -295,15 +262,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   collections: {
-    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center'
-  },
-  canvas: {
-    right:20,
-    top: 5
-  },
-  fab: {
-    paddingBottom: 60,
-    paddingRight: 10,
+    flex: 1,
+    flexDirection: 'row', 
+    flexWrap: 'wrap', 
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginVertical: 10,
   },
   iconButton: {
     borderRadius: 100,
@@ -313,10 +277,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     right: 20,
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
     paddingVertical: 5,
     borderRadius: 100,
-    borderWidth: 0.5
+    borderWidth: 1
   },
   plus: {
     alignItems: 'center',
@@ -337,8 +301,6 @@ const styles = StyleSheet.create({
     marginRight: 30,
   },
   bottomSheet: {
-    alignItems: 'center',
-    justifyContent: 'flex-start',
     flex: 1
   },
   bottomSheetScrollView: {
@@ -349,6 +311,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
+    borderWidth: 1
   },
   mainContent: {
     flexDirection: 'row',
@@ -364,12 +327,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   collectionsView: { 
+    flex: 1
+  },
 
-  },
-  contentContainer:{
-    flex:1,
-   
-  },
   callToActionWrapper: {
     flex: 1,
     justifyContent: "center",
@@ -380,6 +340,5 @@ const styles = StyleSheet.create({
     marginRight: 5, 
     marginLeft:5,
     textAlign: "center"
-
   }
 })

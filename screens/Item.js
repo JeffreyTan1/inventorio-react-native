@@ -13,6 +13,8 @@ import Carousel from 'react-native-reanimated-carousel';
 import ImageView from 'react-native-image-viewing'
 import { TouchableHighlight } from 'react-native-gesture-handler'
 import placeholder from './../assets/4x3-placeholder.png'
+import * as FileSystem from 'expo-file-system';
+
 const placeholderUri = Image.resolveAssetSource(placeholder).uri
 
 export default function Item({route, navigation}) {
@@ -88,6 +90,7 @@ export default function Item({route, navigation}) {
   useEffect(() => {
     if(item){
       setEditData(item)
+      console.log(item.photos)
     }
   }, [item]);
 
@@ -179,19 +182,70 @@ export default function Item({route, navigation}) {
     return tempArray
   }
 
+  const copyPhoto = async(uri) => {
+    try {
+      const lastSlash = uri.lastIndexOf('/')
+      const fileName = FileSystem.documentDirectory + 'images/' + uri.substring(lastSlash + 1)
+      await FileSystem.copyAsync({from: uri, to: fileName})
+      console.log(uri, 'copied to', fileName)
+      return fileName
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const deletePhoto = async(uri) => {
+    try {
+      await FileSystem.deleteAsync(uri)
+      console.log('deleted', uri)
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const getNewPhotosArray = async () => {
+    const savedFiles = []
+
+    if(!id){
+      const copyingArray = photos
+      for (const f of copyingArray) {
+        const fileName = await copyPhoto(f)
+        savedFiles.push(fileName)
+      }
+      return savedFiles
+    } else {
+      const deletingArray = item.photos.filter(x => !photos.includes(x))
+      const copyingArray = photos.filter(x => !item.photos.includes(x))
+      for(const f of deletingArray) {
+        deletePhoto(f)
+      }
+      for (const f of copyingArray) {
+        const fileName = await copyPhoto(f)
+        savedFiles.push(fileName)
+      }
+      console.log(item.photos.filter(x => photos.includes(x)).concat(savedFiles))
+      return item.photos.filter(x => photos.includes(x)).concat(savedFiles)
+    }
+
+  }
+
   // creates item, otherwise updates it if already exists
   const handleSave = () => {
     const {assocCollections, dissocCollections} = getCollectionsLists()
-    if(id){
-      setEditing(false)
-      updateItem(name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections) 
-      setItem({name, photos, price, quantity, total, notes, id})
-      setCollectionsIn(mutateCollectionsEdit())
-    } else {
-      createItem(name, photos, price, quantity, total, notes, assocCollections, setId)
-      setEditing(false)
-      setCollectionsIn(mutateCollectionsEdit())
-    }
+    getNewPhotosArray().then(
+      (newPhotos) => {
+        if(id){
+          setEditing(false)
+          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections) 
+          setId(id)
+          setCollectionsIn(mutateCollectionsEdit())
+        } else {  
+          createItem(name, newPhotos, price, quantity, total, notes, assocCollections, setId)
+          setEditing(false)
+          setCollectionsIn(mutateCollectionsEdit())
+        }
+      }
+    )
   }
 
   // onchange handler for editing collections
@@ -308,7 +362,9 @@ export default function Item({route, navigation}) {
                     imageStyle={styles.bubble}
                     source={{uri: img}} 
                   >
-                    <CustomText style={styles.indexText}>{index + 1}/{photos.length}</CustomText>
+                    <View style={styles.indexTextContainer}>
+                      <CustomText style={styles.indexText}>{index + 1}/{photos?.length}</CustomText>
+                    </View>
                     <IconButton 
                       style={styles.removeImageButton} 
                       activeOpacity={0.5} 
@@ -335,13 +391,13 @@ export default function Item({route, navigation}) {
             );
           }} />
           :
-          item?.photos.length > 0 ?
+          item?.photos?.length > 0 ?
           <Carousel
           style={{height: 280}}
           width={450}
           data={
             item &&
-            item.photos.map((photo, index) => ({img: photo, index: index}))
+            item.photos?.map((photo, index) => ({img: photo, index: index}))
           }
           renderItem={({ img, index }) => {
             return (
@@ -363,7 +419,9 @@ export default function Item({route, navigation}) {
                     imageStyle={styles.bubble}
                     source={{uri: img}} 
                     >
-                      <CustomText style={styles.indexText}>{index + 1}/{item.photos.length}</CustomText>
+                      <View style={styles.indexTextContainer}>
+                        <CustomText style={styles.indexText}>{index + 1}/{item?.photos?.length}</CustomText>
+                      </View>
                     </ImageBackground>
                   </TouchableHighlight>
               </View>
@@ -474,8 +532,9 @@ export default function Item({route, navigation}) {
         <Dialog.Button bold={true} color='#fcca47'  label="Camera" onPress={()=>handleImageChoice('camera')}/>
         <Dialog.Button bold={true} color='#fcca47'  label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
       </Dialog.Container>
+
       <ImageView
-        images={item?.photos.map((photo) => ({uri: photo}))}
+        images={item?.photos?.map((photo) => ({uri: photo}))}
         imageIndex={0}
         visible={imageViewerVis}
         onRequestClose={() => setImageViewerVis(false)}
@@ -582,9 +641,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  indexTextContainer: {
+    backgroundColor: '#fff',
+    padding: 6,
+    height: '20%',
+    borderRadius: 30,
+    opacity: 0.9
+  },
   indexText: {
     fontSize: 25,
     color: '#000',
   },
+
 
 })

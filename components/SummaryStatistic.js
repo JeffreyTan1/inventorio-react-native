@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
 import CustomText from '../components/CustomText'
 
 
@@ -18,7 +18,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chip: {
-    borderRadius: 16,
+    borderRadius: 10,
     backgroundColor: '#C4C4C4',
     padding: 7,
     minWidth: 90,
