@@ -12,6 +12,7 @@ import CameraModule from './screens/CameraModule';
 import AppLoading from 'expo-app-loading';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
+import {SafeAreaView} from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
@@ -66,17 +67,19 @@ export default function App() {
  
   return (
     <NavigationContainer>
-      <Stack.Navigator
-      screenOptions={{
-        headerShown: false
-      }}
-      >
-        <Stack.Screen name="Main" component={Main} />
-        <Stack.Screen name="Collection" component={Collection} />
-        <Stack.Screen name="Item" component={Item} />
-        <Stack.Screen name="Settings" component={Settings} />
-        <Stack.Screen name="CameraModule" component={CameraModule} />
-      </Stack.Navigator>
+      <SafeAreaView style={{flex: 1}}>
+        <Stack.Navigator
+        screenOptions={{
+          headerShown: false
+        }}
+        >
+          <Stack.Screen name="Main" component={Main} />
+          <Stack.Screen name="Collection" component={Collection} />
+          <Stack.Screen name="Item" component={Item} />
+          <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="CameraModule" component={CameraModule} />
+        </Stack.Navigator>
+      </SafeAreaView>
     </NavigationContainer>
   
   );

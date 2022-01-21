@@ -1,0 +1,7 @@
+<resources>
+  <color name="splashscreen_background">#fcca47</color>
+  <color name="iconBackground">#fcca47</color>
+  <color name="colorPrimary">#023c69</color>
+  <color name="colorPrimaryDark">#fcca47</color>
+  <color name="navigationBarColor">#fcca47</color>
+</resources>

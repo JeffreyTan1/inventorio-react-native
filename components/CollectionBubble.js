@@ -44,7 +44,6 @@ const styles = StyleSheet.create({
   },
   collectionText: {
     fontSize: 30,
-    fontWeight: 'bold',
     marginHorizontal: 10
   }
 })

@@ -12,7 +12,7 @@ import ExpoTHREE, { Renderer, TextureLoader } from 'expo-three';
 import {ExpoWebRenderingContext, GLView} from 'expo-gl'
 
 
-let speed = 0.005;
+let speed = 0.000;
 
 export default function BagModel() {
   const [object, setObject] = useState(null);
@@ -30,7 +30,6 @@ export default function BagModel() {
     velocityThreshold: 0.3,
     directionalOffsetThreshold: 80
   };
-
 
   return (
 
@@ -68,10 +67,11 @@ export default function BagModel() {
           spotLight.lookAt(scene.position);
           scene.add(spotLight);
 
-          // const axesHelper = new THREE.AxesHelper( 100 );
-          // scene.add( axesHelper );
-
+          const startTime = performance.now()
           const object = await ExpoTHREE.loadObjAsync({asset: require('./../assets/default_backpack.obj')})
+          
+          var endTime = performance.now()
+          console.log(`Call to loadobjasync took ${endTime - startTime} milliseconds`)
           setObject(object)
           
           function rotateObject(object, degreeX=0, degreeY=0, degreeZ=0) {
@@ -83,8 +83,7 @@ export default function BagModel() {
           rotateObject(object, -90, 0, 0);
 
           scene.add( object );
-          // camera.lookAt(object.position)
-          //animate rotation
+
           const update = () => {
             object.rotation.z += speed
           }
@@ -108,7 +107,5 @@ const styles = StyleSheet.create({
     flex: 1
   },
   canvas: {
-    right:20,
-    top: 5
   },
 })

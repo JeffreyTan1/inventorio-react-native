@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, ScrollView, TextInput, ImageBackground} from 'react-native'
+import { View, StyleSheet, Image, ScrollView, TextInput, ImageBackground, Alert} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
@@ -23,16 +23,17 @@ export default function Item({route, navigation}) {
   const collection = route.params?.collection
   const returnUri = route.params?.uri
 
+  // used to reload after an update
+  const [reload, setReload] = useState(0)
+
   // data from database
-  const [item, setItem] = useState(null)
+  const [itemData, setItemData] = useState(null)
   const [collectionsIn, setCollectionsIn] = useState(null)
   const [allCollections, setAllCollections] = useState(null)
 
   // states for conditional rendering
   const [editing, setEditing] = useState(id ? false : true) // default to edit if new item
-  const [delDialogVis, setDelDialogVis] = useState(false)
   const [collectionsDialogVis, setCollectionsDialogVis] = useState(false)
-  const [imageChoiceVis, setImageChoiceVis] = useState(false)
   const [imageViewerVis, setImageViewerVis] = useState(false)
 
   // store values of edits
@@ -56,11 +57,11 @@ export default function Item({route, navigation}) {
   // get data
   useEffect(() => {
     if(id){
-      getItem(id, setItem)
+      getItem(id, setItemData)
       getItemCollections(id, setCollectionsIn)
     }
     getAllCollections(setAllCollections)
-  }, [id])
+  }, [id, reload])
 
   // set collections that are selected by chips
   useEffect(() => {
@@ -88,11 +89,10 @@ export default function Item({route, navigation}) {
 
   // set edit data to begin at the database data
   useEffect(() => {
-    if(item){
-      setEditData(item)
-      console.log(item.photos)
+    if(itemData){
+      setEditData(itemData)
     }
-  }, [item]);
+  }, [itemData]);
 
   const setEditData = (item) => {
     setName(item.name); setPhotos(item.photos); setPrice(item.price.toString()); 
@@ -101,19 +101,17 @@ export default function Item({route, navigation}) {
 
   // modify total when price & qty change
   useEffect(() => {
-    setTotal((parseFloat(price) * parseFloat(quantity)).toString());
+    setTotal((parseFloat(price) * parseInt(quantity)).toFixed(2).toString());
   }, [price, quantity]);
 
   // handle delete dialog
   const handleDelete = () => {
-    setDelDialogVis(false)
     deleteItem(id)
     navigation.goBack()
   }
   
   // handle camera vs image picker dialog
   const handleImageChoice = (choice) => {
-    setImageChoiceVis(false)
     if(choice === 'camera') {
       navigation.navigate('CameraModule')
     } else if (choice === 'image-picker') {
@@ -172,22 +170,12 @@ export default function Item({route, navigation}) {
     return {assocCollections, dissocCollections}
   }
 
-  const mutateCollectionsEdit = () => {
-    const tempArray = []
-    for (const key in collectionsEdit) {
-      if (collectionsEdit[key]) {
-        tempArray.push({collection_name: key})
-      }
-    }
-    return tempArray
-  }
-
   const copyPhoto = async(uri) => {
     try {
       const lastSlash = uri.lastIndexOf('/')
       const fileName = FileSystem.documentDirectory + 'images/' + uri.substring(lastSlash + 1)
       await FileSystem.copyAsync({from: uri, to: fileName})
-      console.log(uri, 'copied to', fileName)
+      // console.log(uri, 'copied to', fileName)
       return fileName
     } catch (error) {
       throw error
@@ -197,7 +185,7 @@ export default function Item({route, navigation}) {
   const deletePhoto = async(uri) => {
     try {
       await FileSystem.deleteAsync(uri)
-      console.log('deleted', uri)
+      // console.log('deleted', uri)
     } catch (error) {
       throw error
     }
@@ -214,8 +202,8 @@ export default function Item({route, navigation}) {
       }
       return savedFiles
     } else {
-      const deletingArray = item.photos.filter(x => !photos.includes(x))
-      const copyingArray = photos.filter(x => !item.photos.includes(x))
+      const deletingArray = itemData.photos.filter(x => !photos.includes(x))
+      const copyingArray = photos.filter(x => !itemData.photos.includes(x))
       for(const f of deletingArray) {
         deletePhoto(f)
       }
@@ -223,12 +211,17 @@ export default function Item({route, navigation}) {
         const fileName = await copyPhoto(f)
         savedFiles.push(fileName)
       }
-      console.log(item.photos.filter(x => photos.includes(x)).concat(savedFiles))
-      return item.photos.filter(x => photos.includes(x)).concat(savedFiles)
+      return itemData.photos.filter(x => photos.includes(x)).concat(savedFiles)
     }
 
   }
 
+  const validateInputs = () => {
+    const priceValid = /^\d+(\d{3})*(\.\d{1,2})?$/.test(price)
+    const quantityValid = /^[0-9]*$/.test(quantity)
+    console.log('priceValid', priceValid, 'quantityValid', quantityValid)
+    return priceValid && quantityValid
+  }
   // creates item, otherwise updates it if already exists
   const handleSave = () => {
     const {assocCollections, dissocCollections} = getCollectionsLists()
@@ -236,13 +229,10 @@ export default function Item({route, navigation}) {
       (newPhotos) => {
         if(id){
           setEditing(false)
-          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections) 
-          setId(id)
-          setCollectionsIn(mutateCollectionsEdit())
+          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections, setReload)
         } else {  
           createItem(name, newPhotos, price, quantity, total, notes, assocCollections, setId)
           setEditing(false)
-          setCollectionsIn(mutateCollectionsEdit())
         }
       }
     )
@@ -260,6 +250,38 @@ export default function Item({route, navigation}) {
     const index = tempArray.indexOf(uri)
     tempArray.splice(index, 1)
     setPhotos(JSON.parse(JSON.stringify(tempArray))) // cannot explain why
+  }
+
+
+  const deleteDialog = () => {
+    Alert.alert(
+      `Delete item ${itemData?.name}?`,
+      `Are you sure? All collections with this item will lose this item.`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: () => handleDelete() }
+      ]
+    );
+  }
+
+  const imageChoiceDialog = () => {
+    Alert.alert(
+      `Choose one`,
+      null,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "Camera", onPress: () => handleImageChoice('camera') },
+        { text: "Gallery", onPress: () => handleImageChoice('image-picker') }
+      ]
+    );
   }
   
 
@@ -294,7 +316,7 @@ export default function Item({route, navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>setDelDialogVis(true)}
+            onPress={()=>deleteDialog()}
             iconName="delete"
             size={35}
             />
@@ -303,7 +325,7 @@ export default function Item({route, navigation}) {
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
             onPress={()=>{
-              setEditData(item)
+              setEditData(itemData)
               setEditing(true)}}
             iconName="edit"
             size={35}
@@ -323,7 +345,15 @@ export default function Item({route, navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>handleSave()}
+            onPress={()=>{
+              if(validateInputs()) {
+                handleSave()
+              }
+              else {
+                console.log('Failed validation')
+              }
+              
+            }}
             iconName="save"
             size={35}
             />
@@ -336,7 +366,7 @@ export default function Item({route, navigation}) {
         editing ? 
         <TextInput style={[globalStyles.headingTextEdit, styles.textContainer]} value={name} onChangeText={(val) => setName(val)}/>
         : 
-        <CustomText style={[globalStyles.headingText, styles.textContainer]}>{item?.name}</CustomText>
+        <CustomText style={[globalStyles.headingText, styles.textContainer]}>{itemData?.name}</CustomText>
       }
 
       {/* Image */}
@@ -350,26 +380,26 @@ export default function Item({route, navigation}) {
             photos &&
             photos.map((photo, index) => ({img: photo, index: index})).concat({img: placeholderUri, index: null})
           }
-          renderItem={({ img, index }) => {
+          renderItem={({ item}) => {
             return (
               <View
                 style={[styles.imagePressableContainer, styles.bubble]}
               >    
                 {
-                  img != placeholderUri ?
+                  item.img != placeholderUri ?
                   <ImageBackground 
                     style={[styles.image, {flexDirection: 'row', alignItems: 'flex-start', padding: 10, justifyContent: 'space-between',}]} 
                     imageStyle={styles.bubble}
-                    source={{uri: img}} 
+                    source={{uri: item.img}} 
                   >
                     <View style={styles.indexTextContainer}>
-                      <CustomText style={styles.indexText}>{index + 1}/{photos?.length}</CustomText>
+                      <CustomText style={styles.indexText}>{item.index + 1}/{photos?.length}</CustomText>
                     </View>
                     <IconButton 
                       style={styles.removeImageButton} 
                       activeOpacity={0.5} 
                       underlayColor='#ed7777' 
-                      onPress={() => handleRemovePhoto(img)} 
+                      onPress={() => handleRemovePhoto(item.img)} 
                       iconName='remove' size={25} 
                       color='#fff'
                     />
@@ -378,7 +408,7 @@ export default function Item({route, navigation}) {
                   <TouchableHighlight
                     style={styles.bubble}
                     onPress={() => {
-                        setImageChoiceVis(true)
+                        imageChoiceDialog()
                     }}
                     activeOpacity={0.95}
                   >
@@ -391,15 +421,16 @@ export default function Item({route, navigation}) {
             );
           }} />
           :
-          item?.photos?.length > 0 ?
+          itemData?.photos?.length > 0 ?
           <Carousel
+          autoPlay={false}
           style={{height: 280}}
           width={450}
           data={
-            item &&
-            item.photos?.map((photo, index) => ({img: photo, index: index}))
+            itemData &&
+            itemData.photos?.map((photo, index) => ({img: photo, index: index}))
           }
-          renderItem={({ img, index }) => {
+          renderItem={({ item }) => {
             return (
               <View
                 style={[styles.imagePressableContainer, styles.bubble]}
@@ -411,16 +442,13 @@ export default function Item({route, navigation}) {
                     }}
                     activeOpacity={0.95}
                   >
-                    {/* <Image style={styles.image} 
-                    source={{uri: img}}
-                    /> */}
                     <ImageBackground 
                     style={[styles.image, {flexDirection: 'row', padding: 10}]} 
                     imageStyle={styles.bubble}
-                    source={{uri: img}} 
+                    source={{uri: item.img}} 
                     >
                       <View style={styles.indexTextContainer}>
-                        <CustomText style={styles.indexText}>{index + 1}/{item?.photos?.length}</CustomText>
+                        <CustomText style={styles.indexText}>{item.index + 1}/{itemData?.photos?.length}</CustomText>
                       </View>
                     </ImageBackground>
                   </TouchableHighlight>
@@ -436,21 +464,21 @@ export default function Item({route, navigation}) {
       </View>
 
       {/* Yellow panel */}
-      <View style={{flex: 1, overflow: 'hidden', borderTopLeftRadius: 25, borderTopRightRadius: 25,}}>
+      <View style={{flex: 1, overflow: 'hidden', borderTopLeftRadius: 25, borderTopRightRadius: 25}}>
         <ScrollView style={styles.panel}>
           <CustomText style={[styles.subHeading, styles.subHeadingText]}>Details</CustomText>
             {
               editing ? 
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginLeft: 20, marginRight: 20}}>
+              <View style={styles.itemInfoBubbleGroup}>
                 <ItemInfoBubble label='Price' value={price} editing={true} onChangeText={(val) => setPrice(val)} keyboardType="numeric"/>
                 <ItemInfoBubble label='Qty' value={quantity} editing={true} onChangeText={(val) => setQuantity(val)} keyboardType="numeric"/>
                 <ItemInfoBubble label='Total' data={total} editing={false}/>
               </View>
               :
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginLeft: 20, marginRight: 20}}>
-                <ItemInfoBubble label='Price' data={item?.price} editing={false}/>
-                <ItemInfoBubble label='Qty' data={item?.quantity} editing={false}/>
-                <ItemInfoBubble label='Total' data={item?.total} editing={false}/>
+              <View style={styles.itemInfoBubbleGroup}>
+                <ItemInfoBubble label='Price' data={itemData?.price} editing={false}/>
+                <ItemInfoBubble label='Qty' data={itemData?.quantity} editing={false}/>
+                <ItemInfoBubble label='Total' data={itemData?.total} editing={false}/>
               </View>
             }
           <CustomText style={[styles.subHeading, styles.subHeadingText]}>Notes</CustomText>
@@ -460,7 +488,7 @@ export default function Item({route, navigation}) {
                 editing ? 
                 <TextInput multiline={true} style={styles.notesText} value={notes} onChangeText={(val) => setNotes(val)}/>
                 :
-                <CustomText style={styles.notesText}>{item?.notes}</CustomText>
+                <CustomText style={styles.notesText}>{itemData?.notes}</CustomText>
               }
             </ScrollView>
           </View>
@@ -468,11 +496,11 @@ export default function Item({route, navigation}) {
           <CustomText style={[styles.subHeading, styles.subHeadingText]}>Collections</CustomText>
           {
             editing ? 
-            <View style={{flexDirection: 'row', marginLeft: 20, marginRight: 20, marginBottom: 60, flexWrap: 'wrap'}}>
+            <View style={styles.labelsGroup}>
               {Object.keys(collectionsEdit).map((collection) => {
                 if(collectionsEdit[collection]){
                   return(
-                    <CustomChip key={collection}>{collection}</CustomChip>
+                    <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection}>{collection}</CustomChip>
                   )
                 }
               })}
@@ -486,24 +514,14 @@ export default function Item({route, navigation}) {
               />
             </View>
             :
-            <View style={{flexDirection: 'row', marginLeft: 20, marginRight: 20, marginBottom: 60, flexWrap: 'wrap'}}>
+            <View style={styles.labelsGroup}>
               {collectionsIn?.map((collection) => (
-                <CustomChip key={collection.collection_name}>{collection.collection_name}</CustomChip>
+                <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
               ))}
             </View>
             }
         </ScrollView>
       </View>
-
-      <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
-        <Dialog.Title>Delete item {item?.name}?</Dialog.Title>
-        <Dialog.Description>
-            Are you sure you want to delete this item? All collections
-            with this item will lose this item.
-        </Dialog.Description>
-        <Dialog.Button bold={true} color='#fcca47'  label="Cancel" onPress={() => setDelDialogVis(false)}/>
-        <Dialog.Button bold={true} color='#fcca47'  label="Delete" onPress={() => handleDelete()}/>
-      </Dialog.Container>
 
       <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
         <Dialog.Title>Labels</Dialog.Title>
@@ -527,14 +545,9 @@ export default function Item({route, navigation}) {
         <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
       </Dialog.Container>
 
-      <Dialog.Container visible={imageChoiceVis} onBackdropPress={() => setImageChoiceVis(false)}>
-        <Dialog.Title>Choose one</Dialog.Title>
-        <Dialog.Button bold={true} color='#fcca47'  label="Camera" onPress={()=>handleImageChoice('camera')}/>
-        <Dialog.Button bold={true} color='#fcca47'  label="Gallery" onPress={()=>handleImageChoice('image-picker')}/>
-      </Dialog.Container>
 
       <ImageView
-        images={item?.photos?.map((photo) => ({uri: photo}))}
+        images={itemData?.photos?.map((photo) => ({uri: photo}))}
         imageIndex={0}
         visible={imageViewerVis}
         onRequestClose={() => setImageViewerVis(false)}
@@ -652,6 +665,28 @@ const styles = StyleSheet.create({
     fontSize: 25,
     color: '#000',
   },
+  chip: {
+    margin: 5,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: 'black',
+    padding: 5,
+    borderRadius: 16
+  },
+  chipText: {
+    fontSize: 18,
+    fontFamily: 'Montserrat',
+    padding: 3
+  },
+  itemInfoBubbleGroup: {
+    flexDirection: 'row',
+    marginLeft: 20,
+    marginRight: 20, 
 
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  labelsGroup: {flexDirection: 'row', marginLeft: 20, marginRight: 20, marginBottom: 60, flexWrap: 'wrap'}
 
 })

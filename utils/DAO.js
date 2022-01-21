@@ -7,13 +7,15 @@ const dbTransaction = (sql) => {
   db.transaction(tx => {
     tx.executeSql(
       sql, null,
-      (txObj, resultSet) => (console.log('')),
+      (txObj, resultSet) => {
+        //do nothing
+      },
       (txObj, error) => console.log('Error', error))
     });
 }
 
 // Run when app opens for first time
-export const createTables = () => {
+export const createTables = async () => {
   dbTransaction(
     `
       CREATE TABLE IF NOT EXISTS items (
@@ -54,19 +56,33 @@ export const createTables = () => {
       );
       `
   )
-  db.transaction(tx => {
-    tx.executeSql(`INSERT INTO history (item_count, collection_count, item_quantity, total_value, time) 
-    values (?, ?, ?, ?, ?)`, [0, 0, 0, 0, (new Date()).getTime()], 
-      (txObj, resultSet) => {
-        console.log('History recorded', JSON.stringify(resultSet))
+
+  let historyLen;
+  
+  db?.transaction(tx => {
+    tx.executeSql('SELECT COUNT(*) FROM history', null, 
+      (txObj, { rows: { _array } }) => {
+        historyLen = (_array[0]['COUNT(*)'])
       },
-      (txObj, error) => console.log('Error', error)
+      (txObj, error) => console.log('Error ', error)
       ) 
   });
+
+  if(historyLen === 0) {
+    db.transaction(tx => {
+      tx.executeSql(`INSERT INTO history (item_count, collection_count, item_quantity, total_value, time) 
+      values (?, ?, ?, ?, ?)`, [0, 0, 0, 0, (new Date()).getTime()], 
+        (txObj, resultSet) => {
+          console.log('History recorded', JSON.stringify(resultSet))
+        },
+        (txObj, error) => console.log('Error', error)
+        ) 
+    });
+  }
 }
 
 // Run when app needs to be updated
-export const dropTables = () => {
+export const dropTables = async () => {
   dbTransaction(`DROP TABLE items;`)
   dbTransaction(`DROP TABLE collections;`)
   dbTransaction(`DROP TABLE items_collections;`)
@@ -74,7 +90,7 @@ export const dropTables = () => {
 }
 
 // CRUD Items
-export const createItem = (name, photos, price, quantity, total, notes, assocCollections, callback) => {
+export const createItem = async (name, photos, price, quantity, total, notes, assocCollections, callback) => {
   var assocCollections = assocCollections
   db.transaction((tx) => {
     tx.executeSql(
@@ -90,10 +106,10 @@ export const createItem = (name, photos, price, quantity, total, notes, assocCol
       },
       (txObj, error) => console.log('Error', error))
   });
-  recordHistory()
+  // recordhistory()
 }
 
-export const getFromItems = (collection, callback) => {
+export const getFromItems = async (collection, callback) => {
   let sql = 'SELECT * FROM items';
   if(collection) {
     sql = `SELECT * FROM items WHERE id IN (
@@ -109,7 +125,7 @@ export const getFromItems = (collection, callback) => {
   }) 
 }
 
-export const getItem = (id, callback) => {
+export const getItem = async (id, callback) => {
   let sql = 'SELECT * FROM items WHERE id = ?';
   db.transaction(tx => {
     tx.executeSql(sql, [id], 
@@ -119,7 +135,7 @@ export const getItem = (id, callback) => {
   }) 
 }
 
-export const updateItem = (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections) => {  
+export const updateItem = async (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections, callback) => {  
   var assocCollections = assocCollections 
   var dissocCollections = dissocCollections
   db.transaction(tx => {
@@ -136,13 +152,14 @@ export const updateItem = (name, photos, price, quantity, total, notes, id, asso
         dissocCollections.forEach(collection => {
           dissociate(id, collection)
         });
+        callback((val) => val + 1)
       },
       (txObj, error) => console.log('Error', error))
   });
-  recordHistory()
+  // recordhistory()
 }
 
-export const deleteItem = (id) => {
+export const deleteItem = async (id) => {
   // ensures mtm table is updated
   handleDeleteItem(id);
   db.transaction(tx => {
@@ -155,11 +172,11 @@ export const deleteItem = (id) => {
     },
     (txObj, error) => console.log('Error', error))
   });
-  recordHistory()
+  // recordhistory()
 }
 
 // CRUD Collections
-export const getAllCollections = (callback) => {
+export const getAllCollections = async (callback) => {
   let sql = 'SELECT * FROM collections';
   db.transaction(tx => {
     tx.executeSql(sql, null, 
@@ -170,33 +187,48 @@ export const getAllCollections = (callback) => {
   )
 }
 
-export const createCollection = (name) => {
+export const collectionDBSuccess = 'Success'
+export const collectionDuplicateError = 'This collection name is already taken!'
+
+export const createCollection = async (name, errorCallback) => {
   db.transaction(tx => {
     tx.executeSql(
     `INSERT INTO collections (name, photo) 
       values (?, ?)`, 
-      [name, null],
-      (txObj, resultSet) => (console.log(`inserted ${JSON.stringify(resultSet)}`)),
-      (txObj, error) => console.log('Error', error))
+    [name, null],
+    (txObj, resultSet) => {
+      console.log(`inserted ${JSON.stringify(resultSet)}`)
+      errorCallback(collectionDBSuccess)
+    },
+    (txObj, error) => {
+      console.log('Error', error)
+      errorCallback(collectionDuplicateError)
+    })
   })
-  recordHistory()
+  // recordhistory()
 }
 
-export const updateCollection = (oldName, newName) => {
+export const updateCollection = async (oldName, newName, errorCallback) => {
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE collections 
       SET name = ?
       WHERE name = ?`, 
       [newName, oldName],
-      (txObj, resultSet) => (console.log(`updated ${JSON.stringify(resultSet)}`)),
-      (txObj, error) => console.log('Error', error))
+      (txObj, resultSet) => {
+        console.log(`updated ${JSON.stringify(resultSet)}`)
+        errorCallback(collectionDBSuccess)
+      },
+      (txObj, error) => {
+        console.log('Error', error)
+        errorCallback(collectionDuplicateError)
+      })
   });
   handleUpdateCollection(oldName, newName)
-  recordHistory()
+  // recordhistory()
 }
 
-export const deleteCollection = (name) => {
+export const deleteCollection = async (name) => {
   // ensures mtm table is updated
   handleDeleteCollection(name)
   db.transaction(tx => {
@@ -209,12 +241,12 @@ export const deleteCollection = (name) => {
     },
     (txObj, error) => console.log('Error', error))
   });
-  recordHistory()
+  // recordhistory()
 }
 
 // Manage many-to-many table: items_collections
 
-const associate = (item_id, collection_name) => {
+const associate = async (item_id, collection_name) => {
   console.log(`Associating item_id:${item_id} collection_name:${collection_name}`)
   db.transaction(tx => {
     tx.executeSql(
@@ -226,7 +258,7 @@ const associate = (item_id, collection_name) => {
   })
 }
 
-const dissociate = (item_id, collection_name) => {
+const dissociate = async (item_id, collection_name) => {
   db.transaction(tx => {
     tx.executeSql(
     `DELETE FROM items_collections WHERE item_id = ? AND collection_name = ?`, 
@@ -240,7 +272,7 @@ const dissociate = (item_id, collection_name) => {
   })
 }
 
-const handleDeleteItem = (item_id) => {
+const handleDeleteItem = async (item_id) => {
   db.transaction(tx => {
     tx.executeSql(
     `DELETE FROM items_collections WHERE item_id = ?`, [item_id],
@@ -253,7 +285,7 @@ const handleDeleteItem = (item_id) => {
   });
 }
 
-const handleDeleteCollection = (collection_name) => {
+const handleDeleteCollection = async (collection_name) => {
   db.transaction(tx => {
     tx.executeSql(
     `DELETE FROM items_collections WHERE collection_name = ?`, [collection_name],
@@ -266,7 +298,7 @@ const handleDeleteCollection = (collection_name) => {
   });
 }
 
-const handleUpdateCollection = (old_collection_name, new_collection_name) => {
+const handleUpdateCollection = async (old_collection_name, new_collection_name) => {
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE items_collections 
@@ -280,20 +312,20 @@ const handleUpdateCollection = (old_collection_name, new_collection_name) => {
 
 
 // Other methods
-export const getItemsWithoutCollection = (callback) => {
-  sql = `SELECT * FROM items WHERE id NOT IN (
+export const getItemsWithoutCollection = async (callback) => {
+  let sql = `SELECT * FROM items WHERE id NOT IN (
     SELECT item_id FROM items_collections)
   `
-
   db.transaction(tx => {
     tx.executeSql(sql, null, 
-    (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array))),
+    (txObj, resultSet) => {
+      callback(parseJSONToArray(resultSet.rows._array))},
     (txObj, error) => console.log('Error ', error)
     ) 
   }) 
 }
 
-export const getItemCollections = (id, callback) => {
+export const getItemCollections = async (id, callback) => {
   let sql = 'SELECT collection_name FROM items_collections WHERE item_id = ?';
   db.transaction(tx => {
     tx.executeSql(sql, [id], 
@@ -304,7 +336,7 @@ export const getItemCollections = (id, callback) => {
   )
 }
 
-export const getItemsCount = (callback) => {
+export const getItemsCount = async (callback) => {
   db?.transaction(tx => {
     tx.executeSql('SELECT COUNT(*) FROM items', null, 
       (txObj, { rows: { _array } }) => {
@@ -315,7 +347,7 @@ export const getItemsCount = (callback) => {
   });
 }
 
-export const getCollectionsCount = (callback) => {
+export const getCollectionsCount = async (callback) => {
   db?.transaction(tx => {
     tx.executeSql('SELECT COUNT(*) FROM collections', null, 
       (txObj, { rows: { _array } }) => {
@@ -326,7 +358,7 @@ export const getCollectionsCount = (callback) => {
   });  
 }
 
-export const getItemsQuantitySum = (callback) => {
+export const getItemsQuantitySum = async (callback) => {
   db?.transaction(tx => {
     tx.executeSql('SELECT SUM(quantity) FROM items', null, 
       (txObj, { rows: { _array } }) => {
@@ -337,7 +369,7 @@ export const getItemsQuantitySum = (callback) => {
   });
 }
 
-export const getItemsTotalSum = (callback) => {
+export const getItemsTotalSum = async (callback) => {
   db?.transaction(tx => {
     tx.executeSql('SELECT SUM(total) FROM items', null, 
       (txObj, { rows: { _array } }) => {
@@ -350,18 +382,18 @@ export const getItemsTotalSum = (callback) => {
 
 
 // History related
-export const getHistory = (callback) => {
-  db?.transaction(tx => {
-    tx.executeSql('SELECT * FROM history', null, 
+export const getHistory = async (callback) => {
+  db.transaction(tx => {
+    tx.executeSql('SELECT * FROM history ORDER BY time DESC LIMIT 15', null, 
       (txObj, { rows: { _array } }) => {
-        callback(_array)
+        callback(_array.reverse())
       },
       (txObj, error) => console.log('Error ', error)
       ) 
   });
 }
 
-const recordHistory = () => {
+export const recordhistory = async (callback) => {
   let itemCount, collectionCount, itemQuantity, totalValue = null;
   db.transaction(tx => {
     tx.executeSql('SELECT COUNT(*) FROM items', null, 
@@ -404,6 +436,8 @@ const recordHistory = () => {
       (txObj, error) => console.log('Error', error)
       ) 
   });
+  // set loading off on addhistory
+  callback(false)
 }
 
 // Utils

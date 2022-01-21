@@ -1,14 +1,12 @@
 import React,{useState} from 'react'
-import { View, StyleSheet, TouchableHighlight, ScrollView, Button } from 'react-native'
+import { View, StyleSheet, TouchableHighlight, ScrollView, Alert } from 'react-native'
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomText from '../components/CustomText';
 import globalStyles from '../styles/globalStyles';
-import { createTables, dropTables } from './../utils/DAO';
-import Dialog from 'react-native-dialog'
+import { createTables, dropTables, recordhistory } from './../utils/DAO';
 import * as FileSystem from 'expo-file-system';
 
 export default function Settings({navigation}) {
-  const [delDialogVis, setDelDialogVis] = useState(false)
 
   const deleteDirContents = async (dir) => {
     const files = await FileSystem.readDirectoryAsync(dir)
@@ -20,10 +18,25 @@ export default function Settings({navigation}) {
   const handleDeleteData = () => {
     dropTables()
     createTables()
-    setDelDialogVis(false)
+    recordhistory()
     deleteDirContents(FileSystem.documentDirectory + 'images/')
     deleteDirContents(FileSystem.cacheDirectory + 'Camera/')
     deleteDirContents(FileSystem.cacheDirectory + 'ImagePicker/')
+  }
+
+  const deleteDialog = () => {
+    Alert.alert(
+      `Delete all data?`,
+      `This action is irriversible!`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: () => handleDeleteData() }
+      ]
+    );
   }
 
   return (
@@ -48,7 +61,7 @@ export default function Settings({navigation}) {
         <View style={styles.field}>
           <CustomText style={styles.fieldName}>Delete all data</CustomText>
           <TouchableHighlight 
-          onPress={() => setDelDialogVis(true)}
+          onPress={() => deleteDialog()}
           style={styles.button}
           activeOpacity={0.9}
           underlayColor="white"
@@ -57,15 +70,6 @@ export default function Settings({navigation}) {
           </TouchableHighlight>
         </View>    
       </ScrollView>
-
-      <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
-        <Dialog.Title>Delete all data?</Dialog.Title>
-        <Dialog.Description>
-          This action is irriversible!
-        </Dialog.Description>
-        <Dialog.Button bold={true} color='#fcca47'  label="Cancel" onPress={() => setDelDialogVis(false)}/>
-        <Dialog.Button bold={true} color='#fcca47'  label="Delete" onPress={handleDeleteData}/>
-      </Dialog.Container>
 
     </View>
   )

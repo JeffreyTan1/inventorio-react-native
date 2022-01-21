@@ -1,10 +1,19 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import { View, Text, StyleSheet, Image, TouchableHighlight } from 'react-native'
 import Icon from 'react-native-vector-icons/FontAwesome5'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
+import { getItemCollections } from '../utils/DAO'
+import CustomChip from './CustomChip'
 
-export default function ItemBubble({navigation, id, name, photo, price, quantity, total}) {
+export default function ItemBubble({navigation, id, name, photo, price, quantity, total, reload}) {
+  const [collections, setCollections] = useState([])
+
+  useEffect(() => {
+    getItemCollections(id, setCollections)
+  }, [reload])
+  
+
   return (
     <TouchableHighlight
     style={styles.pressableContainer}
@@ -24,7 +33,6 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
             source={{uri: photo}}
           />
         }
-        
         <View 
           style={styles.details}
         >
@@ -48,10 +56,16 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
               {total}
             </CustomText>
           </View>
-          <View>
-
+          <View style={styles.chipGroup}>
+            {
+              collections.map((collection) => (
+                <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
+              )
+              )
+            }
           </View>
         </View>
+        
       </View>
     </TouchableHighlight>
   )
@@ -91,7 +105,8 @@ const styles = StyleSheet.create({
   },
   title: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    flexWrap: 'wrap'
   },
   titleText: {
     fontSize: 25,
@@ -100,9 +115,30 @@ const styles = StyleSheet.create({
   iconInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    
+    justifyContent: 'space-between',
+    width: '100%'
   },
   ml: {
     marginLeft: 10,
   },
+  chipGroup: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flex: 1,
+    marginTop: 15,
+    flexWrap: 'wrap',
+  },
+  chip: {
+    backgroundColor: '#ebebeb',
+    borderColor: 'black',
+    paddingHorizontal: 3,
+    borderRadius: 10,
+    marginRight: 5,
+    marginTop: 5
+  },
+  chipText: {
+    fontSize: 13,
+    fontFamily: 'Montserrat',
+    padding: 3
+  }
 })

@@ -1,13 +1,17 @@
 import React, {useState, useEffect} from 'react'
-import { View, ScrollView, StyleSheet, TextInput } from 'react-native'
+import { View, ScrollView, StyleSheet, TextInput, Alert } from 'react-native'
 import globalStyles from '../styles/globalStyles'
 import SortBy from '../components/SortBy'
 import ItemBubble from '../components/ItemBubble'
 import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
-import Dialog from 'react-native-dialog'
-import { getFromItems, deleteCollection, updateCollection, createCollection } from '../utils/DAO'
+import { getFromItems, deleteCollection, updateCollection, createCollection, getItemsWithoutCollection,
+collectionDuplicateError, collectionDBSuccess } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
+
+const reservedCollection = 'Items Without Collections'
+const reservedCollectionError = 'Cannot use this reserved name!'
+const emptyCollectionError = 'Cannot be empty!'
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -20,6 +24,7 @@ const sortingLabels = [
   {label: 'Total Value Lowest', value: 'Total Value Lowest'},
 ]
 
+
 export default function Collection({route, navigation}) {
   // data from navigation
   const isFocused = useIsFocused();
@@ -28,17 +33,24 @@ export default function Collection({route, navigation}) {
   // data from database
   const [items, setItems] = useState([])
 
-  // states for conditional rendering
+  // to reload itembubbles on focus
+  const [reload, setReload] = useState(0)
+
+  // states for condition
   const [editing, setEditing] = useState(collection ? false : true)
   const [newName, setNewName] = useState(route.params?.collection ? route.params.collection : '')
-  const [delDialogVis, setDelDialogVis] = useState(false)
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [waitingDB, setWaitingDB] = useState(false);
   
   // calculated values
   const [itemsTotal, setItemsTotal] = useState(0)
   const [quantitiesTotal, setQuantitiesTotal] = useState(0)
-
+  
   // sorting
   const [option, setOption] = useState('A-Z')
+
+  
+
   useEffect(() => {
     let tempItems = items
     switch (option) {
@@ -97,9 +109,16 @@ export default function Collection({route, navigation}) {
 
   useEffect(() => {
     if(isFocused && collection) {
-      getFromItems(collection, setItems)
+      if(collection === reservedCollection) {
+        getItemsWithoutCollection(setItems)
+      }
+      else {
+        getFromItems(collection, setItems)
+      }
+      setReload((val) => val + 1)
     }
   }, [isFocused])
+
 
   useEffect(() => {
     let tempItemsTotal = 0
@@ -115,13 +134,13 @@ export default function Collection({route, navigation}) {
 
   const handleDelete = () => {
     deleteCollection(collection)
-    setDelDialogVis(false)
     navigation.navigate('Main')
   }
 
   const handleCancelEdit = () => {
     if(collection) {
       setNewName('')
+      setErrorMsg(null)
       setEditing(false)
     } else {
       navigation.goBack()
@@ -129,19 +148,51 @@ export default function Collection({route, navigation}) {
   }
 
   const handleEdit = () => {
-    if(newName !== '') {
+    if(newName === ''){
+      setErrorMsg(emptyCollectionError)
+    } else if (newName === reservedCollection) {
+      setErrorMsg(reservedCollectionError)
+    } else {
+      setWaitingDB(true)
       if(collection) {
-        updateCollection(collection, newName)
+        updateCollection(collection, newName, setErrorMsg)
       } else {
-        createCollection(newName)
+        createCollection(newName, setErrorMsg)
       }
-      setCollection(newName)
     }
-    setEditing(false)
+  }
+
+  useEffect(() => {
+
+    const isSuccess = errorMsg === collectionDBSuccess;
+    if(isSuccess) {
+      setReload((val) => val + 1)
+      setCollection(newName)
+      setEditing(false)
+      setErrorMsg(null)
+    }
+    setWaitingDB(false)
+
+  }, [errorMsg]);
+  
+
+  const deleteDialog = () => {
+    Alert.alert(
+      `Delete collection - ${collection}?`,
+      `You cannot undo this action. All items will remain either in other collections or the 'no collections' collection.`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: () => handleDelete() }
+      ]
+    );
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: '#fff'}]}>
+    <View style={styles.container}>
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <IconButton
@@ -152,66 +203,76 @@ export default function Collection({route, navigation}) {
           iconName="arrow-back-ios"
           size={35}
         />
-
-        <View style={{flexDirection: 'row'}}>
-          {
-            collection &&
-            <IconButton
-              style={styles.iconButton}
-              activeOpacity={0.6}
-              underlayColor="#DDDDDD"
-              onPress={()=>setDelDialogVis(true)}
-              iconName="delete"
-              size={35}
-            />
-          }
+        {
+          collection !== reservedCollection &&
+          <View style={{flexDirection: 'row'}}>
+            {
+              collection &&
+              <IconButton
+                style={styles.iconButton}
+                activeOpacity={0.6}
+                underlayColor="#DDDDDD"
+                onPress={()=>deleteDialog()}
+                iconName="delete"
+                size={35}
+              />
+            }
           
-          {
-            editing ?
-            <View style={{flexDirection:'row'}}>
+            {
+              editing ?
+              <View style={{flexDirection:'row'}}>
+                <IconButton
+                style={styles.iconButton}
+                activeOpacity={0.6}
+                underlayColor="#DDDDDD"
+                onPress={()=>handleCancelEdit()}
+                iconName="cancel"
+                size={35}
+                />
+                <IconButton
+                style={styles.iconButton}
+                activeOpacity={0.6}
+                underlayColor="#DDDDDD"
+                onPress={()=>handleEdit()}
+                iconName="save"
+                size={35}
+                />
+              </View>
+              :
               <IconButton
               style={styles.iconButton}
               activeOpacity={0.6}
               underlayColor="#DDDDDD"
-              onPress={()=>handleCancelEdit()}
-              iconName="cancel"
+              onPress={()=>{
+                setNewName(collection)
+                setEditing(true)
+              }}
+              iconName="edit"
               size={35}
               />
-              <IconButton
-              style={styles.iconButton}
-              activeOpacity={0.6}
-              underlayColor="#DDDDDD"
-              onPress={()=>handleEdit()}
-              iconName="save"
-              size={35}
-              />
-            </View>
-            :
-            <IconButton
-            style={styles.iconButton}
-            activeOpacity={0.6}
-            underlayColor="#DDDDDD"
-            onPress={()=>{
-              setNewName(route.params?.collection ? route.params.collection : '')
-              setEditing(true)
-            }}
-            iconName="edit"
-            size={35}
-            />
-          }
-          
-        </View>
+            }
+          </View>
+        }
+        
       </View>
 
       {/* Name of collection */}
       <View style={styles.header}>
         <View style={styles.headingContainer}>
           {editing ?
-            <TextInput style={[globalStyles.headingTextEdit, styles.container]} value={newName} onChangeText={val => setNewName(val)}/>
+            <View style={styles.container}> 
+              <TextInput style={[globalStyles.headingTextEdit]} value={newName} onChangeText={val => setNewName(val)}/>
+              {
+                errorMsg && errorMsg !== collectionDBSuccess &&
+                <CustomText style={styles.errorText}>{errorMsg}</CustomText>
+              }
+            </View>
           :
-            <CustomText style={globalStyles.headingText}>{collection}</CustomText>
+            <View style={styles.titleQuantityContainer}>
+              <CustomText style={globalStyles.headingText}>{collection}</CustomText>
+              <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{items.length}</CustomText>
+            </View>
           }
-          <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{items.length}</CustomText>
         </View>
         <View style={styles.subHeadingContainer}>
           <CustomText style={styles.subHeading}>Total: ${itemsTotal}</CustomText>
@@ -223,7 +284,7 @@ export default function Collection({route, navigation}) {
       <View style={styles.options}>
           <SortBy style={{marginLeft:30}} value={option} setValue={setOption} labels={sortingLabels}/>
           {
-            !editing &&
+            (!editing && collection !== reservedCollection) &&
             <IconButton
               style={[styles.iconButton, styles.plus]}
               activeOpacity={0.6}
@@ -246,15 +307,16 @@ export default function Collection({route, navigation}) {
                 <ItemBubble navigation={navigation} key={item.id} 
                 id={item.id} name={item.name} photo={item.photos[0]} 
                 price={item.price} quantity={item.quantity} 
-                total={item.total}
+                total={item.total} reload={reload}
                 />
               ))
             }
           </ScrollView>
           :
-          !editing ?
+          (!editing && collection !== reservedCollection) ?
           <View style={styles.callToActionWrapper}> 
-              <CustomText style={styles.callToAction}>Add an item to get started!</CustomText>
+              <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
+              <CustomText style={styles.callToAction}>Add an item!</CustomText>
           </View>
           :
           <View></View>
@@ -262,18 +324,6 @@ export default function Collection({route, navigation}) {
           
         </View>
       </View>
-      
-      <Dialog.Container visible={delDialogVis} onBackdropPress={() => setDelDialogVis(false)}>
-        <Dialog.Title>Delete collection - {collection}?</Dialog.Title>
-        <Dialog.Description>
-          Do you want to delete this collection? You cannot undo this action.
-          All items will remain either in other collections or the 'no collections' collection.
-        </Dialog.Description>
-        <Dialog.Button bold={true} color='#fcca47'  label="Cancel" onPress={() => setDelDialogVis(false)}/>
-        <Dialog.Button bold={true} color='#fcca47'  label="Delete" onPress={handleDelete}/>
-      </Dialog.Container>
-
-
 
     </View>
   )
@@ -302,6 +352,12 @@ const styles = StyleSheet.create({
   },
   subHeading: {
     fontSize: 20,
+  },
+  titleQuantityContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    flex: 1,
   },
   ml: {
     marginLeft: 10,
@@ -346,6 +402,17 @@ const styles = StyleSheet.create({
     marginLeft:5,
     textAlign: "center"
 
+  },
+  callToActionEmoji : {
+    fontSize: 50,
+    marginLeft: '5%',
+    marginBottom: '5%',
+    transform: [{ rotate: '45deg'}, { scaleX: -1 }]
+  },
+  errorText: {
+    color: '#cf2c06',
+    fontSize: 18,
+    marginVertical: 5,
   }
   
 })

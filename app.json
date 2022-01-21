@@ -17,14 +17,26 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Inventorio captures and stores photos to attach to items.",
+        "NSPhotoLibraryUsageDescription": "Inventorio attaches a copy of a photo to your items."
+      },
+      "bundleIdentifier": "com.nexusenigma.inventorio"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#fcca47"
       },
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ],
+      "package": "com.nexusenigma.inventorio"
     },
     "androidNavigationBar": {
       "backgroundColor": "#fcca47"
@@ -40,7 +52,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "The app accesses your photos to attach to your items."
+          "photosPermission": "Inventorio attaches a copy of a photo to your items."
         }
       ]
     ]
