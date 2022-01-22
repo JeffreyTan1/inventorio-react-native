@@ -193,7 +193,6 @@ export default function Main({navigation}) {
               
               
             </ScrollView>
-            {/* Reserved collection */}
             
           </View>
       </View >
@@ -218,7 +217,7 @@ export default function Main({navigation}) {
 
       <Animated.View style={[styles.summaryStatisticsWrapper, animStats]}>
         <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
-        <View style={styles.summaryStaticsGroup}>
+        <View style={styles.summaryStatisticsGroup}>
           {
             carouselRef &&
             fields.map((field, index) => (
@@ -325,13 +324,13 @@ const styles = StyleSheet.create({
     elevation: 16,
     backgroundColor: '#fff'
   },
-  summaryStaticsGroup: {
+  summaryStatisticsGroup: {
     justifyContent: 'space-evenly',
     alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingBottom: 20,
-    height: '37%'
+    height: '33%'
   },
   summaryStatisticItem: {
     flexBasis: '43%',
