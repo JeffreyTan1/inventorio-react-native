@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native'
 
 const globalStyles = StyleSheet.create({
   headingText: {
-    fontSize: 38,
+    fontSize: 33,
     fontFamily: 'Montserrat',
     fontWeight: 'bold'
   },

@@ -1,175 +1,198 @@
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useState } from 'react'
 import { View, StyleSheet, Dimensions, ActivityIndicator } from 'react-native'
 import CustomText from './CustomText'
-import {LineChart} from "react-native-chart-kit";
-import { TouchableHighlight } from 'react-native-gesture-handler';
-import Icon from 'react-native-vector-icons/MaterialIcons'
-import { recordhistory, getHistory } from '../utils/DAO';
+import { getHistory } from '../utils/DAO';
+import { LineChart } from 'react-native-wagmi-charts';
+import * as haptics from 'expo-haptics';
+import IconButton from './IconButton';
+
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 ];
 
-export default function GraphBubble({stat, data, historyCallback}) {
-  const [displayDT, setDisplayDT] = useState(data.labels[data.labels.length - 1])
-  const [displayVal, setDisplayVal] = useState(data.datasets[0].data[data.labels.length - 1])
-  const [highlightedPoint, setHighlightedPoint] = useState(data.labels.length - 1)
-  const [loading, setLoading] = useState(false)
-  useEffect(() => {
-    setDisplayDT(data.labels[data.labels.length - 1])
-    setDisplayVal(data.datasets[0].data[data.labels.length - 1])
-    setHighlightedPoint(data.labels.length - 1)
-  }, [data])
+const { width, height } = Dimensions.get('window');
 
-  const chartConfig = {
-    backgroundGradientFrom: "#fcca47",
-    backgroundGradientTo: "#fcca47",
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    style: {
-      borderRadius: 16
-    },
-  };
+
+function invokeHaptic() {
+  haptics.impactAsync(haptics.ImpactFeedbackStyle.Light);
+}
+
+export default function GraphBubble({graphIndex}) {
+  const [data, setData] = useState(null);
+  const fields = ['Total Value', 'Items', 'Collections',  'Total Quantity'];
+  const [history, setHistory] = useState(null);
+  const [itemCountHistory, setItemCountHistory] = useState(null);
+  const [collectionCountHistory, setCollectionCountHistory] = useState(null);
+  const [itemQuantityHistory, setItemQuantityHistory] = useState(null);
+  const [totalValueHistory, setTotalValueHistory] = useState(null);
+  const histories = [totalValueHistory, itemCountHistory, collectionCountHistory, itemQuantityHistory]
+  const integerDisplay = [false, true, true, true]
+  
+  const loadHistory = () => {
+    getHistory(setHistory)
+  }
+
+  useEffect(() => {
+    loadHistory()
+  }, []);
+  
+  useEffect(() => {
+    if(history) {
+      setItemCountHistory(history.map((e) => ({timestamp: e.time, value: e.item_count})))
+      setCollectionCountHistory(history.map((e) => ({timestamp: e.time, value: e.collection_count})))
+      setItemQuantityHistory(history.map((e) => ({timestamp: e.time, value: e.item_quantity})))
+      setTotalValueHistory(history.map((e) => ({timestamp: e.time, value: e.total_value})))
+    }   
+  }, [history])
+
+  useEffect(() => {
+    if(totalValueHistory && itemCountHistory && collectionCountHistory && itemQuantityHistory)
+    {
+      setData(histories[graphIndex])
+    }
+  }, [graphIndex])
+
+  useEffect(() => {
+    if(totalValueHistory) {
+      setData(histories[graphIndex])
+    }
+  }, [totalValueHistory]);
+  
 
   return (
     <View style={styles.container}>
-      <View style={styles.graph}>
-        <View style={styles.graphHeader}>
-          <CustomText style={styles.titleText}>{stat}</CustomText>
-          <TouchableHighlight
-          style={styles.graphButtonWrapper}
-          activeOpacity={0.8}
-          underlayColor='#a67800'
-          disabled={loading}
-          onPress={() => {
-            setLoading(true)
-            recordhistory(setLoading)
-            getHistory(historyCallback)
-          }}
-          >
-            <View style={styles.graphButton}>
-              {
-                <CustomText style={styles.graphButtonText}>
-                  Add a history
-                </CustomText>
-              }
-              <Icon name='add' size={20} color='#000'/>
+      
+        {
+          data &&
+          <LineChart.Provider data={data} >
+            <View style={styles.graph}>
+            <View style={styles.header}>
+              <View>
+                <LineChart.PriceText style={styles.valText}
+                  format={({ value }) => {
+                    'worklet';
+                    let formattedPrice = (value);
+                    if(formattedPrice === '') {
+                      formattedPrice = (Math.round(data.slice(-1)[0].value * 100) / 100).toFixed(2); 
+                    }
+                    if(integerDisplay[graphIndex]) {
+                      const removeString = '.00'
+                      if(formattedPrice.endsWith(removeString)) {
+                        formattedPrice = formattedPrice.substring(0, formattedPrice.length - removeString.length )
+                      }
+                    }
+                    return `${formattedPrice}`;
+                  }}
+                />
+                <LineChart.DatetimeText style={styles.dateText}
+                  format={({ value }) => {
+                    'worklet';
+                    let formattedDate = (value);
+                    if(formattedDate === -1) {
+                      formattedDate = data.slice(-1)[0].timestamp
+                    }
+                    formattedDate = new Date(formattedDate)
+                    return `${formattedDate.getDate() + ' ' + monthNames[formattedDate.getMonth()] + ' ' + formattedDate.getFullYear() + ' ' + formattedDate.getHours() + ':' +  String(formattedDate.getMinutes()).padStart(2, '0')}`;
+                  }}
+                />
+                <CustomText style={styles.statText}>{fields[graphIndex]}</CustomText>
+                
+              </View>
+              
             </View>
-          </TouchableHighlight>
-        </View>
-        <LineChart
-            data={data}
-            width={Dimensions.get("window").width * 0.9}
-            height={Dimensions.get("window").height * 0.27}
-            chartConfig={chartConfig}
-            bezier
-            style={{
-              borderRadius: 16,
-              alignSelf: 'center',
-            }}
-            withInnerLines={false}
-            withOuterLines={false}
-            formatXLabel={(xLabel) => {
-              return ''
-            }}
-            onDataPointClick={(dataPoint) => {
-              setDisplayDT(data.labels[dataPoint.index])
-              setDisplayVal(data.datasets[0].data[dataPoint.index])
-              setHighlightedPoint(dataPoint.index)
-            }}
-            getDotColor={(dataPoint, dataPointIndex) => {
-              if (dataPointIndex === highlightedPoint) {
-              return '#fff';
-              }
-              return '#000';
-            }}
-            getDotProps={(dataPoint, dataPointIndex) => {
-              if (dataPointIndex === highlightedPoint) {
-              return {
-                r: "10",
-                strokeWidth: "2",
-                stroke: "#000",
-              }
-              }
-              return {
-                r: "6",
-              };
+            {
+              data.length > 1 ? 
+              <LineChart width={width * 0.85} height={width * 0.5}>
+                <LineChart.Path color="#000"/>
+                <LineChart.CursorCrosshair onActivated={invokeHaptic} onEnded={invokeHaptic} color="#fcca47"/>
+              </LineChart> 
+              :
+              <View style={styles.callToActionWrapper}>
+                <CustomText style={styles.callToActionEmoji}>📈</CustomText>
+                <CustomText style={styles.callToAction}>This will update as you go!</CustomText>
+              </View>
             }
-            }
-        />
-        <View style={styles.textContainer}>
-          <CustomText style={styles.valText}>{displayVal}</CustomText>
-          <CustomText style={styles.dateText}>{toPrettyDate(displayDT)}</CustomText>
-        </View>
-        
-      </View>
+            
+            <View style={styles.refreshButtonContainer}>
+              
+                <IconButton 
+                style={styles.refreshButton}
+                activeOpacity={0.8} 
+                underlayColor="#e0e0e0"
+
+                iconName='refresh'
+                size={45}
+                color="#000"
+                />
+              
+            </View>
+          </View>
+          </LineChart.Provider>
+        }
+  
     </View>
   )
 }
 
-const toPrettyDate = (time) => {
-  const date = new Date(time)
-  return date.getDate() + ' ' + monthNames[date.getMonth()] + ' ' + date.getFullYear() + ' ' + date.getHours() + ':' +  String(date.getMinutes()).padStart(2, '0');
-  
-}
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 10,
+    marginHorizontal: 15,
     flex: 1,
+    backgroundColor: '#fff',
   },
   graph: {
-    flex: 1,
-    marginBottom: 56,
-    backgroundColor: '#fcca47',
-    padding: 0,
-    borderRadius: 10,
-    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 9,
-    borderColor: '#E2B53F',
+    marginHorizontal: 10,
   },
-  titleText: {
-    alignSelf: 'flex-start',
-    fontSize: 20,
-    paddingHorizontal: 15,
-    borderTopLeftRadius: 5,
-    borderBottomRightRadius: 5,
-    right: 1
-  },
-  textContainer: {
-    bottom: 8,
-    alignItems: 'center',
-  },
-  valText: {
-    fontSize: 30,
-  },
-  dateText : {
-    fontSize: 15,
-  },
-  graphButtonWrapper: {
-    justifyContent: 'space-around',
-    backgroundColor: '#fcca47',
-    borderRadius: 5,
-    padding: 2,
-  },
-  graphButton: {
-    flexDirection: "row",
-    alignItems: 'center',
-    borderTopRightRadius: 5,
-    paddingHorizontal: 10,
-    
-  },
-  graphButtonText: {
-    fontSize: 15,
-    color: '#000'
-  },
-  graphHeader: {
+  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    backgroundColor: '#E2B53F',
-    borderTopLeftRadius: 2,
-    borderTopRightRadius: 2,
-    paddingBottom: 5
-  }
-  
+    flexWrap: 'wrap'
+  },
+  valText:{
+    fontSize: 30,
+    fontWeight: 'bold'
+  },
+  statText: {
+    fontSize: 15,
+    opacity: 0.5
+  },
+  dateText:{
+    fontSize: 15,
+    opacity: 0.5,
+  },
+  refreshButtonContainer: {
+    position: 'absolute',
+    top: width * 0.01,
+    right: 0,
+  },
+  refreshButton: {
+    padding: 3,
+    borderRadius: 100,
+    backgroundColor: '#fff',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 2,
+  },
+  callToActionWrapper: {
+    height: '60%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  callToAction : {
+    fontSize: 20,
+    marginRight: 5, 
+    marginLeft:5,
+    textAlign: "center"
+  },
+  callToActionEmoji : {
+    fontSize: 50,
+  },
 })

@@ -6,7 +6,8 @@ import { MotiPressable } from 'moti/interactions'
 export default function SummaryStatistic({title, value, onPress, index}) {
   return (
     <View style={styles.container}>
-      <MotiPressable style={{alignItems: 'center', height: '100%', justifyContent: 'center'}}
+      <MotiPressable 
+        style={{alignItems: 'center', height: '100%', justifyContent: 'center'}}
         animate={({ hovered, pressed }) => {
           'worklet'
       
@@ -38,9 +39,9 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   label: {
-    fontSize: 15,
+    fontSize: 12,
   },
   value: {
-    fontSize: 35
+    fontSize: 33
   }
 })

@@ -5,96 +5,46 @@ import CustomText from "../components/CustomText";
 import globalStyles from "../styles/globalStyles";
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import CollectionBubble from "../components/CollectionBubble";
-import BagModel from "../components/BagModel";
 import IconButton from "../components/IconButton";
 import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, withDelay, Extrapolate } from "react-native-reanimated";
 import BottomSheet, {useBottomSheet } from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
-import Carousel from 'react-native-reanimated-carousel';
 import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum, getHistory } from "../utils/DAO";
 import { useIsFocused } from "@react-navigation/native";
 import { ScrollView } from "react-native-gesture-handler";
-// import SortBy from "../components/SortBy";
 import {abbreviate} from './../utils/utils'
+import Logo from './../assets/INVENTORIO.svg';
+import SortBy from "../components/SortBy";
+import { MotiView } from "moti";
+
+const sortingLabels = [
+  {label: 'A-Z', value: 'A-Z'},
+  {label: 'Z-A', value: 'Z-A'},
+  {label: 'Newest', value: 'Newest'},
+  {label: 'Oldest', value: 'Oldest'},
+]
 
 const { width, height } = Dimensions.get('window');
 const reservedCollection = 'Items Without Collections'
 
-const fallbackGraphData = 
-{
-  labels: ["Error"],
-  datasets: [
-    {
-      data: [
-        Math.random() * 100,
-
-      ]
-    }
-  ]
-}
-
-
-export default function Main({navigation}) {
+export default function Main({navigation, initCollections}) {
   // data from navigation
   const isFocused = useIsFocused();
-
-  const carouselRef = useRef(null);
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['15%', '70%'], []);
-  const [collections, setCollections] = useState([]);
+  const snapPoints = useMemo(() => ['15%', '100%'], []);
+  const [collections, setCollections] = useState(initCollections);
+
+  // sorting
+  const [option, setOption] = useState('Newest')
 
   // statistics
   const [itemCount, setItemCount] = useState(null);
   const [collectionCount, setCollectionCount] = useState(null);
   const [itemQuantity, setItemQuantity] = useState(null);
   const [totalValue, setTotalValue] = useState(null);
-  const [history, setHistory] = useState(null);
-  const [itemCountHistory, setItemCountHistory] = useState(fallbackGraphData);
-  const [collectionCountHistory, setCollectionCountHistory] = useState(fallbackGraphData);
-  const [itemQuantityHistory, setItemQuantityHistory] = useState(fallbackGraphData);
-  const [totalValueHistory, setTotalValueHistory] = useState(fallbackGraphData);
-  const fields = ['Total Value', 'Items', 'Collections',  'Total Quantity'];
+  const fields = ['Total Value', 'Items', 'Collections', 'Total Quantity'];
   const values = [abbreviate(totalValue, 2, 2), abbreviate(itemCount), abbreviate(collectionCount), abbreviate(itemQuantity)];
-  const histories = [totalValueHistory, itemCountHistory, collectionCountHistory,
-    itemQuantityHistory];
-
-  useEffect(() => {
-    if(history) {
-      const timeLabels = history.map(e => e.time) ? history.map(e => e.time):[0];
-      setItemCountHistory({
-        labels: timeLabels,
-        datasets: [
-          {
-            data: history.map(e => e.item_count) ? history.map(e => e.item_count):[0]
-          }
-        ]
-      })
-      setCollectionCountHistory({
-        labels: timeLabels,
-        datasets: [
-          {
-            data: history.map(e => e.collection_count) ? history.map(e => e.collection_count):[0]
-          }
-        ]
-      })
-      setItemQuantityHistory({
-        labels: timeLabels,
-        datasets: [
-          {
-            data: history.map(e => e.item_quantity) ? history.map(e => e.item_quantity):[0]
-          }
-        ]
-      })
-      setTotalValueHistory({
-        labels: timeLabels,
-        datasets: [
-          {
-            data: history.map(e => e.total_value) ? history.map(e => e.total_value):[0]
-          }
-        ]
-      })
-    }   
-  }, [history])
+  const [graphIndex, setGraphIndex] = useState(0);
 
   useEffect(() => {
     if(isFocused){
@@ -103,11 +53,32 @@ export default function Main({navigation}) {
       getCollectionsCount(setCollectionCount)
       getItemsQuantitySum(setItemQuantity)
       getItemsTotalSum(setTotalValue)
-      getHistory(setHistory)
     }
   }, [isFocused])
+  
 
-
+  useEffect(() => {
+    if(collections) {
+      let tempCollections = collections
+      switch (option) {
+        case 'A-Z':
+          setCollections(tempCollections.sort(compareAlpha))
+          break;
+        case 'Z-A':
+          setCollections(tempCollections.sort(compareAlpha).reverse())
+          break;
+        case 'Newest':
+          setCollections(tempCollections.sort(compareCreated))
+          break;
+        case 'Oldest':
+          setCollections(tempCollections.sort(compareCreated).reverse())
+          break;
+        default:
+          break;
+      }
+    }
+  }, [option])
+  
   const bottomSheetDataSHARED = useSharedValue(0)
   const scaleIn = useSharedValue(0)
 
@@ -115,20 +86,14 @@ export default function Main({navigation}) {
     scaleIn.value = withDelay(1000, withTiming(1, {duration: 500}))
   }, [])
 
-  const animBag = useAnimatedStyle(()=> {
-    return {
-      transform: [{scale: bottomSheetDataSHARED.value}],
-      opacity: bottomSheetDataSHARED.value
-    }
-  })
-
   const animStats = useAnimatedStyle(()=> {
     return {
-      transform: [{translateY: interpolate(bottomSheetDataSHARED.value, [0,1], [0, height], Extrapolate.CLAMP)}],
+      transform: [{translateY: interpolate(bottomSheetDataSHARED.value, [0,1], [0 + height * 0.02, height * 1], Extrapolate.CLAMP)}],
     }
   })
 
   const BottomSheetContent = () => {
+    
     const bottomSheetData = useBottomSheet()
 
     const animBottomSheet = useAnimatedStyle(()=> {
@@ -140,59 +105,71 @@ export default function Main({navigation}) {
 
     return (
       <View style={styles.container}>
-          <View style={styles.bottomSheetTitle}>
-            <CustomText style={globalStyles.headingText}>Collections</CustomText>
-            <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{collections.length}</CustomText>
-            <IconButton
-              style={[styles.iconButton, styles.plus]}
-              activeOpacity={0.6}
-              underlayColor="#DDDDDD"
-              onPress={()=>navigation.navigate('Collection')}
-              iconName="add"
-              size={43}
-            />  
-          </View>
-          <View
-            style={styles.container}
-          >
-            {/* <SortBy style={{right: 30}}/> */}
-            <ScrollView style={styles.container} contentContainerStyle={collections.length === 0 && {justifyContent: 'center', flex: 1, }}
-            >
-              {
-                collections.length === 0 ?
-                <View style={styles.callToActionWrapper}>
-                  <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
-                  <CustomText style={styles.callToAction}>It's a little lonely here... {'\n'} add a collection!</CustomText>
-                  <TouchableHighlight
-              style={styles.reservedBubble}
-              activeOpacity={0.9}
-              underlayColor="#f2f2f2"
-              onPress={()=>navigation.navigate('Collection', {collection: reservedCollection})}>
-                <CustomText style={styles.reservedText}>Items without collections 🗑️</CustomText>
-              </TouchableHighlight>
-                </View>
-                :
-                <View style={styles.collections}>
-                  {
-                    collections.map((item, index) => (
-                      <View style={[styles.container, {flexBasis: width * 0.4}]} key={item.name}>
-                        <CollectionBubble navigation={navigation} name={item.name}  />
-                      </View>
-                    ))
-                  }
-                  <TouchableHighlight
+          <View style={styles.bottomSheetHeader}>
+            <View style={styles.bottomSheetTitle}>
+              <CustomText style={globalStyles.headingText}>Collections</CustomText>
+              <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{collections && collections.length}</CustomText>
+              <IconButton
+                style={[styles.iconButton, styles.plus]}
+                activeOpacity={0.6}
+                underlayColor="#DDDDDD"
+                onPress={()=>navigation.navigate('Collection')}
+                iconName="add"
+                size={45}
+              />  
+            </View>
+            <View style={styles.optionsContainer}>
+              <MotiView
+                from={{opacity: 0}}
+                animate={{opacity: 1}}
+                transition={{
+                  type: 'timing',
+                  duration: 1000
+                }}
+              >
+                <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
+              </MotiView>
+              <View style={styles.reservedBubbleContainer}>
+                <TouchableHighlight
                   style={styles.reservedBubble}
                   activeOpacity={0.9}
                   underlayColor="#f2f2f2"
                   onPress={()=>navigation.navigate('Collection', {collection: reservedCollection})}>
-                    <CustomText style={styles.reservedText}>Items without collections 🗑️</CustomText>
-                  </TouchableHighlight>
-                  
-                </View>
-              }
-              
-              
-            </ScrollView>
+                    <CustomText style={styles.reservedText}>🗑️</CustomText>
+                </TouchableHighlight>
+              </View>
+            </View>
+          </View>
+          
+          <View
+            style={styles.container}
+          >
+            {
+              collections &&
+              <ScrollView style={styles.container} contentContainerStyle={collections.length === 0 && {justifyContent: 'center', flex: 1, }}
+              >
+                {
+                  collections.length === 0 ?
+                  <View style={styles.callToActionWrapper}>
+                    <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
+                    <CustomText style={styles.callToAction}>It's a little lonely here... {'\n'} add a collection!</CustomText>
+                  </View>
+                  :
+                  <View style={styles.collections}>
+                    {
+                      collections.map((item, index) => (
+                        <View style={[styles.container, {flexBasis: width * 0.4}]} key={item.name}>
+                          <CollectionBubble navigation={navigation} name={item.name}  />
+                        </View>
+                      ))
+                    }
+                    
+                  </View>
+                }
+              </ScrollView>
+            }
+            
+            
             
           </View>
       </View >
@@ -202,53 +179,36 @@ export default function Main({navigation}) {
   return (
     <View style={[styles.container, {backgroundColor: '#ffffff'}]}>
       <View style={styles.header}>
-        <CustomText style={styles.headerText}>Inventorio</CustomText>
+        <Logo width={width * 0.6}/>
         <TouchableHighlight style={styles.settings}
           activeOpacity={0.6}
           underlayColor="#DDDDDD"
           onPress={()=>navigation.navigate('Settings')}
           iconName="settings"
         >
-              <Icon name="settings" size={25} />
+              <Icon name="settings" size={33} />
         </TouchableHighlight>
       </View>
-
-      
 
       <Animated.View style={[styles.summaryStatisticsWrapper, animStats]}>
         <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
         <View style={styles.summaryStatisticsGroup}>
           {
-            carouselRef &&
             fields.map((field, index) => (
               <View key={field} style={styles.summaryStatisticItem}>
                 <SummaryStatistic
                 title={field}
                 value={values[index]}
-                onPress={carouselRef.current?.goToIndex}
+                onPress={() => {setGraphIndex(index)}}
                 index={index}
                 />
               </View>
             )) 
           }
         </View>
-        <Carousel
-          ref={carouselRef}
-          style={{height: 350}}
-          width={390}
-          data={[{ stat: 'Total Value', history: histories[0] },
-          { stat: 'Items', history: histories[1] }, { stat: 'Collections', history: histories[2] }, 
-          { stat: 'Total Quantity', history: histories[3] }
-          ]}
-            renderItem={({ item }) => {
-              return <GraphBubble stat={item.stat} data={item.history} historyCallback={setHistory}/>;
-            }}
-        />
-
+        <GraphBubble graphIndex={graphIndex}/>
       </Animated.View>
-      {/* <Animated.View style={[styles.container, animBag]}>
-        <BagModel/>
-      </Animated.View> */}
+
       <View style={styles.bottomSheet}>
         <BottomSheet
           ref={bottomSheetRef}
@@ -279,10 +239,10 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   settings: {
-    padding: 5,
+    padding: 3,
     borderRadius: 5,
     backgroundColor: '#FFF',
-    borderWidth: 0.5,
+    borderWidth: 0.3,
   },
   plus: {
     alignItems: 'center',
@@ -296,11 +256,17 @@ const styles = StyleSheet.create({
     shadowRadius: 2.65,
     elevation: 4,
   },
+  bottomSheetHeader: {
+    marginLeft: 20,
+    marginRight: 20,
+  },
   bottomSheetTitle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginLeft: 30,
-    marginRight: 30,
+    marginBottom: 15,
+  },
+  bottomSheetSort: {
+
   },
   bottomSheet: {
     flex: 1
@@ -330,7 +296,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingBottom: 20,
-    height: '33%'
+    height: '29%'
   },
   summaryStatisticItem: {
     flexBasis: '43%',
@@ -341,7 +307,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     flexWrap: 'wrap', 
     justifyContent: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: 10,
     marginVertical: 10,
     paddingBottom: 50,
   },
@@ -387,9 +353,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   reservedBubble: {
-    backgroundColor: '#e0e0e0',
-    borderRadius: 30,
-    margin: 10,
+    backgroundColor: '#fff',
+    borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -398,14 +363,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 2.65,
     elevation: 4,
-    padding: 10,
-    width: width * 0.8,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    width: '100%',
   },
   reservedText: {
-    fontSize: 20
+    fontSize: 17,
+    paddingHorizontal: 20,
+    paddingVertical: 5
+  },
+  reservedBubbleContainer: {
   },
   bottomSheet: {
     flex: 1,
@@ -413,7 +381,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    height: '11%',
+    height: '15%',
     marginTop: 10,
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -421,5 +389,28 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 40
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderBottomWidth: 0.3,
+    paddingBottom: 10
   }
 })
+
+const compareAlpha = (a,b) => {
+  if(a.name > b.name) { return -1 }
+  if(b.name > a.name) { return 1 }
+  return 0
+}
+
+const compareCreated = (a,b) => {
+  if(a.created > b.created) { return -1 }
+  if(b.created > a.created) { return 1 }
+  return 0
+}
+
+
+
+

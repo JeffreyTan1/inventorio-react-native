@@ -5,6 +5,8 @@ import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
 import { getItemCollections } from '../utils/DAO'
 import CustomChip from './CustomChip'
+import { numberWithCommas } from '../utils/utils'
+import { MotiView } from 'moti'
 
 export default function ItemBubble({navigation, id, name, photo, price, quantity, total, reload}) {
   const [collections, setCollections] = useState([])
@@ -12,9 +14,17 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
   useEffect(() => {
     getItemCollections(id, setCollections)
   }, [reload])
-  
 
   return (
+    <MotiView
+    from={{ scale: 0 }}
+    animate={{ scale: 1 }}
+    transition={{
+      type: 'timing',
+      duration: 175
+    }}
+    >
+
     <TouchableHighlight
     style={styles.pressableContainer}
     activeOpacity={0.95}
@@ -22,10 +32,10 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
     onPress={()=>navigation.navigate('Item', {id: id})}>
       <View style={styles.container}>
         {
-          photo === '' ?
+          photo === undefined ?
           <Image
             style={styles.image}
-            source={require('./../assets/4x3-placeholder.png')}
+            source={require('./../assets/icon.png')}
           />
           :
           <Image
@@ -47,13 +57,13 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
           <View style={styles.iconInfo}>
             <Icon name="dollar-sign"/>
             <CustomText style={styles.ml}>
-              {price}
+              {numberWithCommas(price)}
             </CustomText>
           </View>
           <View style={styles.iconInfo}>
             <Icon name="money-bill-alt"/>
             <CustomText style={styles.ml}>
-              {total}
+              {numberWithCommas(total)}
             </CustomText>
           </View>
           <View style={styles.chipGroup}>
@@ -68,6 +78,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
         
       </View>
     </TouchableHighlight>
+    </MotiView>
   )
 }
 

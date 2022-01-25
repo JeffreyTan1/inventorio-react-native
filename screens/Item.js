@@ -1,4 +1,4 @@
-import { View, StyleSheet, Image, ScrollView, TextInput, ImageBackground, Alert} from 'react-native'
+import { View, StyleSheet, Image, ScrollView, TextInput, ImageBackground, Alert, Dimensions} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
@@ -12,10 +12,13 @@ import * as ImagePicker from 'expo-image-picker';
 import Carousel from 'react-native-reanimated-carousel';
 import ImageView from 'react-native-image-viewing'
 import { TouchableHighlight } from 'react-native-gesture-handler'
-import placeholder from './../assets/4x3-placeholder.png'
+import placeholder from './../assets/plus-placeholder.png'
 import * as FileSystem from 'expo-file-system';
 
 const placeholderUri = Image.resolveAssetSource(placeholder).uri
+const { width, height } = Dimensions.get('window');
+const priceError = 'Must only contain numbers, an optional decimal point, and two numbers after the decimal point.'
+const quantityError = 'Must only contain numbers.'
 
 export default function Item({route, navigation}) {
   // data from navigation
@@ -44,6 +47,10 @@ export default function Item({route, navigation}) {
   const [total, setTotal] = useState('0')
   const [notes, setNotes] = useState('')
   const [collectionsEdit, setCollectionsEdit] = useState({})
+
+  const [priceErrorMsg, setPriceErrorMsg] = useState(null);
+  const [quantityErrorMsg, setQuantityErrorMsg] = useState(null);
+
 
   // set photos after camera has taken it
   useEffect(() => {
@@ -185,7 +192,6 @@ export default function Item({route, navigation}) {
   const deletePhoto = async(uri) => {
     try {
       await FileSystem.deleteAsync(uri)
-      // console.log('deleted', uri)
     } catch (error) {
       throw error
     }
@@ -219,19 +225,33 @@ export default function Item({route, navigation}) {
   const validateInputs = () => {
     const priceValid = /^\d+(\d{3})*(\.\d{1,2})?$/.test(price)
     const quantityValid = /^[0-9]*$/.test(quantity)
-    console.log('priceValid', priceValid, 'quantityValid', quantityValid)
-    return priceValid && quantityValid
+
+    if(!priceValid) {
+      setPriceErrorMsg(priceError)
+    }
+    if(!quantityValid) {
+      setQuantityErrorMsg(quantityError)
+    }
+
+    const result = priceValid && quantityValid
+    if(result) {
+      setPriceErrorMsg(null)
+      setQuantityErrorMsg(null)
+    }
+
+    return result
   }
   // creates item, otherwise updates it if already exists
   const handleSave = () => {
     const {assocCollections, dissocCollections} = getCollectionsLists()
     getNewPhotosArray().then(
       (newPhotos) => {
+        const time = new Date()
         if(id){
           setEditing(false)
-          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections, setReload)
+          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections, time.getTime(), setReload)
         } else {  
-          createItem(name, newPhotos, price, quantity, total, notes, assocCollections, setId)
+          createItem(name, newPhotos, price, quantity, total, notes, assocCollections, time.getTime(), time.getTime(), setId)
           setEditing(false)
         }
       }
@@ -326,6 +346,8 @@ export default function Item({route, navigation}) {
             underlayColor="#DDDDDD"
             onPress={()=>{
               setEditData(itemData)
+              setPriceErrorMsg(null)
+              setQuantityErrorMsg(null)
               setEditing(true)}}
             iconName="edit"
             size={35}
@@ -368,160 +390,162 @@ export default function Item({route, navigation}) {
         : 
         <CustomText style={[globalStyles.headingText, styles.textContainer]}>{itemData?.name}</CustomText>
       }
-
-      {/* Image */}
-      <View style={styles.imageHeader}>
-        {
-          editing?
-          <Carousel
-          style={{height: 280}}
-          width={450}
-          data={
-            photos &&
-            photos.map((photo, index) => ({img: photo, index: index})).concat({img: placeholderUri, index: null})
-          }
-          renderItem={({ item}) => {
-            return (
-              <View
-                style={[styles.imagePressableContainer, styles.bubble]}
-              >    
-                {
-                  item.img != placeholderUri ?
-                  <ImageBackground 
-                    style={[styles.image, {flexDirection: 'row', alignItems: 'flex-start', padding: 10, justifyContent: 'space-between',}]} 
-                    imageStyle={styles.bubble}
-                    source={{uri: item.img}} 
-                  >
-                    <View style={styles.indexTextContainer}>
-                      <CustomText style={styles.indexText}>{item.index + 1}/{photos?.length}</CustomText>
-                    </View>
-                    <IconButton 
-                      style={styles.removeImageButton} 
-                      activeOpacity={0.5} 
-                      underlayColor='#ed7777' 
-                      onPress={() => handleRemovePhoto(item.img)} 
-                      iconName='remove' size={25} 
-                      color='#fff'
-                    />
-                  </ImageBackground>
-                  :
-                  <TouchableHighlight
-                    style={styles.bubble}
-                    onPress={() => {
-                        imageChoiceDialog()
-                    }}
-                    activeOpacity={0.95}
-                  >
-                    <Image style={styles.image} 
-                    source={require('./../assets/4x3-placeholder.png')}
-                    />
-                  </TouchableHighlight>
-                }
-              </View>
-            );
-          }} />
-          :
-          itemData?.photos?.length > 0 ?
-          <Carousel
-          autoPlay={false}
-          style={{height: 280}}
-          width={450}
-          data={
-            itemData &&
-            itemData.photos?.map((photo, index) => ({img: photo, index: index}))
-          }
-          renderItem={({ item }) => {
-            return (
-              <View
-                style={[styles.imagePressableContainer, styles.bubble]}
-              >    
-                <TouchableHighlight
-                    style={styles.bubble}
-                    onPress={() => {
-                      setImageViewerVis(true)
-                    }}
-                    activeOpacity={0.95}
-                  >
+      <ScrollView>
+        {/* Image */}
+        <View style={styles.imageHeader}>
+          {
+            editing?
+            <Carousel
+            style={{height: 280}}
+            width={450}
+            data={
+              photos &&
+              photos.map((photo, index) => ({img: photo, index: index})).concat({img: placeholderUri, index: null})
+            }
+            renderItem={({ item}) => {
+              return (
+                <View
+                  style={[styles.imagePressableContainer, styles.bubble]}
+                >    
+                  {
+                    item.img != placeholderUri ?
                     <ImageBackground 
-                    style={[styles.image, {flexDirection: 'row', padding: 10}]} 
-                    imageStyle={styles.bubble}
-                    source={{uri: item.img}} 
+                      style={[styles.image, {flexDirection: 'row', alignItems: 'flex-start', padding: 10, justifyContent: 'space-between',}]} 
+                      imageStyle={styles.bubble}
+                      source={{uri: item.img}} 
                     >
                       <View style={styles.indexTextContainer}>
-                        <CustomText style={styles.indexText}>{item.index + 1}/{itemData?.photos?.length}</CustomText>
+                        <CustomText style={styles.indexText}>{item.index + 1}/{photos?.length}</CustomText>
                       </View>
+                      <IconButton 
+                        style={styles.removeImageButton} 
+                        activeOpacity={0.5} 
+                        underlayColor='#ed7777' 
+                        onPress={() => handleRemovePhoto(item.img)} 
+                        iconName='remove' size={25} 
+                        color='#fff'
+                      />
                     </ImageBackground>
-                  </TouchableHighlight>
-              </View>
-            );
-          }} />
-          :
-          <View style={styles.noImagesWrapper}>
-            <CustomText style={styles.noImagesText}>No images</CustomText>
-          </View>
-        }
-        
-      </View>
-
-      {/* Yellow panel */}
-      <View style={{flex: 1, overflow: 'hidden', borderTopLeftRadius: 25, borderTopRightRadius: 25}}>
-        <ScrollView style={styles.panel}>
-          <CustomText style={[styles.subHeading, styles.subHeadingText]}>Details</CustomText>
-            {
-              editing ? 
-              <View style={styles.itemInfoBubbleGroup}>
-                <ItemInfoBubble label='Price' value={price} editing={true} onChangeText={(val) => setPrice(val)} keyboardType="numeric"/>
-                <ItemInfoBubble label='Qty' value={quantity} editing={true} onChangeText={(val) => setQuantity(val)} keyboardType="numeric"/>
-                <ItemInfoBubble label='Total' data={total} editing={false}/>
-              </View>
-              :
-              <View style={styles.itemInfoBubbleGroup}>
-                <ItemInfoBubble label='Price' data={itemData?.price} editing={false}/>
-                <ItemInfoBubble label='Qty' data={itemData?.quantity} editing={false}/>
-                <ItemInfoBubble label='Total' data={itemData?.total} editing={false}/>
-              </View>
+                    :
+                    <TouchableHighlight
+                      style={styles.bubble}
+                      onPress={() => {
+                          imageChoiceDialog()
+                      }}
+                      activeOpacity={0.95}
+                    >
+                      <Image style={styles.image} 
+                      source={require('./../assets/plus-placeholder.png')}
+                      />
+                    </TouchableHighlight>
+                  }
+                </View>
+              );
+            }} />
+            :
+            itemData?.photos?.length > 0 ?
+            <Carousel
+            autoPlay={false}
+            style={{height: 280}}
+            width={450}
+            data={
+              itemData &&
+              itemData.photos?.map((photo, index) => ({img: photo, index: index}))
             }
-          <CustomText style={[styles.subHeading, styles.subHeadingText]}>Notes</CustomText>
-          <View style={{overflow: 'hidden'}}>
-            <ScrollView style={styles.notesPanel}>
+            renderItem={({ item }) => {
+              return (
+                <View
+                  style={[styles.imagePressableContainer, styles.bubble]}
+                >    
+                  <TouchableHighlight
+                      style={styles.bubble}
+                      onPress={() => {
+                        setImageViewerVis(true)
+                      }}
+                      activeOpacity={0.95}
+                    >
+                      <ImageBackground 
+                      style={[styles.image, {flexDirection: 'row', padding: 10}]} 
+                      imageStyle={styles.bubble}
+                      source={{uri: item.img}} 
+                      >
+                        <View style={styles.indexTextContainer}>
+                          <CustomText style={styles.indexText}>{item.index + 1}/{itemData?.photos?.length}</CustomText>
+                        </View>
+                      </ImageBackground>
+                    </TouchableHighlight>
+                </View>
+              );
+            }} />
+            :
+            <View style={styles.noImagesWrapper}>
+              <CustomText style={styles.noImagesText}>No images</CustomText>
+            </View>
+          }
+          
+        </View>
+
+        {/* Yellow panel */}
+        <View style={{flex: 1, overflow: 'hidden', borderTopLeftRadius: 25, borderTopRightRadius: 25}}>
+          <View style={styles.panel}>
+            <CustomText style={[styles.subHeading, styles.subHeadingText]}>Details</CustomText>
               {
                 editing ? 
-                <TextInput multiline={true} style={styles.notesText} value={notes} onChangeText={(val) => setNotes(val)}/>
+                <View style={styles.itemInfoBubbleGroup}>
+                  <ItemInfoBubble label='Price' value={price} editing={true} onChangeText={(val) => setPrice(val)} keyboardType="numeric" errorMsg={priceErrorMsg}/>
+                  <ItemInfoBubble label='Qty' value={quantity} editing={true} onChangeText={(val) => setQuantity(val)} keyboardType="numeric" errorMsg={quantityErrorMsg}/>
+                  <ItemInfoBubble label='Total' data={total} editing={false}/>
+                </View>
                 :
-                <CustomText style={styles.notesText}>{itemData?.notes}</CustomText>
+                <View style={styles.itemInfoBubbleGroup}>
+                  <ItemInfoBubble label='Price' data={itemData?.price} editing={false}/>
+                  <ItemInfoBubble label='Qty' data={itemData?.quantity} editing={false}/>
+                  <ItemInfoBubble label='Total' data={itemData?.total} editing={false}/>
+                </View>
               }
-            </ScrollView>
-          </View>
-
-          <CustomText style={[styles.subHeading, styles.subHeadingText]}>Collections</CustomText>
-          {
-            editing ? 
-            <View style={styles.labelsGroup}>
-              {Object.keys(collectionsEdit).map((collection) => {
-                if(collectionsEdit[collection]){
-                  return(
-                    <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection}>{collection}</CustomChip>
-                  )
+            <CustomText style={[styles.subHeading, styles.subHeadingText]}>Notes</CustomText>
+            <View style={{overflow: 'hidden'}}>
+              <ScrollView style={styles.notesPanel}>
+                {
+                  editing ? 
+                  <TextInput multiline={true} style={styles.notesText} value={notes} onChangeText={(val) => setNotes(val)}/>
+                  :
+                  <CustomText style={styles.notesText}>{itemData?.notes}</CustomText>
                 }
-              })}
-              <IconButton 
-                style={[styles.iconButton, styles.plus]} 
-                iconName='add' 
-                size={25} 
-                onPress={()=>setCollectionsDialogVis(true)}
-                activeOpacity={0.6}
-                underlayColor="#DDDDDD"
-              />
+              </ScrollView>
             </View>
-            :
-            <View style={styles.labelsGroup}>
-              {collectionsIn?.map((collection) => (
-                <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
-              ))}
-            </View>
-            }
-        </ScrollView>
-      </View>
+
+            <CustomText style={[styles.subHeading, styles.subHeadingText]}>Collections</CustomText>
+            {
+              editing ? 
+              <View style={styles.labelsGroup}>
+                {Object.keys(collectionsEdit).map((collection) => {
+                  if(collectionsEdit[collection]){
+                    return(
+                      <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection}>{collection}</CustomChip>
+                    )
+                  }
+                })}
+                <IconButton 
+                  style={[styles.iconButton, styles.plus]} 
+                  iconName='add' 
+                  size={25} 
+                  onPress={()=>setCollectionsDialogVis(true)}
+                  activeOpacity={0.6}
+                  underlayColor="#DDDDDD"
+                />
+              </View>
+              :
+              <View style={styles.labelsGroup}>
+                {collectionsIn?.map((collection) => (
+                  <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
+                ))}
+              </View>
+              }
+          </View>
+        </View>
+
+      </ScrollView>
 
       <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
         <Dialog.Title>Labels</Dialog.Title>
@@ -544,7 +568,6 @@ export default function Item({route, navigation}) {
         }
         <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
       </Dialog.Container>
-
 
       <ImageView
         images={itemData?.photos?.map((photo) => ({uri: photo}))}
@@ -582,6 +605,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   panel: {
+    paddingBottom: '30%',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',

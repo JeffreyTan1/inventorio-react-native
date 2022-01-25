@@ -2,13 +2,11 @@ import * as SQLite from 'expo-sqlite'
 
 const db = SQLite.openDatabase('db.inventory')
 
-// 
 const dbTransaction = (sql) => {
   db.transaction(tx => {
     tx.executeSql(
       sql, null,
       (txObj, resultSet) => {
-        //do nothing
       },
       (txObj, error) => console.log('Error', error))
     });
@@ -25,7 +23,9 @@ export const createTables = async () => {
       price REAL,
       quantity INTEGER,
       total REAL,
-      notes TEXT
+      notes TEXT,
+      created INTEGER,
+      modified INTEGER
       );
       `
   )
@@ -33,7 +33,9 @@ export const createTables = async () => {
     `
       CREATE TABLE IF NOT EXISTS collections (
       name TEXT PRIMARY KEY,
-      photo TEXT
+      photo TEXT,
+      created INTEGER,
+      modified INTEGER
       );
       `
   )
@@ -90,7 +92,7 @@ export const dropTables = async () => {
 }
 
 // CRUD Items
-export const createItem = async (name, photos, price, quantity, total, notes, assocCollections, callback) => {
+export const createItem = async (name, photos, price, quantity, total, notes, assocCollections, created, modified, callback) => {
   var assocCollections = assocCollections
   db.transaction((tx) => {
     tx.executeSql(
@@ -106,7 +108,7 @@ export const createItem = async (name, photos, price, quantity, total, notes, as
       },
       (txObj, error) => console.log('Error', error))
   });
-  // recordhistory()
+  recordhistory()
 }
 
 export const getFromItems = async (collection, callback) => {
@@ -135,7 +137,7 @@ export const getItem = async (id, callback) => {
   }) 
 }
 
-export const updateItem = async (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections, callback) => {  
+export const updateItem = async (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections, created, modified, callback) => {  
   var assocCollections = assocCollections 
   var dissocCollections = dissocCollections
   db.transaction(tx => {
@@ -156,7 +158,7 @@ export const updateItem = async (name, photos, price, quantity, total, notes, id
       },
       (txObj, error) => console.log('Error', error))
   });
-  // recordhistory()
+  recordhistory()
 }
 
 export const deleteItem = async (id) => {
@@ -172,7 +174,7 @@ export const deleteItem = async (id) => {
     },
     (txObj, error) => console.log('Error', error))
   });
-  // recordhistory()
+  recordhistory()
 }
 
 // CRUD Collections
@@ -190,7 +192,7 @@ export const getAllCollections = async (callback) => {
 export const collectionDBSuccess = 'Success'
 export const collectionDuplicateError = 'This collection name is already taken!'
 
-export const createCollection = async (name, errorCallback) => {
+export const createCollection = async (name, created, modified, errorCallback) => {
   db.transaction(tx => {
     tx.executeSql(
     `INSERT INTO collections (name, photo) 
@@ -205,10 +207,10 @@ export const createCollection = async (name, errorCallback) => {
       errorCallback(collectionDuplicateError)
     })
   })
-  // recordhistory()
+  recordhistory()
 }
 
-export const updateCollection = async (oldName, newName, errorCallback) => {
+export const updateCollection = async (oldName, newName, modified, errorCallback) => {
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE collections 
@@ -225,7 +227,7 @@ export const updateCollection = async (oldName, newName, errorCallback) => {
       })
   });
   handleUpdateCollection(oldName, newName)
-  // recordhistory()
+  recordhistory()
 }
 
 export const deleteCollection = async (name) => {
@@ -241,7 +243,7 @@ export const deleteCollection = async (name) => {
     },
     (txObj, error) => console.log('Error', error))
   });
-  // recordhistory()
+  recordhistory()
 }
 
 // Manage many-to-many table: items_collections
@@ -383,10 +385,11 @@ export const getItemsTotalSum = async (callback) => {
 
 // History related
 export const getHistory = async (callback) => {
+  // SELECT * FROM history ORDER BY time DESC LIMIT 15 if required
   db.transaction(tx => {
-    tx.executeSql('SELECT * FROM history ORDER BY time DESC LIMIT 15', null, 
+    tx.executeSql('SELECT * FROM history', null, 
       (txObj, { rows: { _array } }) => {
-        callback(_array.reverse())
+        callback(_array)
       },
       (txObj, error) => console.log('Error ', error)
       ) 
@@ -437,7 +440,60 @@ export const recordhistory = async (callback) => {
       ) 
   });
   // set loading off on addhistory
-  callback(false)
+  if(callback){
+    callback(false)
+  }
+ 
+}
+
+export const clearHistory = () => {
+  db.transaction(tx => {
+    tx.executeSql(
+      `DROP TABLE history;`, null,
+      (txObj, resultSet) => {
+        db.transaction(tx => {
+          tx.executeSql(
+            `
+            CREATE TABLE IF NOT EXISTS history ( 
+            item_count INTEGER, 
+            collection_count INTEGER,
+            item_quantity INTEGER,
+            total_value REAL,
+            time INTEGER
+            );
+            `, null,
+            (txObj, resultSet) => {
+              db.transaction(tx => {
+                tx.executeSql(
+                  `
+                  CREATE TABLE IF NOT EXISTS history ( 
+                  item_count INTEGER, 
+                  collection_count INTEGER,
+                  item_quantity INTEGER,
+                  total_value REAL,
+                  time INTEGER
+                  );
+                  `, null,
+                  (txObj, resultSet) => {
+                    db.transaction(tx => {
+                      tx.executeSql(`INSERT INTO history (item_count, collection_count, item_quantity, total_value, time) 
+                      values (?, ?, ?, ?, ?)`, [0, 0, 0, 0, (new Date()).getTime()], 
+                        (txObj, resultSet) => {
+                          console.log('History recorded', JSON.stringify(resultSet))
+                        },
+                        (txObj, error) => console.log('Error', error)
+                        ) 
+                    });
+                  },
+                  (txObj, error) => console.log('Error', error))
+              });
+            },
+            (txObj, error) => console.log('Error', error))
+        });
+      },
+      (txObj, error) => console.log('Error', error))
+  });
+
 }
 
 // Utils

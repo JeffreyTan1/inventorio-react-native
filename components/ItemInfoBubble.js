@@ -1,17 +1,23 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import { View, StyleSheet, TextInput } from 'react-native'
 import CustomText from './CustomText'
 import { numberWithCommas } from '../utils/utils'
 import { useState } from 'react'
 
-export default function ItemInfoBubble({label, data, editing, value, onChangeText, keyboardType}) {
+export default function ItemInfoBubble({label, data, editing, value, onChangeText, keyboardType, errorMsg}) {
   
   return (
     <View style={styles.container}>
       <CustomText style={styles.label}>{label}</CustomText>
       {
         editing ? 
-        <TextInput style={[styles.data, styles.edit]} value={value} onChangeText={onChangeText} keyboardType={keyboardType}/>
+        <View>
+          {
+            errorMsg &&
+            <CustomText style={styles.errorText}>{errorMsg}</CustomText>
+          }
+          <TextInput style={[styles.data, styles.edit]} value={value} onChangeText={onChangeText} keyboardType={keyboardType}/>
+        </View>
         :
         <CustomText style={styles.data}>{data && numberWithCommas(data)}</CustomText>
       }
@@ -43,6 +49,11 @@ const styles = StyleSheet.create({
   edit: {
     borderBottomColor: 'lightgrey',
     borderBottomWidth: 1
+  },
+  errorText: {
+    color: '#cf2c06',
+    fontSize: 15,
+    marginVertical: 5,
   }
 })
 

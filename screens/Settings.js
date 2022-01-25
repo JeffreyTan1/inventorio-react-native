@@ -1,10 +1,12 @@
 import React,{useState} from 'react'
-import { View, StyleSheet, TouchableHighlight, ScrollView, Alert } from 'react-native'
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { View, StyleSheet, ScrollView, Alert, BackHandler } from 'react-native'
 import CustomText from '../components/CustomText';
 import globalStyles from '../styles/globalStyles';
-import { createTables, dropTables, recordhistory } from './../utils/DAO';
+import { clearHistory, createTables, dropTables, recordhistory } from './../utils/DAO';
 import * as FileSystem from 'expo-file-system';
+import IconButton from '../components/IconButton';
+import * as Sharing from 'expo-sharing';
+import * as DocumentPicker from 'expo-document-picker';
 
 export default function Settings({navigation}) {
 
@@ -22,6 +24,60 @@ export default function Settings({navigation}) {
     deleteDirContents(FileSystem.documentDirectory + 'images/')
     deleteDirContents(FileSystem.cacheDirectory + 'Camera/')
     deleteDirContents(FileSystem.cacheDirectory + 'ImagePicker/')
+  }
+
+  const handleClearHistory = () => {
+    Alert.alert(
+      `Clear history data?`,
+      `This action is irreversible!`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: async() => {
+          clearHistory()
+        } }
+      ]
+    );
+    
+  }
+
+  const handleExport = async () => {
+    await Sharing.shareAsync(
+      FileSystem.documentDirectory + 'SQLite/db.inventory', 
+      {dialogTitle: 'share or copy your DB via'}
+    ).catch(error =>{
+        console.log(error);
+    })
+  }
+
+  const handleImport = async () => {
+    const documentResult = await DocumentPicker.getDocumentAsync({
+      copyToCacheDirectory: false,
+      type: '*/db'
+    })
+    const uri = documentResult.uri
+
+    if(uri) {
+      Alert.alert(
+      `Replace database with selected file?`,
+      `The app will close after this operation. Please note that corrupted database files may break this app proceed at your own risk.`,
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+          style: "cancel"
+        },
+        { text: "OK", onPress: async() => {
+          await FileSystem.copyAsync({from: uri, to: FileSystem.documentDirectory + 'SQLite/db.inventory'})
+          BackHandler.exitApp()
+        } }
+      ]
+      );
+    }
+    
   }
 
   const deleteDialog = () => {
@@ -42,14 +98,14 @@ export default function Settings({navigation}) {
   return (
     <View style={styles.container}>
       <View style={styles.navBar}>
-        <TouchableHighlight
-        style={styles.iconButton}
-        activeOpacity={0.6}
-        underlayColor="#DDDDDD"
-        onPress={()=>navigation.goBack()}
-        >
-          <Icon name="arrow-back-ios" size={35}/>
-        </TouchableHighlight>
+        <IconButton
+          style={styles.iconButton}
+          activeOpacity={0.6}
+          underlayColor="#DDDDDD"
+          onPress={()=>navigation.goBack()}
+          iconName="arrow-back-ios" 
+          size={35}
+        />
       </View>
       <View style={styles.header}>
         <View style={styles.headingContainer}>
@@ -58,17 +114,57 @@ export default function Settings({navigation}) {
       </View>
       
       <ScrollView style={styles.panel}>
-        <View style={styles.field}>
-          <CustomText style={styles.fieldName}>Delete all data</CustomText>
-          <TouchableHighlight 
-          onPress={() => deleteDialog()}
-          style={styles.button}
-          activeOpacity={0.9}
-          underlayColor="white"
-          >
-            <Icon name='delete' style={styles.delButtonText}/>
-          </TouchableHighlight>
-        </View>    
+        <View style={styles.content}>
+             
+          <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Export data</CustomText>
+            <IconButton
+            onPress={() => handleExport()}
+            style={styles.button}
+            activeOpacity={0.9}
+            underlayColor="#e0e0e0"
+            iconName='publish'
+            size={30} 
+            color='#000'
+            />
+          </View> 
+          <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Import data</CustomText>
+            <IconButton
+            onPress={() => handleImport()}
+            style={styles.button}
+            activeOpacity={0.9}
+            underlayColor="#e0e0e0"
+            iconName='vertical-align-bottom'
+            size={30} 
+            color='#000'
+            />
+          </View> 
+          <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Clear history</CustomText>
+            <IconButton
+            onPress={() => handleClearHistory()}
+            style={styles.button}
+            activeOpacity={0.9}
+            underlayColor="#e0e0e0"
+            iconName='close'
+            size={30} 
+            color='#000'
+            />
+          </View> 
+          <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Delete all data</CustomText>
+            <IconButton
+            onPress={() => deleteDialog()}
+            style={styles.button}
+            activeOpacity={0.9}
+            underlayColor="#e0e0e0"
+            iconName='delete'
+            size={30} 
+            color='#000'
+            />
+          </View> 
+        </View>
       </ScrollView>
 
     </View>
@@ -104,35 +200,33 @@ const styles = StyleSheet.create({
   ml: {
     marginLeft: 10,
   },
+  content: {
+    marginTop: 15
+  },
   panel: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',
     flex: 1,
-    padding: 20
+    padding: 20,
   },
   field: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginVertical: 10,
+    marginBottom: 50,
   },
   fieldName: {
     fontSize: 25,
   },
   button: {
-    flexGrow: 1,
-    borderWidth: 1,
+    borderWidth: 0.5,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 16,
-    marginLeft: 30
+    borderRadius: 5,
+    paddingHorizontal: 40,
+    paddingVertical: 5,
+    backgroundColor: '#fff'
   },
-  delButtonText: {
-    fontSize: 30,
-    color: '#000',
-    fontWeight: 'bold',
-    padding: 5,
-    
-  }
+
 })

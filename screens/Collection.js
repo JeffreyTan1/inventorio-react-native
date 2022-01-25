@@ -8,6 +8,7 @@ import IconButton from '../components/IconButton'
 import { getFromItems, deleteCollection, updateCollection, createCollection, getItemsWithoutCollection,
 collectionDuplicateError, collectionDBSuccess } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
+import { abbreviate, numberWithCommas } from '../utils/utils'
 
 const reservedCollection = 'Items Without Collections'
 const reservedCollectionError = 'Cannot use this reserved name!'
@@ -16,12 +17,14 @@ const emptyCollectionError = 'Cannot be empty!'
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
   {label: 'Z-A', value: 'Z-A'},
+  {label: 'Total Highest', value: 'Total Highest'},
+  {label: 'Total Lowest', value: 'Total Lowest'},
+  {label: 'Last Modified', value: 'Last Modified'},
   {label: 'Price Highest', value: 'Price Highest'},
   {label: 'Price Lowest', value: 'Price Lowest'},
   {label: 'Qty Highest', value: 'Qty Highest'},
   {label: 'Qty Lowest', value: 'Qty Lowest'},
-  {label: 'Total Value Highest', value: 'Total Value Highest'},
-  {label: 'Total Value Lowest', value: 'Total Value Lowest'},
+  {label: 'Date Created', value: 'Date Created'},
 ]
 
 
@@ -31,7 +34,7 @@ export default function Collection({route, navigation}) {
   const [collection, setCollection] = useState(route.params?.collection);
 
   // data from database
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState(null)
 
   // to reload itembubbles on focus
   const [reload, setReload] = useState(0)
@@ -40,72 +43,55 @@ export default function Collection({route, navigation}) {
   const [editing, setEditing] = useState(collection ? false : true)
   const [newName, setNewName] = useState(route.params?.collection ? route.params.collection : '')
   const [errorMsg, setErrorMsg] = useState(null);
-  const [waitingDB, setWaitingDB] = useState(false);
   
   // calculated values
   const [itemsTotal, setItemsTotal] = useState(0)
   const [quantitiesTotal, setQuantitiesTotal] = useState(0)
   
   // sorting
-  const [option, setOption] = useState('A-Z')
-
-  
+  const [option, setOption] = useState('Date Created')
 
   useEffect(() => {
-    let tempItems = items
-    switch (option) {
-      case 'A-Z':
-        setItems(tempItems.sort(compareAlpha))
-        break;
-      case 'Z-A':
-        setItems(tempItems.sort(compareAlpha).reverse())
-        break;
-      case 'Price Highest':
-        setItems(tempItems.sort(comparePrice))
-        break;
-      case 'Price Lowest':
-        setItems(tempItems.sort(comparePrice).reverse())
-        break;
-      case 'Qty Highest':
-        setItems(tempItems.sort(compareQty))
-        break;
-      case 'Qty Lowest':
-        setItems(tempItems.sort(compareQty).reverse())
-        break;
-      case 'Total Value Highest':
-        setItems(tempItems.sort(compareTV))
-        break;
-      case 'Total Value Lowest':
-        setItems(tempItems.sort(compareTV).reverse())
-        break;
-      default:
-        break;
+    if(items) {
+      let tempItems = items
+      switch (option) {
+        case 'A-Z':
+          setItems(tempItems.sort(compareAlpha))
+          break;
+        case 'Z-A':
+          setItems(tempItems.sort(compareAlpha).reverse())
+          break;
+        case 'Total Highest':
+          setItems(tempItems.sort(compareTV))
+          break;
+        case 'Total Lowest':
+          setItems(tempItems.sort(compareTV).reverse())
+          break;
+        case 'Last Modified':
+          setItems(tempItems.sort(compareMod))
+          break;
+        case 'Price Highest':
+          setItems(tempItems.sort(comparePrice))
+          break;
+        case 'Price Lowest':
+          setItems(tempItems.sort(comparePrice).reverse())
+          break;
+        case 'Qty Highest':
+          setItems(tempItems.sort(compareQty))
+          break;
+        case 'Qty Lowest':
+          setItems(tempItems.sort(compareQty).reverse())
+          break;
+        case 'Date Created':
+          setItems(tempItems.sort(compareCreated))
+          break;
+        default:
+          break;
+      }
     }
   }, [option])
 
-  const compareAlpha = (a,b) => {
-    if(a.name > b.name) { return -1 }
-    if(b.name > a.name) { return 1 }
-    return 0
-  }
-
-  const comparePrice = (a,b) => {
-    if(a.price > b.price) { return 1 }
-    if(b.price > a.price) { return -1 }
-    return 0
-  }
-
-  const compareQty = (a,b) => {
-    if(a.quantity > b.quantity) { return 1 }
-    if(b.quantity > a.quantity) { return -1 }
-    return 0
-  }
-
-  const compareTV = (a,b) => {
-    if(a.total > b.total) { return 1 }
-    if(b.total > a.total) { return -1 }
-    return 0
-  }
+  
 
   useEffect(() => {
     if(isFocused && collection) {
@@ -121,15 +107,18 @@ export default function Collection({route, navigation}) {
 
 
   useEffect(() => {
-    let tempItemsTotal = 0
-    let tempQuantitiesTotal = 0
-    items.forEach(item => {
-      tempItemsTotal += item.total
-      tempQuantitiesTotal += item.quantity
-    });
+    if(items) {
+      let tempItemsTotal = 0
+      let tempQuantitiesTotal = 0
+      items.forEach(item => {
+        tempItemsTotal += item.total
+        tempQuantitiesTotal += item.quantity
+      });
 
-    setItemsTotal(tempItemsTotal)
-    setQuantitiesTotal(tempQuantitiesTotal)
+      setItemsTotal(tempItemsTotal)
+      setQuantitiesTotal(tempQuantitiesTotal)
+    }
+    
   }, [items])
 
   const handleDelete = () => {
@@ -153,11 +142,12 @@ export default function Collection({route, navigation}) {
     } else if (newName === reservedCollection) {
       setErrorMsg(reservedCollectionError)
     } else {
-      setWaitingDB(true)
+      const time = new Date()
       if(collection) {
-        updateCollection(collection, newName, setErrorMsg)
+        updateCollection(collection, newName, time.getTime(), setErrorMsg)
       } else {
-        createCollection(newName, setErrorMsg)
+        createCollection(newName, time.getTime(), time.getTime(), setErrorMsg)
+        getFromItems(newName, setItems)
       }
     }
   }
@@ -171,7 +161,6 @@ export default function Collection({route, navigation}) {
       setEditing(false)
       setErrorMsg(null)
     }
-    setWaitingDB(false)
 
   }, [errorMsg]);
   
@@ -270,14 +259,17 @@ export default function Collection({route, navigation}) {
           :
             <View style={styles.titleQuantityContainer}>
               <CustomText style={globalStyles.headingText}>{collection}</CustomText>
-              <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{items.length}</CustomText>
+              <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{items && items.length}</CustomText>
             </View>
           }
         </View>
+        
         <View style={styles.subHeadingContainer}>
-          <CustomText style={styles.subHeading}>Total: ${itemsTotal}</CustomText>
-          <CustomText style={[styles.subHeading, styles.ml]}>Qty: {quantitiesTotal }</CustomText>
+          <CustomText style={[styles.subHeading, styles.mr]}>Total: ${numberWithCommas(itemsTotal)}</CustomText>
+          <CustomText style={styles.subHeading}>Qty: {quantitiesTotal}</CustomText>
         </View>
+        
+        
       </View>
 
       {/* Sort and add item */}
@@ -300,27 +292,33 @@ export default function Collection({route, navigation}) {
       <View style={styles.container}>
         <View style={styles.panel}>
           {
-          items.length > 0 ?
-          <ScrollView style={styles.scrollView}>
-            {
-              items.map((item) => (
-                <ItemBubble navigation={navigation} key={item.id} 
-                id={item.id} name={item.name} photo={item.photos[0]} 
-                price={item.price} quantity={item.quantity} 
-                total={item.total} reload={reload}
-                />
-              ))
-            }
-          </ScrollView>
-          :
-          (!editing && collection !== reservedCollection) ?
-          <View style={styles.callToActionWrapper}> 
-              <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
-              <CustomText style={styles.callToAction}>Add an item!</CustomText>
+            items &&
+            <View style={styles.container}>
+              {
+              items.length > 0 ?
+              <ScrollView style={styles.scrollView}>
+                {
+                  items.map((item) => (
+                    <ItemBubble navigation={navigation} key={item.id} 
+                    id={item.id} name={item.name} photo={item.photos[0]} 
+                    price={item.price} quantity={item.quantity} 
+                    total={item.total} reload={reload}
+                    />
+                  ))
+                }
+              </ScrollView>
+              :
+              (!editing && collection !== reservedCollection) ?
+              <View style={styles.callToActionWrapper}> 
+                  <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
+                  <CustomText style={styles.callToAction}>Add an item!</CustomText>
+              </View>
+              :
+              <View></View>
+              }
           </View>
-          :
-          <View></View>
           }
+          
           
         </View>
       </View>
@@ -362,6 +360,9 @@ const styles = StyleSheet.create({
   ml: {
     marginLeft: 10,
   },
+  mr: {
+    marginRight: 10,
+  },
   panel: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
@@ -371,12 +372,12 @@ const styles = StyleSheet.create({
   },
   options: {
     flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   scrollView: {
 
   },
   plus: {
-    width:54,
     alignItems: 'center',
     backgroundColor: '#fcca47',
     shadowColor: "#000",
@@ -388,8 +389,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2.65,
     elevation: 4,
     padding: 5,
-    marginBottom: 10,
-    marginLeft: 28
+    marginRight: 20,
+    marginBottom: 10
   },
   callToActionWrapper: {
     flex: 1,
@@ -416,3 +417,40 @@ const styles = StyleSheet.create({
   }
   
 })
+
+
+const compareAlpha = (a,b) => {
+  if(a.name > b.name) { return -1 }
+  if(b.name > a.name) { return 1 }
+  return 0
+}
+
+const comparePrice = (a,b) => {
+  if(a.price > b.price) { return 1 }
+  if(b.price > a.price) { return -1 }
+  return 0
+}
+
+const compareQty = (a,b) => {
+  if(a.quantity > b.quantity) { return 1 }
+  if(b.quantity > a.quantity) { return -1 }
+  return 0
+}
+
+const compareTV = (a,b) => {
+  if(a.total > b.total) { return 1 }
+  if(b.total > a.total) { return -1 }
+  return 0
+}
+
+const compareCreated = (a,b) => {
+  if(a.created > b.created) { return -1 }
+  if(b.created > a.created) { return 1 }
+  return 0
+}
+
+const compareMod = (a,b) => {
+  if(a.modified > b.modified) { return -1 }
+  if(b.modified > a.modified) { return 1 }
+  return 0
+}

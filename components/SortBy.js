@@ -1,33 +1,73 @@
-import React, {useState} from 'react'
-import { View, Text, StyleSheet } from 'react-native'
-import DropDownPicker from 'react-native-dropdown-picker';
+import React, {useEffect, useState} from 'react'
+import { View, StyleSheet } from 'react-native'
 import CustomText from '../components/CustomText'
+import RNPickerSelect from 'react-native-picker-select';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 export default function SortBy({style, value, setValue, labels}) {
-  const [open, setOpen] = useState(false);
-  const [items, setItems] = useState(labels);
-
+  
   return (
     <View style={[styles.container, style]}>
-      <CustomText>Sort by</CustomText>
-      <DropDownPicker
-        style={{backgroundColor: 'transparent', borderWidth: 0}}
-        containerStyle={{width: 200, marginLeft: 10}}
-        textStyle={{fontSize: 15, fontFamily: 'Montserrat'}}
-        open={open}
+      <CustomText style={styles.sortByText}>Sort by</CustomText>
+      <RNPickerSelect
+        textInputProps={{multiline: false}}
+        pickerProps={{numberOfLines: 10}}
+        style={styles.pickerStyle}
+        useNativeAndroidPickerStyle={false}
+        onValueChange={setValue}
+        Icon={() => {return <Icon name='arrow-drop-down' size={25}/>}}
+        items={labels}
         value={value}
-        items={items}
-        setOpen={setOpen}
-        setValue={setValue}
-        setItems={setItems}
       />
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-})
+  sortByText: {
+    marginRight: 19,
+    fontSize: 20
+  },
+
+  pickerStyle: {
+    inputIOS:
+    {
+      fontSize: 19,
+      color: '#000',
+      paddingTop: 0,
+      fontFamily: 'Montserrat'
+    },
+    inputIOSContainer: {
+      paddingLeft: 15,
+      paddingRight: 25,
+      borderRadius: 4,
+      borderWidth: 0.5,
+      borderColor: '#00000000',
+    },
+
+    inputAndroid: {
+      fontSize: 19,
+      color: '#000',
+      fontFamily: 'Montserrat'
+    },
+    inputAndroidContainer: {
+      paddingLeft: 15,
+      paddingRight: 25,
+      borderRadius: 4,
+      borderWidth: 0.5,
+      borderColor: '#00000000',
+    },
+    iconContainer:{
+      top: 2,
+      right: 0,
+    },
+    placeholder:{
+      color: '#000000' + '50'
+    },
+  }
+  
+}
