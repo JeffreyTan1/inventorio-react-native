@@ -115,7 +115,7 @@ export default function Main({navigation, initCollections}) {
                 underlayColor="#DDDDDD"
                 onPress={()=>navigation.navigate('Collection')}
                 iconName="add"
-                size={45}
+                size={40}
               />  
             </View>
             <View style={styles.optionsContainer}>
@@ -129,7 +129,7 @@ export default function Main({navigation, initCollections}) {
               >
                 <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
               </MotiView>
-              <View style={styles.reservedBubbleContainer}>
+              <View>
                 <TouchableHighlight
                   style={styles.reservedBubble}
                   activeOpacity={0.9}
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   reservedBubble: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f2f2f2',
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: {
@@ -372,8 +372,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     paddingHorizontal: 20,
     paddingVertical: 5
-  },
-  reservedBubbleContainer: {
   },
   bottomSheet: {
     flex: 1,

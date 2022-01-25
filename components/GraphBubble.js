@@ -5,6 +5,7 @@ import { getHistory } from '../utils/DAO';
 import { LineChart } from 'react-native-wagmi-charts';
 import * as haptics from 'expo-haptics';
 import IconButton from './IconButton';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -27,6 +28,8 @@ export default function GraphBubble({graphIndex}) {
   const [totalValueHistory, setTotalValueHistory] = useState(null);
   const histories = [totalValueHistory, itemCountHistory, collectionCountHistory, itemQuantityHistory]
   const integerDisplay = [false, true, true, true]
+  const refreshRotation = useSharedValue(0);
+  const isRotating = useSharedValue(false);
   
   const loadHistory = () => {
     getHistory(setHistory)
@@ -58,6 +61,11 @@ export default function GraphBubble({graphIndex}) {
     }
   }, [totalValueHistory]);
   
+  const refreshButtonAnim = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotateZ: `${refreshRotation.value}deg`}]
+    }
+  })
 
   return (
     <View style={styles.container}>
@@ -113,19 +121,30 @@ export default function GraphBubble({graphIndex}) {
               </View>
             }
             
-            <View style={styles.refreshButtonContainer}>
-              
+            <Animated.View style={[refreshButtonAnim, styles.refreshButtonContainer]}>
                 <IconButton 
                 style={styles.refreshButton}
                 activeOpacity={0.8} 
                 underlayColor="#e0e0e0"
-
+                onPress={() => {
+                  loadHistory()
+                  if(!isRotating.value){
+                    isRotating.value = true
+                    refreshRotation.value = withTiming(refreshRotation.value + 360, {
+                    duration: 500,
+                    },
+                    () => {
+                      isRotating.value = false
+                    }
+                    )
+                  }
+                 
+                }}
                 iconName='refresh'
                 size={45}
                 color="#000"
                 />
-              
-            </View>
+            </Animated.View>
           </View>
           </LineChart.Provider>
         }

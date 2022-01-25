@@ -711,6 +711,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  labelsGroup: {flexDirection: 'row', marginLeft: 20, marginRight: 20, marginBottom: 60, flexWrap: 'wrap'}
+  labelsGroup: {
+    flexDirection: 'row',
+    marginLeft: 20, 
+    marginRight: 20, 
+    marginBottom: 60, 
+    flexWrap: 'wrap'
+  }
 
 })

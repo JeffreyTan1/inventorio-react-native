@@ -18,6 +18,7 @@ export default function SortBy({style, value, setValue, labels}) {
         Icon={() => {return <Icon name='arrow-drop-down' size={25}/>}}
         items={labels}
         value={value}
+        placeholder={{}}
       />
     </View>
   )

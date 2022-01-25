@@ -372,7 +372,8 @@ const styles = StyleSheet.create({
   },
   options: {
     flexDirection: 'row',
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    minHeight: 60
   },
   scrollView: {
 
