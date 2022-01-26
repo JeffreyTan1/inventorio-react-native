@@ -394,7 +394,7 @@ export default function Item({route, navigation}) {
         {/* Image */}
         <View style={styles.imageHeader}>
           {
-            editing?
+            editing ?
             <Carousel
             style={{height: 280}}
             width={450}
@@ -479,7 +479,10 @@ export default function Item({route, navigation}) {
             }} />
             :
             <View style={styles.noImagesWrapper}>
-              <CustomText style={styles.noImagesText}>No images</CustomText>
+              {
+                itemData &&
+                <CustomText style={styles.noImagesText}>No Images</CustomText>
+              }
             </View>
           }
           

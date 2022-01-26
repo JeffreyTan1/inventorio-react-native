@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
   },
   data: {
     fontSize: 24,
-    fontFamily: 'Montserrat-bold'
+    fontFamily: 'Montserrat',
+    fontWeight: 'bold'
   },
   edit: {
     borderBottomColor: 'lightgrey',

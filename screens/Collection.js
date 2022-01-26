@@ -289,38 +289,34 @@ export default function Collection({route, navigation}) {
       </View>
 
       {/* Items */}
-      <View style={styles.container}>
-        <View style={styles.panel}>
-          {
-            items &&
-            <View style={styles.container}>
+      <View style={styles.panel}>
+        {
+          items &&
+          <View style={styles.container}>
+            {
+            items.length > 0 ?
+            <ScrollView style={styles.scrollView}>
               {
-              items.length > 0 ?
-              <ScrollView style={styles.scrollView}>
-                {
-                  items.map((item) => (
-                    <ItemBubble navigation={navigation} key={item.id} 
-                    id={item.id} name={item.name} photo={item.photos[0]} 
-                    price={item.price} quantity={item.quantity} 
-                    total={item.total} reload={reload}
-                    />
-                  ))
-                }
-              </ScrollView>
-              :
-              (!editing && collection !== reservedCollection) ?
-              <View style={styles.callToActionWrapper}> 
-                  <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
-                  <CustomText style={styles.callToAction}>Add an item!</CustomText>
-              </View>
-              :
-              <View></View>
+                items.map((item) => (
+                  <ItemBubble navigation={navigation} key={item.id} 
+                  id={item.id} name={item.name} photo={item.photos[0]} 
+                  price={item.price} quantity={item.quantity} 
+                  total={item.total} reload={reload}
+                  />
+                ))
               }
-          </View>
-          }
-          
-          
+            </ScrollView>
+            :
+            (!editing && collection !== reservedCollection) ?
+            <View style={styles.callToActionWrapper}> 
+                <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
+                <CustomText style={styles.callToAction}>Add an item!</CustomText>
+            </View>
+            :
+            <View></View>
+            }
         </View>
+        }
       </View>
 
     </View>

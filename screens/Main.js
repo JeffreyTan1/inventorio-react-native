@@ -3,11 +3,10 @@ import { View, StyleSheet, TouchableHighlight, Dimensions } from 'react-native'
 import SummaryStatistic from '../components/SummaryStatistic';
 import CustomText from "../components/CustomText";
 import globalStyles from "../styles/globalStyles";
-import Icon from 'react-native-vector-icons/MaterialIcons'
 import CollectionBubble from "../components/CollectionBubble";
 import IconButton from "../components/IconButton";
 import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, withDelay, Extrapolate } from "react-native-reanimated";
-import BottomSheet, {useBottomSheet } from '@gorhom/bottom-sheet';
+import BottomSheet, { useBottomSheet } from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
 import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum, getHistory } from "../utils/DAO";
 import { useIsFocused } from "@react-navigation/native";
@@ -124,7 +123,8 @@ export default function Main({navigation, initCollections}) {
                 animate={{opacity: 1}}
                 transition={{
                   type: 'timing',
-                  duration: 1000
+                  duration: 500,
+                  delay: 500,
                 }}
               >
                 <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
@@ -167,10 +167,7 @@ export default function Main({navigation, initCollections}) {
                   </View>
                 }
               </ScrollView>
-            }
-            
-            
-            
+            }  
           </View>
       </View >
     )
@@ -180,14 +177,25 @@ export default function Main({navigation, initCollections}) {
     <View style={[styles.container, {backgroundColor: '#ffffff'}]}>
       <View style={styles.header}>
         <Logo width={width * 0.6}/>
-        <TouchableHighlight style={styles.settings}
-          activeOpacity={0.6}
-          underlayColor="#DDDDDD"
-          onPress={()=>navigation.navigate('Settings')}
-          iconName="settings"
-        >
-              <Icon name="settings" size={33} />
-        </TouchableHighlight>
+        <View style={styles.headerOptions}>
+          <IconButton
+            style={[styles.headerOptionButton, styles.mr]}
+            activeOpacity={0.6}
+            underlayColor="#DDDDDD"
+            onPress={()=>navigation.navigate('Search')}
+            iconName="search"
+            size={33} 
+          />
+          <IconButton
+            style={styles.headerOptionButton}
+            activeOpacity={0.6}
+            underlayColor="#DDDDDD"
+            onPress={()=>navigation.navigate('Settings')}
+            iconName="settings"
+            size={33} 
+          />
+        </View>
+
       </View>
 
       <Animated.View style={[styles.summaryStatisticsWrapper, animStats]}>
@@ -216,9 +224,9 @@ export default function Main({navigation, initCollections}) {
           snapPoints={snapPoints}
           containerStyle={styles.container}
           overDragResistanceFactor={1}
-          backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 30, borderTopLeftRadius: 30}}
-          handleStyle={{borderTopRightRadius: 30, borderTopLeftRadius: 30, height: 30}}
-          handleIndicatorStyle={{width: '10%', height: 8}}
+          backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 25, borderTopLeftRadius: 25}}
+          handleStyle={{borderTopRightRadius: 25, borderTopLeftRadius: 25, height: 15}}
+          handleIndicatorStyle={{width: '10%', height: 4}}
           animateOnMount={false}
         >
           <BottomSheetContent/>
@@ -238,11 +246,11 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     padding: 5,
   },
-  settings: {
+  headerOptionButton: {
     padding: 3,
-    borderRadius: 5,
+    borderRadius: 9,
     backgroundColor: '#FFF',
-    borderWidth: 0.3,
+    borderWidth: 0.5,
   },
   plus: {
     alignItems: 'center',
@@ -265,9 +273,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 15,
   },
-  bottomSheetSort: {
-
-  },
   bottomSheet: {
     flex: 1
   },
@@ -277,8 +282,8 @@ const styles = StyleSheet.create({
     right: 0, 
     bottom: 30,
     height: height * 0.83,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 25,
+    borderTopRightRadius: 25,
     paddingTop: 10,
     shadowColor: "#000",
     shadowOffset: {
@@ -330,6 +335,9 @@ const styles = StyleSheet.create({
   },
   ml: {
     marginLeft: 20
+  },
+  mr: {
+    marginRight: 10
   },
   graphs: {
     alignItems: 'center',
@@ -387,6 +395,9 @@ const styles = StyleSheet.create({
   },
   headerText: {
     fontSize: 40
+  },
+  headerOptions: {
+    flexDirection: 'row',
   },
   optionsContainer: {
     flexDirection: 'row',

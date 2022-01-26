@@ -15,7 +15,9 @@ const globalStyles = StyleSheet.create({
     borderRadius: 5, 
     marginRight: 15, 
     padding: 10, 
-    fontSize: 25,
+    fontSize: 33,
+    fontFamily: 'Montserrat',
+    fontWeight: 'bold'
   },
   navBar: {
     flexDirection: 'row',

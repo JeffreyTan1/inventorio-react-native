@@ -96,9 +96,9 @@ export const createItem = async (name, photos, price, quantity, total, notes, as
   var assocCollections = assocCollections
   db.transaction((tx) => {
     tx.executeSql(
-    `INSERT INTO items (name, photos, price, quantity, total, notes) 
-      values (?, ?, ?, ?, ?, ?)`, 
-      [name, JSON.stringify(photos), price, quantity, total, notes],
+    `INSERT INTO items (name, photos, price, quantity, total, notes, created, modified) 
+      values (?, ?, ?, ?, ?, ?, ?, ?)`, 
+      [name, JSON.stringify(photos), price, quantity, total, notes, created, modified],
       (txObj, resultSet) => {
         console.log(`inserted ${JSON.stringify(resultSet)}`)
         assocCollections.forEach(collection => {
@@ -137,15 +137,15 @@ export const getItem = async (id, callback) => {
   }) 
 }
 
-export const updateItem = async (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections, created, modified, callback) => {  
+export const updateItem = async (name, photos, price, quantity, total, notes, id, assocCollections, dissocCollections, modified, callback) => {  
   var assocCollections = assocCollections 
   var dissocCollections = dissocCollections
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE items 
-      SET name = ?, photos = ?, price = ?, quantity = ?, total = ?, notes = ?
+      SET name = ?, photos = ?, price = ?, quantity = ?, total = ?, notes = ?, modified = ?
       WHERE id = ?`, 
-      [name, JSON.stringify(photos), price, quantity, total, notes, id],
+      [name, JSON.stringify(photos), price, quantity, total, notes, modified, id],
       (txObj, resultSet) => {
         console.log(`updated ${JSON.stringify(resultSet)}`)
         assocCollections.forEach(collection => {
@@ -195,9 +195,9 @@ export const collectionDuplicateError = 'This collection name is already taken!'
 export const createCollection = async (name, created, modified, errorCallback) => {
   db.transaction(tx => {
     tx.executeSql(
-    `INSERT INTO collections (name, photo) 
-      values (?, ?)`, 
-    [name, null],
+    `INSERT INTO collections (name, photo, created, modified) 
+      values (?, ?, ?, ?)`, 
+    [name, null, created, modified],
     (txObj, resultSet) => {
       console.log(`inserted ${JSON.stringify(resultSet)}`)
       errorCallback(collectionDBSuccess)
@@ -214,9 +214,9 @@ export const updateCollection = async (oldName, newName, modified, errorCallback
   db.transaction(tx => {
     tx.executeSql(
     `UPDATE collections 
-      SET name = ?
+      SET name = ?, modified = ?
       WHERE name = ?`, 
-      [newName, oldName],
+      [newName, modified, oldName],
       (txObj, resultSet) => {
         console.log(`updated ${JSON.stringify(resultSet)}`)
         errorCallback(collectionDBSuccess)
@@ -494,6 +494,19 @@ export const clearHistory = () => {
       (txObj, error) => console.log('Error', error))
   });
 
+}
+
+
+// Query
+export const searchItems = (query, callback) => {
+  const result = []
+  const sql = `SELECT * FROM items WHERE name LIKE ?`
+  db.transaction(tx => {
+    tx.executeSql(sql, ['%' + query + '%'], 
+    (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array))),
+    (txObj, error) => console.log('Error ', error)
+    ) 
+  }) 
 }
 
 // Utils

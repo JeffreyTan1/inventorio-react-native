@@ -39,21 +39,27 @@
       ],
       "package": "com.nexusenigma.inventorio"
     },
-    "androidNavigationBar": {
-      "backgroundColor": "#fcca47"
-    },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icon.png"
     },
     "description": "",
     "packagerOpts": {
       "config": "metro.config.js"
+    },
+    "androidStatusBar": {
+      "hidden": false
     },
     "plugins": [
       [
         "expo-image-picker",
         {
           "photosPermission": "Inventorio attaches a copy of a photo to your items."
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "backgroundColor": "#fcca47"
         }
       ]
     ]

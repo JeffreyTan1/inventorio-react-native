@@ -13,6 +13,8 @@ import AppLoading from 'expo-app-loading';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import {SafeAreaView} from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Search from './screens/Search';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +24,7 @@ export default function App() {
 
   const  _cacheResourcesAsync = async () => {
     getAllCollections(setInitCollections)
-    const resources = [require('./assets/plus-placeholder.png'), require('./assets/backpack.png'), require('./assets/icon.png')];
+    const resources = [require('./assets/plus-placeholder.png'), require('./assets/icon.png')];
     const cacheResources = resources.map(resource => {
       return Asset.fromModule(resource).downloadAsync();
     }); 
@@ -53,25 +55,27 @@ export default function App() {
   }
  
   return (
-    <NavigationContainer>
-      <SafeAreaView style={{flex: 1}}>
-        <Stack.Navigator
-        screenOptions={{
-          headerShown: false
-        }}
-        >
-          <Stack.Screen name="Main">
-            {/* Make app loading more snappy */}
-            {props => <Main {...props} initCollections={initCollections} />} 
-          </Stack.Screen>
-          <Stack.Screen name="Collection" component={Collection} />
-          <Stack.Screen name="Item" component={Item} />
-          <Stack.Screen name="Settings" component={Settings} />
-          <Stack.Screen name="CameraModule" component={CameraModule} />
-        </Stack.Navigator>
-      </SafeAreaView>
-    </NavigationContainer>
-  
+    <GestureHandlerRootView style={{flex: 1}}>
+      <NavigationContainer>
+        <SafeAreaView style={{flex: 1}}>
+          <Stack.Navigator
+          screenOptions={{
+            headerShown: false
+          }}
+          >
+            <Stack.Screen name="Main">
+              {/* Make app loading more snappy */}
+              {props => <Main {...props} initCollections={initCollections} />} 
+            </Stack.Screen>
+            <Stack.Screen name="Collection" component={Collection} />
+            <Stack.Screen name="Item" component={Item} />
+            <Stack.Screen name="Settings" component={Settings} />
+            <Stack.Screen name="Search" component={Search} />
+            <Stack.Screen name="CameraModule" component={CameraModule} />
+          </Stack.Navigator>
+        </SafeAreaView>
+      </NavigationContainer>
+    </GestureHandlerRootView>
   );
 }
 
@@ -88,14 +92,26 @@ const createDirectories = async () => {
 const deleteCache = async () => {
 
   const camCacheDir = FileSystem.cacheDirectory + 'Camera/'
-  let files = await FileSystem.readDirectoryAsync(camCacheDir)
-  for (const file of files) {
-    FileSystem.deleteAsync(camCacheDir + file)
-  }
+  FileSystem.readDirectoryAsync(camCacheDir).then(
+    (files) => {
+      for (const file of files) {
+        FileSystem.deleteAsync(camCacheDir + file)
+      }
+    }
+  ).catch(() => {
+    console.log('No camera cache directory exists yet.')
+  })
+  
 
   const ipCacheDir = FileSystem.cacheDirectory + 'ImagePicker/'
-  files = await FileSystem.readDirectoryAsync(ipCacheDir)
-  for (const file of files) {
-    FileSystem.deleteAsync(ipCacheDir + file)
-  }
+  FileSystem.readDirectoryAsync(ipCacheDir).then(
+    (files) => {
+      for (const file of files) {
+        FileSystem.deleteAsync(ipCacheDir + file)
+      }
+    }
+  ).catch(() => {
+    console.log('No imagepicker cache directory exists yet.')
+  })
+  
 }
