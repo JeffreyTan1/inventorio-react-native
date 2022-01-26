@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "inventorio",
-    "slug": "inventorio",
+    "name": "Inventorio",
+    "slug": "Inventorio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -34,7 +34,8 @@
       "versionCode": 1,
       "permissions": [
         "CAMERA",
-        "READ_EXTERNAL_STORAGE"
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ],
       "package": "com.nexusenigma.inventorio"
     },

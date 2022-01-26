@@ -45,7 +45,7 @@ export default function GraphBubble({graphIndex}) {
       setCollectionCountHistory(history.map((e) => ({timestamp: e.time, value: e.collection_count})))
       setItemQuantityHistory(history.map((e) => ({timestamp: e.time, value: e.item_quantity})))
       setTotalValueHistory(history.map((e) => ({timestamp: e.time, value: e.total_value})))
-    }   
+    }
   }, [history])
 
   useEffect(() => {
@@ -69,43 +69,47 @@ export default function GraphBubble({graphIndex}) {
 
   return (
     <View style={styles.container}>
-      
         {
+          
           data &&
           <LineChart.Provider data={data} >
             <View style={styles.graph}>
             <View style={styles.header}>
-              <View>
-                <LineChart.PriceText style={styles.valText}
-                  format={({ value }) => {
-                    'worklet';
-                    let formattedPrice = (value);
-                    if(formattedPrice === '') {
-                      formattedPrice = (Math.round(data.slice(-1)[0].value * 100) / 100).toFixed(2); 
-                    }
-                    if(integerDisplay[graphIndex]) {
-                      const removeString = '.00'
-                      if(formattedPrice.endsWith(removeString)) {
-                        formattedPrice = formattedPrice.substring(0, formattedPrice.length - removeString.length )
+              {
+                data.length > 1 &&
+                <View>
+                  <LineChart.PriceText style={styles.valText}
+                    format={({ value }) => {
+                      'worklet';
+                      let formattedPrice = (value);
+                      if(formattedPrice === '') {
+                        formattedPrice = (Math.round(data.slice(-1)[0].value * 100) / 100).toFixed(2); 
                       }
-                    }
-                    return `${formattedPrice}`;
-                  }}
-                />
-                <LineChart.DatetimeText style={styles.dateText}
-                  format={({ value }) => {
-                    'worklet';
-                    let formattedDate = (value);
-                    if(formattedDate === -1) {
-                      formattedDate = data.slice(-1)[0].timestamp
-                    }
-                    formattedDate = new Date(formattedDate)
-                    return `${formattedDate.getDate() + ' ' + monthNames[formattedDate.getMonth()] + ' ' + formattedDate.getFullYear() + ' ' + formattedDate.getHours() + ':' +  String(formattedDate.getMinutes()).padStart(2, '0')}`;
-                  }}
-                />
-                <CustomText style={styles.statText}>{fields[graphIndex]}</CustomText>
-                
-              </View>
+                      if(integerDisplay[graphIndex]) {
+                        const removeString = '.00'
+                        if(formattedPrice.endsWith(removeString)) {
+                          formattedPrice = formattedPrice.substring(0, formattedPrice.length - removeString.length )
+                        }
+                      }
+                      return `${formattedPrice}`;
+                    }}
+                  />
+                  <LineChart.DatetimeText style={styles.dateText}
+                    format={({ value }) => {
+                      'worklet';
+                      let formattedDate = (value);
+                      if(formattedDate === -1) {
+                        formattedDate = data.slice(-1)[0].timestamp
+                      }
+                      formattedDate = new Date(formattedDate)
+                      return `${formattedDate.getDate() + ' ' + monthNames[formattedDate.getMonth()] + ' ' + formattedDate.getFullYear() + ' ' + formattedDate.getHours() + ':' +  String(formattedDate.getMinutes()).padStart(2, '0')}`;
+                    }}
+                  />
+                  <CustomText style={styles.statText}>{fields[graphIndex]}</CustomText>
+                  
+                </View>
+              }
+              
               
             </View>
             {
@@ -201,7 +205,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   callToActionWrapper: {
-    height: '60%',
+    height: '90%',
     justifyContent: 'center',
     alignItems: 'center',
   },
