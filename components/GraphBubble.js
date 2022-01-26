@@ -129,7 +129,7 @@ export default function GraphBubble({graphIndex}) {
                 <IconButton 
                 style={styles.refreshButton}
                 activeOpacity={0.8} 
-                underlayColor="#e0e0e0"
+                underlayColor="#c4c4c4"
                 onPress={() => {
                   loadHistory()
                   if(!isRotating.value){
@@ -145,8 +145,8 @@ export default function GraphBubble({graphIndex}) {
                  
                 }}
                 iconName='refresh'
-                size={45}
-                color="#000"
+                size={40}
+                color="#fff"
                 />
             </Animated.View>
           </View>
@@ -192,9 +192,9 @@ const styles = StyleSheet.create({
     right: 0,
   },
   refreshButton: {
-    padding: 3,
+    padding: 5,
     borderRadius: 100,
-    backgroundColor: '#fff',
+    backgroundColor: '#000',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,

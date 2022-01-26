@@ -30,7 +30,7 @@ export default function Main({navigation, initCollections}) {
   // data from navigation
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['15%', '100%'], []);
+  const snapPoints = useMemo(() => ['13%', '100%'], []);
   const [collections, setCollections] = useState(initCollections);
 
   // sorting
