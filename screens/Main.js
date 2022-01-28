@@ -31,7 +31,7 @@ export default function Main({navigation, initCollections}) {
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '100%'], []);
-  const [collections, setCollections] = useState(initCollections);
+  const [collections, setCollections] = useState([]);
 
   // sorting
   const [option, setOption] = useState('Newest')

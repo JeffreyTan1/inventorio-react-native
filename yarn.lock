@@ -3225,10 +3225,10 @@ expo-dev-menu@0.9.2:
     "@expo/config-plugins" "^4.0.14"
     expo-dev-menu-interface "0.5.2"
 
-expo-document-picker@~10.1.0:
-  version "10.1.0"
-  resolved "https://registry.yarnpkg.com/expo-document-picker/-/expo-document-picker-10.1.0.tgz#c4ade71241c1dfb42e62dd8715e6ee4e956d6da9"
-  integrity sha512-zt4zGHii4efanElPeK0uJ8yAgO4S5gkKrplxr7DkfDK97LrJBqYJodE52ZCj967nVGhyXtfMi5dKDY5FG+QXdA==
+expo-document-picker@~10.1.1:
+  version "10.1.1"
+  resolved "https://registry.yarnpkg.com/expo-document-picker/-/expo-document-picker-10.1.1.tgz#e71cbcd30fbf607eb587161ccb214142eb381acd"
+  integrity sha512-/ge49Qb5yDr3NKymK/ZR0lmfO3S1zEd4laW00IYhaT0E6okuHqqPg/HXxQM3ULXoEHcnzpy1+LRxuwD8Z6op3g==
   dependencies:
     "@expo/config-plugins" "^4.0.2"
     uuid "^3.3.2"
@@ -3312,15 +3312,6 @@ expo-modules-core@0.6.4:
   dependencies:
     compare-versions "^3.4.0"
     invariant "^2.2.4"
-
-expo-navigation-bar@~1.1.1:
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/expo-navigation-bar/-/expo-navigation-bar-1.1.1.tgz#cd99a134695fb836e962921790236943b6cd51c3"
-  integrity sha512-k6ybXzhew4TB+R/+iNUL0FLe3Y23JXRueQV4BE3Drke9bDsmlLCW1FekGHAxfdvaHHAnYMy3+Whe3MEvttGnhQ==
-  dependencies:
-    "@expo/config-plugins" "^4.0.2"
-    "@react-native/normalize-color" "^2.0.0"
-    debug "^4.3.2"
 
 expo-sharing@~10.1.0:
   version "10.1.0"
