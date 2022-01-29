@@ -26,7 +26,7 @@ const sortingLabels = [
 const { width, height } = Dimensions.get('window');
 const reservedCollection = 'Items Without Collections'
 
-export default function Main({navigation, initCollections}) {
+export default function Main({navigation}) {
   // data from navigation
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
@@ -198,7 +198,9 @@ export default function Main({navigation, initCollections}) {
 
       </View>
 
-      <Animated.View style={[styles.summaryStatisticsWrapper, animStats]}>
+      <Animated.View style={[styles.summaryStatisticsWrapper, 
+        animStats
+        ]}>
         <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
         <View style={styles.summaryStatisticsGroup}>
           {

@@ -56,6 +56,7 @@ export default function App() {
  
   return (
     <GestureHandlerRootView style={{flex: 1}}>
+      <StatusBar style="dark" backgroundColor='#ffffff'/>
       <NavigationContainer>
         <SafeAreaView style={{flex: 1}}>
           <Stack.Navigator
@@ -64,11 +65,11 @@ export default function App() {
           }}
           >
             {/* Make app loading more snappy */}
-            {/* <Stack.Screen name="Main">
+            <Stack.Screen name="Main">
               
               {props => <Main {...props} initCollections={initCollections} />} 
-            </Stack.Screen> */}
-            <Stack.Screen name="Main" component={Main}/>
+            </Stack.Screen>
+            {/* <Stack.Screen name="Main" component={Main}/> */}
             <Stack.Screen name="Collection" component={Collection} />
             <Stack.Screen name="Item" component={Item} />
             <Stack.Screen name="Settings" component={Settings} />
