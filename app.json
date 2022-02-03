@@ -47,8 +47,7 @@
       "config": "metro.config.js"
     },
     "androidStatusBar": {
-      "backgroundColor": "#fcca47",
-      "translucent": false
+      "translucent": true
     },
     "plugins": [
       [

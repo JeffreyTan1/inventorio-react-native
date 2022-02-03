@@ -31,7 +31,7 @@ export default function Main({navigation}) {
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '100%'], []);
-  const [collections, setCollections] = useState([]);
+  const [collections, setCollections] = useState(null);
 
   // sorting
   const [option, setOption] = useState('Newest')
@@ -198,7 +198,7 @@ export default function Main({navigation}) {
 
       </View>
 
-      <Animated.View style={[styles.summaryStatisticsWrapper, 
+      {/* <Animated.View style={[styles.summaryStatisticsWrapper, 
         animStats
         ]}>
         <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
@@ -217,7 +217,7 @@ export default function Main({navigation}) {
           }
         </View>
         <GraphBubble graphIndex={graphIndex}/>
-      </Animated.View>
+      </Animated.View> */}
 
       <View style={styles.bottomSheet}>
         <BottomSheet
@@ -274,9 +274,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
-  },
-  bottomSheet: {
-    flex: 1
   },
   summaryStatisticsWrapper: {
     position: 'absolute',

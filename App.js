@@ -68,10 +68,8 @@ export default function App() {
           >
             {/* Make app loading more snappy */}
             <Stack.Screen name="Main">
-              
               {props => <Main {...props} initCollections={initCollections} />} 
             </Stack.Screen>
-            {/* <Stack.Screen name="Main" component={Main}/> */}
             <Stack.Screen name="Collection" component={Collection} />
             <Stack.Screen name="Item" component={Item} />
             <Stack.Screen name="Settings" component={Settings} />
