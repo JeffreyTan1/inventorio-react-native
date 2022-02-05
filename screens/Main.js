@@ -30,7 +30,7 @@ export default function Main({navigation}) {
   // data from navigation
   const isFocused = useIsFocused();
   const bottomSheetRef = useRef(null);
-  const snapPoints = useMemo(() => ['13%', '100%'], []);
+  const snapPoints = useMemo(() => ['13%', '96.5%'], []);
   const [collections, setCollections] = useState(null);
 
   // sorting
@@ -125,7 +125,7 @@ export default function Main({navigation}) {
                 transition={{
                   type: 'timing',
                   duration: 250,
-                  delay: 300,
+                  delay: 300 + (collections.length * 10),
                 }}
                 >
                   {
@@ -157,7 +157,7 @@ export default function Main({navigation}) {
                   transition={{
                     type: 'timing',
                     duration: 250,
-                    delay: 300,
+                    delay: 300 + (collections.length * 10),
                   }}
                 style={styles.container} contentContainerStyle={collections.length === 0 && {justifyContent: 'center', flex: 1, }}
                 >
@@ -372,6 +372,7 @@ const styles = StyleSheet.create({
   reservedBubble: {
     borderRadius: 10,
     borderWidth: 0.5,
+    marginRight: 4,
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -388,10 +389,11 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    height: '17%',
+    height: '7%',
+    marginTop: '9%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 20
+    marginHorizontal: 20,
   },
   headerText: {
     fontSize: 40

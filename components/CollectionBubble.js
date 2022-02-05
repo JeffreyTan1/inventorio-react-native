@@ -7,6 +7,7 @@ import { abbreviate } from '../utils/utils'
 
 export default function CollectionBubble({navigation, name}) {
   const [collectionData, setCollectionData] = useState(null);
+  
   useEffect(() => {
     getCollectionInfo(name, setCollectionData)
   }, []);
@@ -37,7 +38,6 @@ export default function CollectionBubble({navigation, name}) {
         
       </View>
     </TouchableHighlight>
-   
   )
 }
 
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
 
   },
   pressableContainer: {
-    marginVertical: 10,
+    marginVertical: 7,
     paddingVertical: 15,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.29,
     shadowRadius: 2.65,
-    elevation: 4,
+    elevation: 3,
   },
   collectionText: {
     fontSize: 30,

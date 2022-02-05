@@ -68,6 +68,31 @@ export default function Item({route, navigation}) {
     }
     getAllCollections(setAllCollections)
   }, [id, reload])
+
+  // set collections that are selected by chips
+  useEffect(() => {
+    if(allCollections) {
+      const tempAllCollections = {}
+      allCollections.forEach(e => {
+        const cn = e.name
+        tempAllCollections[cn] = false
+      })
+      if(collectionsIn) {
+        const tempCollectionsIn = {}
+        collectionsIn.forEach(e => {
+          const cn = e.collection_name
+          tempCollectionsIn[cn] = true
+        })
+        setCollectionsEdit({...tempAllCollections, ...tempCollectionsIn})
+      } else {
+        const currCollection = collection;
+        const tempObj = {}
+        tempObj[currCollection] = true
+        setCollectionsEdit({...tempAllCollections, ...tempObj})
+      }
+    }
+  }, [collectionsIn, allCollections])
+
   // set edit data to begin at the database data
   useEffect(() => {
     if(itemData){
@@ -79,9 +104,20 @@ export default function Item({route, navigation}) {
     setName(item.name); setPhotos(item.photos); setPrice(item.price.toString()); 
     setQuantity(item.quantity.toString());setTotal(item.total.toString()); setNotes(item.notes);
   }
+
+  // modify total when price & qty change
+  useEffect(() => {
+    setTotal((parseFloat(price) * parseInt(quantity)).toFixed(2).toString());
+  }, [price, quantity]);
+
+  // handle delete dialog
+  const handleDelete = () => {
+    deleteItem(id)
+    navigation.goBack()
+  }
   
-   // handle camera vs image picker dialog
-   const handleImageChoice = (choice) => {
+  // handle camera vs image picker dialog
+  const handleImageChoice = (choice) => {
     if(choice === 'camera') {
       navigation.navigate('CameraModule')
     } else if (choice === 'image-picker') {
@@ -108,6 +144,37 @@ export default function Item({route, navigation}) {
       setPhotos(JSON.parse(JSON.stringify(tempPhotos)));  // cannot explain why
     }
   };
+
+  // returns list of collections to associate and to dissociate from/to item
+  const getCollectionsLists = () => {
+    const assocCollections=[]
+    const dissocCollections=[]
+
+    if(!id) {
+      Object.keys(collectionsEdit).forEach(collection => {
+        if(collectionsEdit[collection]) {
+          assocCollections.push(collection)
+        }
+      });
+    }
+    else {
+      const tempCollectionsIn = {}
+      collectionsIn.forEach(e => {
+        const cn = e.collection_name
+        tempCollectionsIn[cn] = true
+      })
+
+      Object.keys(collectionsEdit).forEach(collection => {
+        if(!collectionsEdit[collection] && tempCollectionsIn[collection]){
+          dissocCollections.push(collection)
+        } else if (collectionsEdit[collection] && !tempCollectionsIn[collection]) {
+          assocCollections.push(collection)
+        }
+      });
+    }
+
+    return {assocCollections, dissocCollections}
+  }
 
   const copyPhoto = async(uri) => {
     try {
@@ -154,99 +221,6 @@ export default function Item({route, navigation}) {
 
   }
 
-   // creates item, otherwise updates it if already exists
-   const handleSave = () => {
-    const {assocCollections, dissocCollections} = getCollectionsLists()
-    getNewPhotosArray().then(
-      (newPhotos) => {
-        const time = new Date()
-        if(id){
-          setEditing(false)
-          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections, time.getTime(), setReload)
-        } else {  
-          createItem(name, newPhotos, price, quantity, total, notes, assocCollections, time.getTime(), time.getTime(), setId)
-          setEditing(false)
-        }
-      }
-    )
-  }
-  const handleRemovePhoto = (uri) => {
-    const tempArray = [...photos]
-    const index = tempArray.indexOf(uri)
-    tempArray.splice(index, 1)
-    setPhotos(JSON.parse(JSON.stringify(tempArray))) // cannot explain why
-  }
-
-
-
-
-  // set collections that are selected by chips
-  useEffect(() => {
-    if(allCollections) {
-      const tempAllCollections = {}
-      allCollections.forEach(e => {
-        const cn = e.name
-        tempAllCollections[cn] = false
-      })
-      if(collectionsIn) {
-        const tempCollectionsIn = {}
-        collectionsIn.forEach(e => {
-          const cn = e.collection_name
-          tempCollectionsIn[cn] = true
-        })
-        setCollectionsEdit({...tempAllCollections, ...tempCollectionsIn})
-      } else {
-        const currCollection = collection;
-        const tempObj = {}
-        tempObj[currCollection] = true
-        setCollectionsEdit({...tempAllCollections, ...tempObj})
-      }
-    }
-  }, [collectionsIn, allCollections])
-
-
-  // modify total when price & qty change
-  useEffect(() => {
-    setTotal((parseFloat(price) * parseInt(quantity)).toFixed(2).toString());
-  }, [price, quantity]);
-
-  // handle delete dialog
-  const handleDelete = () => {
-    deleteItem(id)
-    navigation.goBack()
-  }
-
-  // returns list of collections to associate and to dissociate from/to item
-  const getCollectionsLists = () => {
-    const assocCollections=[]
-    const dissocCollections=[]
-
-    if(!id) {
-      Object.keys(collectionsEdit).forEach(collection => {
-        if(collectionsEdit[collection]) {
-          assocCollections.push(collection)
-        }
-      });
-    }
-    else {
-      const tempCollectionsIn = {}
-      collectionsIn.forEach(e => {
-        const cn = e.collection_name
-        tempCollectionsIn[cn] = true
-      })
-
-      Object.keys(collectionsEdit).forEach(collection => {
-        if(!collectionsEdit[collection] && tempCollectionsIn[collection]){
-          dissocCollections.push(collection)
-        } else if (collectionsEdit[collection] && !tempCollectionsIn[collection]) {
-          assocCollections.push(collection)
-        }
-      });
-    }
-
-    return {assocCollections, dissocCollections}
-  }
-
   const validateInputs = () => {
     const priceValid = /^\d+(\d{3})*(\.\d{1,2})?$/.test(price)
     const quantityValid = /^[0-9]*$/.test(quantity)
@@ -266,6 +240,22 @@ export default function Item({route, navigation}) {
 
     return result
   }
+  // creates item, otherwise updates it if already exists
+  const handleSave = () => {
+    const {assocCollections, dissocCollections} = getCollectionsLists()
+    getNewPhotosArray().then(
+      (newPhotos) => {
+        const time = new Date()
+        if(id){
+          setEditing(false)
+          updateItem(name, newPhotos, price, quantity, total, notes, id, assocCollections, dissocCollections, time.getTime(), setReload)
+        } else {  
+          createItem(name, newPhotos, price, quantity, total, notes, assocCollections, time.getTime(), time.getTime(), setId)
+          setEditing(false)
+        }
+      }
+    )
+  }
 
   // onchange handler for editing collections
   const handleCollectionsEditChange = (collection) => {
@@ -273,6 +263,14 @@ export default function Item({route, navigation}) {
     tempObj[collection] = !collectionsEdit[collection]
     setCollectionsEdit({...collectionsEdit, ...tempObj})
   }
+
+  const handleRemovePhoto = (uri) => {
+    const tempArray = [...photos]
+    const index = tempArray.indexOf(uri)
+    tempArray.splice(index, 1)
+    setPhotos(JSON.parse(JSON.stringify(tempArray))) // cannot explain why
+  }
+
 
   const deleteDialog = () => {
     Alert.alert(
@@ -553,27 +551,23 @@ export default function Item({route, navigation}) {
 
       <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
         <Dialog.Title>Labels</Dialog.Title>
-        <ScrollView>
-          {
-            Object.keys(collectionsEdit).map((collection) => {
-              if(collectionsEdit[collection]){
-                return(
-                  <CustomCheckBox key={collection} isChecked={true} onPress={() => handleCollectionsEditChange(collection)}>
-                    {collection}
-                  </CustomCheckBox>
-                )
-              } else {
-                return (
-                  <CustomCheckBox key={collection} isChecked={false} onPress={() => handleCollectionsEditChange(collection)}>
-                    {collection}
-                  </CustomCheckBox>
-                )
-              }
-            })
-          }
-        </ScrollView>
-
-        
+        {
+          Object.keys(collectionsEdit).map((collection) => {
+            if(collectionsEdit[collection]){
+              return(
+                <CustomCheckBox key={collection} isChecked={true} onPress={() => handleCollectionsEditChange(collection)}>
+                  {collection}
+                </CustomCheckBox>
+              )
+            } else {
+              return (
+                <CustomCheckBox key={collection} isChecked={false} onPress={() => handleCollectionsEditChange(collection)}>
+                  {collection}
+                </CustomCheckBox>
+              )
+            }
+          })
+        }
         <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
       </Dialog.Container>
 
