@@ -14,7 +14,6 @@ const globalStyles = StyleSheet.create({
     borderColor: 'grey', 
     borderRadius: 5, 
     marginRight: 15, 
-    padding: 5, 
     fontSize: 33,
     fontFamily: 'Montserrat',
     fontWeight: 'bold'

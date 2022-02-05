@@ -34,7 +34,7 @@ export default function Main({navigation}) {
   const [collections, setCollections] = useState(null);
 
   // sorting
-  const [option, setOption] = useState('Newest')
+  const [option, setOption] = useState('Oldest')
 
   // statistics
   const [itemCount, setItemCount] = useState(null);
@@ -52,6 +52,7 @@ export default function Main({navigation}) {
       getCollectionsCount(setCollectionCount)
       getItemsQuantitySum(setItemQuantity)
       getItemsTotalSum(setTotalValue)
+      setOption('Oldest')
     }
   }, [isFocused])
   
@@ -61,10 +62,10 @@ export default function Main({navigation}) {
       let tempCollections = collections
       switch (option) {
         case 'A-Z':
-          setCollections(tempCollections.sort(compareAlpha))
+          setCollections(tempCollections.sort(compareAlpha).reverse())
           break;
         case 'Z-A':
-          setCollections(tempCollections.sort(compareAlpha).reverse())
+          setCollections(tempCollections.sort(compareAlpha))
           break;
         case 'Newest':
           setCollections(tempCollections.sort(compareCreated))
@@ -102,6 +103,15 @@ export default function Main({navigation}) {
       }
     })
 
+    const [startRender, setStartRender] = useState(false);
+
+    useEffect(() => {
+      setTimeout(() => {
+        setStartRender(true)
+      }, 300);
+    }, []);
+    
+
     return (
       <View style={styles.container}>
           <View style={styles.bottomSheetHeader}>
@@ -124,12 +134,12 @@ export default function Main({navigation}) {
                 animate={{opacity: 1}}
                 transition={{
                   type: 'timing',
-                  duration: 250,
-                  delay: 300 + (collections.length * 10),
+                  duration: 300,
+                  
                 }}
                 >
                   {
-                  isFocused &&
+                  isFocused && startRender &&
                     <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
                   }
                 </MotiView>
@@ -145,7 +155,7 @@ export default function Main({navigation}) {
             </View>
           </View>
           
-          <View
+          { startRender && <View
             style={styles.container}
           >
             {
@@ -156,8 +166,8 @@ export default function Main({navigation}) {
                   animate={{opacity: 1}}
                   transition={{
                     type: 'timing',
-                    duration: 250,
-                    delay: 300 + (collections.length * 10),
+                    duration: 300,
+                    
                   }}
                 style={styles.container} contentContainerStyle={collections.length === 0 && {justifyContent: 'center', flex: 1, }}
                 >
@@ -182,7 +192,7 @@ export default function Main({navigation}) {
                 </MotiScrollView>
               </NativeViewGestureHandler>
             }  
-          </View> 
+          </View> }
       </View >
     )
   }

@@ -250,7 +250,7 @@ export default function Collection({route, navigation}) {
         <View style={styles.headingContainer}>
           {editing ?
             <View style={styles.container}> 
-              <TextInput style={[globalStyles.headingTextEdit]} value={newName} onChangeText={val => setNewName(val)}/>
+              <TextInput style={[globalStyles.headingTextEdit]} value={newName} onChangeText={val => setNewName(val)} placeholder='Collection Name'/>
               {
                 errorMsg && errorMsg !== collectionDBSuccess &&
                 <CustomText style={styles.errorText}>{errorMsg}</CustomText>
