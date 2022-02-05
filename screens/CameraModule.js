@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react'
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import { Camera } from 'expo-camera';
-import globalStyles from '../styles/globalStyles';
 import IconButton from '../components/IconButton';
 
 

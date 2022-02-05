@@ -12,13 +12,11 @@ import CameraModule from './screens/CameraModule';
 import AppLoading from 'expo-app-loading';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
-import {SafeAreaView, Platform} from 'react-native';
+import {SafeAreaView} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Search from './screens/Search';
 
 const Stack = createNativeStackNavigator();
-
-
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false)

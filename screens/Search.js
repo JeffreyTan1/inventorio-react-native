@@ -90,16 +90,20 @@ export default function Search({route, navigation}) {
 
   useEffect(() => {
     if(isFocused) {
-      searchItems(query, setItems)
+      runSearch()
       setReload((val) => val + 1)
     }
   }, [isFocused])
 
   useEffect(() => {
-    searchItems(query, setItems)
+    runSearch()
   }, [query]);
   
-
+  const runSearch = () => {
+    if(query !== '') {
+      searchItems(query, setItems)
+    }
+  }
   useEffect(() => {
     if(items) {
       let tempItemsTotal = 0

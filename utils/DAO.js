@@ -384,7 +384,7 @@ export const getItemsTotalSum = async (callback) => {
 
 
 // History related
-export const getHistory = async (callback) => {
+export const getHistory = (callback) => {
   // SELECT * FROM history ORDER BY time DESC LIMIT 15 if required
   db.transaction(tx => {
     tx.executeSql('SELECT * FROM history', null, 
@@ -496,6 +496,27 @@ export const clearHistory = () => {
 
 }
 
+// Data about collections
+export const getCollectionInfo = (collection_name, callback) => {
+  db.transaction(tx => {
+    tx.executeSql(`SELECT * FROM items WHERE id IN (
+      SELECT item_id FROM items_collections WHERE collection_name = ? )`, [collection_name], 
+    (txObj, resultSet) => {
+      let items = parseJSONToArray(resultSet.rows._array)
+      let items_total = 0
+      let quantities_total = 0
+      items.forEach(item => {
+        items_total += item.total
+        quantities_total += item.quantity
+      });
+      
+      callback({items_count: items.length, items_total: items_total, quantities_total: quantities_total})
+    }
+    ,
+    (txObj, error) => console.log('Error ', error)
+    ) 
+  })
+}
 
 // Query
 export const searchItems = (query, callback) => {

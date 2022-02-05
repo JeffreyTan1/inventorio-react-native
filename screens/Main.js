@@ -10,11 +10,11 @@ import BottomSheet, { useBottomSheet } from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
 import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum, getHistory } from "../utils/DAO";
 import { useIsFocused } from "@react-navigation/native";
-import { ScrollView } from "react-native-gesture-handler";
+import { NativeViewGestureHandler, ScrollView } from "react-native-gesture-handler";
 import {abbreviate} from './../utils/utils'
 import Logo from './../assets/INVENTORIO.svg';
 import SortBy from "../components/SortBy";
-import { MotiView } from "moti";
+import { MotiScrollView, MotiView, AnimatePresence } from "moti";
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -42,7 +42,7 @@ export default function Main({navigation}) {
   const [itemQuantity, setItemQuantity] = useState(null);
   const [totalValue, setTotalValue] = useState(null);
   const fields = ['Total Value', 'Items', 'Collections', 'Total Quantity'];
-  const values = [abbreviate(totalValue, 2, 2), abbreviate(itemCount), abbreviate(collectionCount), abbreviate(itemQuantity)];
+  const values = [abbreviate(totalValue), abbreviate(itemCount), abbreviate(collectionCount), abbreviate(itemQuantity)];
   const [graphIndex, setGraphIndex] = useState(0);
 
   useEffect(() => {
@@ -118,17 +118,21 @@ export default function Main({navigation}) {
               />  
             </View>
             <View style={styles.optionsContainer}>
-              <MotiView
+
+                <MotiView
                 from={{opacity: 0}}
                 animate={{opacity: 1}}
                 transition={{
                   type: 'timing',
-                  duration: 500,
-                  delay: 500,
+                  duration: 250,
+                  delay: 300,
                 }}
-              >
-                <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
-              </MotiView>
+                >
+                  {
+                  isFocused &&
+                    <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
+                  }
+                </MotiView>
               <View>
                 <TouchableHighlight
                   style={styles.reservedBubble}
@@ -145,30 +149,40 @@ export default function Main({navigation}) {
             style={styles.container}
           >
             {
-              collections &&
-              <ScrollView style={styles.container} contentContainerStyle={collections.length === 0 && {justifyContent: 'center', flex: 1, }}
-              >
-                {
-                  collections.length === 0 ?
-                  <View style={styles.callToActionWrapper}>
-                    <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
-                    <CustomText style={styles.callToAction}>It's a little lonely here... {'\n'} add a collection!</CustomText>
-                  </View>
-                  :
-                  <View style={styles.collections}>
-                    {
-                      collections.map((item, index) => (
-                        <View style={[styles.container, {flexBasis: width * 0.4}]} key={item.name}>
-                          <CollectionBubble navigation={navigation} name={item.name}  />
-                        </View>
-                      ))
-                    }
-                    
-                  </View>
-                }
-              </ScrollView>
+              collections && isFocused &&
+              <NativeViewGestureHandler disallowInterruption={true}>
+                <MotiScrollView 
+                  from={{opacity: 0}}
+                  animate={{opacity: 1}}
+                  transition={{
+                    type: 'timing',
+                    duration: 250,
+                    delay: 300,
+                  }}
+                style={styles.container} contentContainerStyle={collections.length === 0 && {justifyContent: 'center', flex: 1, }}
+                >
+                  {
+                    collections.length === 0 ?
+                    <View style={styles.callToActionWrapper}>
+                      <CustomText style={styles.callToActionEmoji}>☝🏼</CustomText>
+                      <CustomText style={styles.callToAction}>It's a little lonely here... {'\n'} add a collection!</CustomText>
+                    </View>
+                    :
+                    <View style={styles.collections}>
+                      {
+                        collections.map((item, index) => (
+                          <View style={[styles.container]} key={item.name}>
+                            <CollectionBubble navigation={navigation} name={item.name}  />
+                          </View>
+                        ))
+                      }
+                      
+                    </View>
+                  }
+                </MotiScrollView>
+              </NativeViewGestureHandler>
             }  
-          </View>
+          </View> 
       </View >
     )
   }
@@ -198,7 +212,7 @@ export default function Main({navigation}) {
 
       </View>
 
-      {/* <Animated.View style={[styles.summaryStatisticsWrapper, 
+      <Animated.View style={[styles.summaryStatisticsWrapper, 
         animStats
         ]}>
         <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
@@ -217,7 +231,7 @@ export default function Main({navigation}) {
           }
         </View>
         <GraphBubble graphIndex={graphIndex}/>
-      </Animated.View> */}
+      </Animated.View>
 
       <View style={styles.bottomSheet}>
         <BottomSheet
@@ -267,8 +281,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   bottomSheetHeader: {
-    marginLeft: 20,
-    marginRight: 20,
+    paddingHorizontal: 20,
   },
   bottomSheetTitle: {
     flexDirection: 'row',
@@ -290,8 +303,8 @@ const styles = StyleSheet.create({
       height: 7,
     },
     shadowOpacity: 0.43,
-    shadowRadius: 9.51,
-    elevation: 16,
+    shadowRadius: 5.51,
+    elevation: 2,
     backgroundColor: '#fff'
   },
   summaryStatisticsGroup: {
@@ -308,9 +321,6 @@ const styles = StyleSheet.create({
   },
   collections: {
     flex: 1,
-    flexDirection: 'row', 
-    flexWrap: 'wrap', 
-    justifyContent: 'center',
     marginHorizontal: 10,
     marginVertical: 10,
     paddingBottom: 50,
@@ -360,25 +370,17 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   reservedBubble: {
-    backgroundColor: '#f2f2f2',
     borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.29,
-    shadowRadius: 2.65,
-    elevation: 4,
+    borderWidth: 0.5,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
-    width: '100%',
   },
   reservedText: {
     fontSize: 17,
-    paddingHorizontal: 20,
-    paddingVertical: 5
+    paddingHorizontal: 10,
+    paddingVertical: 7
   },
   bottomSheet: {
     flex: 1,
@@ -401,7 +403,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    borderBottomWidth: 0.3,
     paddingBottom: 10
   }
 })

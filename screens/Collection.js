@@ -339,7 +339,7 @@ const styles = StyleSheet.create({
   headingContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   subHeadingContainer: {
     flexDirection: 'row',

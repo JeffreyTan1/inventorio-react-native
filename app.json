@@ -46,9 +46,6 @@
     "packagerOpts": {
       "config": "metro.config.js"
     },
-    "androidStatusBar": {
-      "translucent": true
-    },
     "plugins": [
       [
         "expo-image-picker",

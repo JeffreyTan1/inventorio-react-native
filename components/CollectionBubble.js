@@ -1,33 +1,77 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, StyleSheet } from 'react-native'
 import {TouchableHighlight} from 'react-native-gesture-handler'
 import CustomText from './CustomText'
+import { getCollectionInfo } from '../utils/DAO'
+import { abbreviate } from '../utils/utils'
 
 export default function CollectionBubble({navigation, name}) {
+  const [collectionData, setCollectionData] = useState(null);
+  useEffect(() => {
+    getCollectionInfo(name, setCollectionData)
+  }, []);
+  
   return (
+    collectionData &&
     <TouchableHighlight
     style={styles.pressableContainer}
     activeOpacity={0.9}
     underlayColor="#f2f2f2"
     onPress={()=>navigation.navigate('Collection', {collection: name})}>
       <View style={styles.container}>
-        <View style={styles.details}>
-          <CustomText style={styles.collectionText}>{name}</CustomText>
+        <CustomText style={styles.collectionText}>{name}</CustomText>
+        <View style={styles.infoBubbleGroup}>
+          <View style={styles.infoBubble}>
+            <CustomText style={styles.infoBubbleLabel}>Items</CustomText>
+            <CustomText style={styles.infoBubbleText}>{abbreviate(collectionData.items_count)}</CustomText>
+          </View>
+          <View style={styles.infoBubble}>
+            <CustomText style={styles.infoBubbleLabel}>Total</CustomText>
+            <CustomText style={styles.infoBubbleText}>{abbreviate(collectionData.items_total)}</CustomText>
+          </View>
+          <View style={styles.infoBubble}>
+            <CustomText style={styles.infoBubbleLabel}>Qty</CustomText>
+            <CustomText style={styles.infoBubbleText}>{abbreviate(collectionData.quantities_total)}</CustomText>
+          </View>
         </View>
+        
       </View>
     </TouchableHighlight>
+   
   )
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap'
+  },
+  infoBubbleGroup: {
+    flexDirection: 'row',
+    flexBasis: '50%',
+    justifyContent: 'space-between',
+ 
+  },
+  infoBubble: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: '6%'
+  },
+  infoBubbleLabel: {
+    fontSize: 11
+  },
+  infoBubbleText: {
+
   },
   pressableContainer: {
-    height: 155,
+    marginVertical: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 10,
     backgroundColor: '#fff',
-    borderRadius: 30,
-    margin: 10,
+    borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -37,13 +81,9 @@ const styles = StyleSheet.create({
     shadowRadius: 2.65,
     elevation: 4,
   },
-  details: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
   collectionText: {
     fontSize: 30,
     marginHorizontal: 10
-  }
+  },
+
 })

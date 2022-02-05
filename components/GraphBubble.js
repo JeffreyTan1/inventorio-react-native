@@ -129,13 +129,13 @@ export default function GraphBubble({graphIndex}) {
                 <IconButton 
                 style={styles.refreshButton}
                 activeOpacity={0.8} 
-                underlayColor="#c4c4c4"
+                underlayColor="#6e6e6e"
                 onPress={() => {
                   loadHistory()
                   if(!isRotating.value){
                     isRotating.value = true
                     refreshRotation.value = withTiming(refreshRotation.value + 360, {
-                    duration: 500,
+                    duration: 300,
                     },
                     () => {
                       isRotating.value = false
