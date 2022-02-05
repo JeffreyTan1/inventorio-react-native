@@ -50,7 +50,6 @@ export default function Item({route, navigation}) {
   const [priceErrorMsg, setPriceErrorMsg] = useState(null);
   const [quantityErrorMsg, setQuantityErrorMsg] = useState(null);
 
-
   // set photos after camera has taken it
   useEffect(() => {
     if(returnUri) {
@@ -67,7 +66,8 @@ export default function Item({route, navigation}) {
       getItemCollections(id, setCollectionsIn)
     }
     getAllCollections(setAllCollections)
-  }, [id, reload])
+  }, [id, reload])  
+
   // set edit data to begin at the database data
   useEffect(() => {
     if(itemData){
@@ -75,13 +75,13 @@ export default function Item({route, navigation}) {
     }
   }, [itemData]);
 
-  const setEditData = (item) => {
-    setName(item.name); setPhotos(item.photos); setPrice(item.price.toString()); 
-    setQuantity(item.quantity.toString());setTotal(item.total.toString()); setNotes(item.notes);
+  const setEditData = (data) => {
+    setName(data.name); setPhotos([...data.photos]); setPrice(data.price.toString()); 
+    setQuantity(data.quantity.toString());setTotal(data.total.toString()); setNotes(data.notes);
   }
   
    // handle camera vs image picker dialog
-   const handleImageChoice = (choice) => {
+  const handleImageChoice = (choice) => {
     if(choice === 'camera') {
       navigation.navigate('CameraModule')
     } else if (choice === 'image-picker') {
@@ -131,7 +131,6 @@ export default function Item({route, navigation}) {
 
   const getNewPhotosArray = async () => {
     const savedFiles = []
-
     if(!id){
       const copyingArray = photos
       for (const f of copyingArray) {
@@ -151,7 +150,6 @@ export default function Item({route, navigation}) {
       }
       return itemData.photos.filter(x => photos.includes(x)).concat(savedFiles)
     }
-
   }
 
    // creates item, otherwise updates it if already exists
@@ -170,6 +168,7 @@ export default function Item({route, navigation}) {
       }
     )
   }
+
   const handleRemovePhoto = (uri) => {
     const tempArray = [...photos]
     const index = tempArray.indexOf(uri)
