@@ -137,7 +137,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     flex: 1,
-    flexWrap: 'wrap',
+    maxHeight: 30,
+    overflow: 'hidden',
   },
   chip: {
     backgroundColor: '#ebebeb',
