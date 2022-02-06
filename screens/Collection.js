@@ -258,7 +258,7 @@ export default function Collection({route, navigation}) {
             </View>
           :
             <View style={styles.titleQuantityContainer}>
-              <CustomText style={globalStyles.headingText}>{collection}</CustomText>
+              <CustomText style={[globalStyles.headingText, styles.mr2]}>{collection}</CustomText>
               <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{items && items.length}</CustomText>
             </View>
           }
@@ -354,7 +354,6 @@ const styles = StyleSheet.create({
   },
   titleQuantityContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
     flex: 1,
   },
@@ -363,6 +362,9 @@ const styles = StyleSheet.create({
   },
   mr: {
     marginRight: 10,
+  },
+  mr2: {
+    marginRight: 20,
   },
   panel: {
     borderTopLeftRadius: 25,
