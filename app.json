@@ -31,7 +31,7 @@
         "backgroundColor": "#fcca47"
       },
       "softwareKeyboardLayoutMode": "pan",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
