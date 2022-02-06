@@ -20,7 +20,7 @@ export default function CollectionBubble({navigation, name}) {
     underlayColor="#f2f2f2"
     onPress={()=>navigation.navigate('Collection', {collection: name})}>
       <View style={styles.container}>
-        <CustomText style={styles.collectionText}>{name}</CustomText>
+        <CustomText style={styles.collectionText} numberOfLines={2}>{name}</CustomText>
         <View style={styles.infoBubbleGroup}>
           <View style={styles.infoBubble}>
             <CustomText style={styles.infoBubbleLabel}>Items</CustomText>
@@ -61,14 +61,14 @@ const styles = StyleSheet.create({
     marginHorizontal: '6%'
   },
   infoBubbleLabel: {
-    fontSize: 11
+    fontSize: 10
   },
   infoBubbleText: {
 
   },
   pressableContainer: {
     marginVertical: 7,
-    paddingVertical: 15,
+    paddingVertical: 13,
     paddingHorizontal: 10,
     backgroundColor: '#fff',
     borderRadius: 10,
@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   collectionText: {
-    fontSize: 30,
+    fontSize: 25,
     marginHorizontal: 10
   },
 

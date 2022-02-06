@@ -23,7 +23,7 @@ const globalStyles = StyleSheet.create({
     justifyContent: 'space-between',
     marginLeft: 20,
     marginRight: 20,
-    marginTop: 20,
+    marginTop: 30,
   },
 })
 

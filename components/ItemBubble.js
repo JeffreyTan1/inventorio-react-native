@@ -5,7 +5,7 @@ import globalStyles from '../styles/globalStyles'
 import CustomText from '../components/CustomText'
 import { getItemCollections } from '../utils/DAO'
 import CustomChip from './CustomChip'
-import { numberWithCommas } from '../utils/utils'
+import { abbreviate, numberWithCommas } from '../utils/utils'
 import { MotiView } from 'moti'
 
 export default function ItemBubble({navigation, id, name, photo, price, quantity, total, reload}) {
@@ -35,7 +35,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
           photo === undefined ?
           <Image
             style={styles.image}
-            source={require('./../assets/icon.png')}
+            source={require('./../assets/adaptive-icon.png')}
           />
           :
           <Image
@@ -47,25 +47,25 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
           style={styles.details}
         >
           <View style={styles.title}>
-            <CustomText style={styles.titleText}>
+            <CustomText style={styles.titleText} numberOfLines={2}>
               {name}
             </CustomText>
-            <CustomText style={[styles.titleText, globalStyles.halfOpacity]}>
-              {quantity}
-            </CustomText>
           </View>
-          <View style={styles.iconInfo}>
-            <Icon name="dollar-sign"/>
-            <CustomText style={styles.ml}>
-              {numberWithCommas(price)}
-            </CustomText>
+          <View style={styles.iconInfoContainer}>
+            <View style={styles.iconInfo}>
+              <CustomText>Qty</CustomText>
+              <CustomText style={styles.ml}>
+                {abbreviate(quantity)}
+              </CustomText>
+            </View>
+            <View style={styles.iconInfo}>
+              <CustomText>Total</CustomText>
+              <CustomText style={styles.ml}>
+                {abbreviate(total)}
+              </CustomText>
+            </View>
           </View>
-          <View style={styles.iconInfo}>
-            <Icon name="money-bill-alt"/>
-            <CustomText style={styles.ml}>
-              {numberWithCommas(total)}
-            </CustomText>
-          </View>
+          
           <View style={styles.chipGroup}>
             {
               collections.map((collection) => (
@@ -88,9 +88,8 @@ const styles = StyleSheet.create({
     flex: 1
   },
   pressableContainer: {
-    minHeight: 150,
     backgroundColor: '#fff',
-    borderRadius: 30,
+    borderRadius: 15,
     margin: 10,
     shadowColor: "#000",
     shadowOffset: {
@@ -99,13 +98,13 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.29,
     shadowRadius: 4.65,
-    elevation: 7,
+    elevation: 4,
   },
   image: {
     width: '50%',
     height: '100%',
-    borderTopLeftRadius: 30,
-    borderBottomLeftRadius: 30
+    borderTopLeftRadius: 15,
+    borderBottomLeftRadius: 15
   },
   details: {
     paddingTop: 10,
@@ -120,14 +119,16 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap'
   },
   titleText: {
-    fontSize: 25,
-    
+    flex: 1,
+    fontSize: 20,
+  },
+  iconInfoContainer: {
+    flexDirection: 'row',
   },
   iconInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%'
+    marginRight: 10,
   },
   ml: {
     marginLeft: 10,
@@ -136,7 +137,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-start',
     flex: 1,
-    marginTop: 15,
     flexWrap: 'wrap',
   },
   chip: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     marginTop: 5
   },
   chipText: {
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: 'Montserrat',
     padding: 3
   }

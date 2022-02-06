@@ -530,7 +530,7 @@ export default function Item({route, navigation}) {
                   }
                 })}
                 <IconButton 
-                  style={[styles.iconButton, styles.plus]} 
+                  style={[styles.plus]} 
                   iconName='add' 
                   size={25} 
                   onPress={()=>setCollectionsDialogVis(true)}
@@ -550,7 +550,7 @@ export default function Item({route, navigation}) {
 
       </ScrollView>
 
-      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)}>
+      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%'}}>
         <Dialog.Title>Labels</Dialog.Title>
         <ScrollView>
           {
@@ -592,7 +592,8 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     borderRadius: 100,
-    padding: 10
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   imageHeader: {
     width: '100%',
@@ -666,6 +667,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 2.65,
     elevation: 1,
+    borderRadius: 100,
   },
   noImagesWrapper: {
     height: 250,

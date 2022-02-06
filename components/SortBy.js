@@ -11,7 +11,7 @@ export default function SortBy({style, value, setValue, labels}) {
       <CustomText style={styles.sortByText}>Sort by</CustomText>
       <RNPickerSelect
         textInputProps={{multiline: false}}
-        pickerProps={{numberOfLines: 10}}
+        pickerProps={{numberOfLines: 20}}
         style={styles.pickerStyle}
         useNativeAndroidPickerStyle={false}
         onValueChange={setValue}
@@ -37,13 +37,13 @@ const styles = {
   pickerStyle: {
     inputIOS:
     {
-      fontSize: 19,
+      fontSize: 20,
       color: '#000',
       paddingTop: 0,
       fontFamily: 'Montserrat'
     },
     inputIOSContainer: {
-      paddingLeft: 15,
+      paddingLeft: 20,
       paddingRight: 25,
       borderRadius: 4,
       borderWidth: 0.5,
@@ -51,12 +51,12 @@ const styles = {
     },
 
     inputAndroid: {
-      fontSize: 19,
+      fontSize: 20,
       color: '#000',
       fontFamily: 'Montserrat'
     },
     inputAndroidContainer: {
-      paddingLeft: 15,
+      paddingLeft: 20,
       paddingRight: 25,
       borderRadius: 4,
       borderWidth: 0.5,

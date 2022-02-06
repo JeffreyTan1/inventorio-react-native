@@ -265,29 +265,31 @@ export default function Collection({route, navigation}) {
         </View>
         
         <View style={styles.subHeadingContainer}>
-          <CustomText style={[styles.subHeading, styles.mr]}>Total: ${numberWithCommas(itemsTotal)}</CustomText>
-          <CustomText style={styles.subHeading}>Qty: {quantitiesTotal}</CustomText>
+          <CustomText style={[styles.subHeading, styles.mr]}>Total Value: {numberWithCommas(itemsTotal)}</CustomText>
+          <CustomText style={styles.subHeading}>Total Qty: {quantitiesTotal}</CustomText>
         </View>
-        
-        
-      </View>
-
-      {/* Sort and add item */}
-      <View style={styles.options}>
-          <SortBy style={{marginLeft:30}} value={option} setValue={setOption} labels={sortingLabels}/>
-          {
-            (!editing && collection !== reservedCollection) &&
+        {/* Sort and add item */}
+        <View style={styles.options}>
+            <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
+        </View>
+        {
+          (!editing && collection !== reservedCollection) &&
+          <View style={styles.plusWrapper}>
             <IconButton
-              style={[styles.iconButton, styles.plus]}
-              activeOpacity={0.6}
-              underlayColor="#ffdd85"
-              onPress={()=>navigation.navigate('Item', {collection: collection})}
-              iconName="add"
-              size={43}
-            />
-          }
+            style={styles.plus}
+            activeOpacity={0.6}
+            underlayColor="#ffdd85"
+            onPress={()=>navigation.navigate('Item', {collection: collection})}
+            iconName="add"
+            size={40}
+          /></View>
+          
+        }
       </View>
 
+      
+
+      
       {/* Items */}
       <View style={styles.panel}>
         {
@@ -329,12 +331,13 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     borderRadius: 100,
-    padding: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   header: {
     marginLeft: 25,
     marginRight: 25,
-    marginTop: 5,
+    marginBottom: 10
   },
   headingContainer: {
     flexDirection: 'row',
@@ -342,10 +345,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subHeadingContainer: {
+    marginTop: 0,
+    marginBottom: 15,
     flexDirection: 'row',
   },
   subHeading: {
-    fontSize: 20,
+    fontSize: 15,
   },
   titleQuantityContainer: {
     flexDirection: 'row',
@@ -369,10 +374,14 @@ const styles = StyleSheet.create({
   options: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 60
   },
   scrollView: {
 
+  },
+  plusWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
   },
   plus: {
     alignItems: 'center',
@@ -385,9 +394,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.29,
     shadowRadius: 2.65,
     elevation: 4,
+    borderRadius: 30,
     padding: 5,
-    marginRight: 20,
-    marginBottom: 10
   },
   callToActionWrapper: {
     flex: 1,
