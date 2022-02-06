@@ -6,7 +6,7 @@ import Main from './screens/Main';
 import Collection from './screens/Collection';
 import {useFonts} from 'expo-font';
 import Settings from './screens/Settings';
-import { createTables, getAllCollections } from './utils/DAO';
+import { createTables } from './utils/DAO';
 import Item from './screens/Item';
 import CameraModule from './screens/CameraModule';
 import AppLoading from 'expo-app-loading';
@@ -20,10 +20,8 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [appIsReady, setAppIsReady] = useState(false)
-  const [initCollections, setInitCollections] = useState(null);
 
   const  _cacheResourcesAsync = async () => {
-    getAllCollections(setInitCollections)
     const resources = [require('./assets/plus-placeholder.png'), require('./assets/icon.png')];
     const cacheResources = resources.map(resource => {
       return Asset.fromModule(resource).downloadAsync();
@@ -44,7 +42,7 @@ export default function App() {
     'Montserrat-bold' : require('./assets/Montserrat-Bold.ttf'),
   });
 
-  if (!appIsReady || !loaded || !initCollections) {
+  if (!appIsReady || !loaded) {
     return (
       <AppLoading
         startAsync={_cacheResourcesAsync}
@@ -64,10 +62,7 @@ export default function App() {
             headerShown: false
           }}
           >
-            {/* Make app loading more snappy */}
-            <Stack.Screen name="Main">
-              {props => <Main {...props} initCollections={initCollections} />} 
-            </Stack.Screen>
+            <Stack.Screen name="Main" component={Main} />
             <Stack.Screen name="Collection" component={Collection} />
             <Stack.Screen name="Item" component={Item} />
             <Stack.Screen name="Settings" component={Settings} />
