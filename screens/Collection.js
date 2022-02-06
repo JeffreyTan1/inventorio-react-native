@@ -245,6 +245,7 @@ export default function Collection({route, navigation}) {
         
       </View>
 
+      
       {/* Name of collection */}
       <View style={styles.header}>
         <View style={styles.headingContainer}>
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',
     flex: 1,
-    overflow: 'hidden'
+    overflow: 'hidden',
   },
   options: {
     flexDirection: 'row',

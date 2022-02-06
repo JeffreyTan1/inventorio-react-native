@@ -85,12 +85,14 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    flex: 1
+    flex: 1,
   },
   pressableContainer: {
     backgroundColor: '#fff',
     borderRadius: 15,
-    margin: 10,
+    marginHorizontal: 10,
+    marginTop: 10,
+    marginBottom: 5,
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -107,10 +109,10 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 15
   },
   details: {
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
     paddingLeft: 10,
-    paddingRight:21,
+    paddingRight: 8,
     width: '50%'
   },
   title: {

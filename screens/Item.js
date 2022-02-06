@@ -513,7 +513,7 @@ export default function Item({route, navigation}) {
                   editing ? 
                   <TextInput multiline={true} style={styles.notesText} value={notes} onChangeText={(val) => setNotes(val)}/>
                   :
-                  <CustomText style={styles.notesText}>{itemData?.notes}</CustomText>
+                  <CustomText style={styles.notesText}>{itemData?.notes === '' ? 'No notes...' : itemData?.notes}</CustomText>
                 }
               </ScrollView>
             </View>
@@ -641,7 +641,6 @@ const styles = StyleSheet.create({
   notesPanel: {
     borderRadius: 16,
     backgroundColor: '#fff',
-    minHeight: '15%',
     marginLeft: 25,
     marginRight: 25
   },
