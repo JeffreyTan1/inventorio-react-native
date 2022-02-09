@@ -3,7 +3,7 @@ import React from 'react'
 import { StyleSheet, View } from 'react-native'
 import CustomText from './CustomText'
 
-export default function CustomChip({children, onPress, chipStyle, chipTextStyle}) {
+export default function CustomChip({children, onPress, chipStyle, chipTextStyle, numberOfLines}) {
   return (
     <MotiView 
     from={{ scale: 0 }}
@@ -14,7 +14,7 @@ export default function CustomChip({children, onPress, chipStyle, chipTextStyle}
       duration: 200
     }}
     >
-      <View style={chipStyle} textStyle={styles.chipText}><CustomText style={chipTextStyle}>{children}</CustomText></View>
+      <View style={chipStyle} textStyle={styles.chipText}><CustomText style={chipTextStyle} numberOfLines={numberOfLines}>{children}</CustomText></View>
     </MotiView>
   )
 }

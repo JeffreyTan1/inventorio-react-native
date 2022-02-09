@@ -69,7 +69,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
           <View style={styles.chipGroup}>
             {
               collections.map((collection) => (
-                <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
+                <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name} numberOfLines={1}>{collection.collection_name}</CustomChip>
               )
               )
             }
