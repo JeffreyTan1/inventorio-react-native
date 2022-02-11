@@ -115,12 +115,12 @@ export const getFromItems = async (collection, callback) => {
   let sql = 'SELECT * FROM items';
   if(collection) {
     sql = `SELECT * FROM items WHERE id IN (
-      SELECT item_id FROM items_collections WHERE collection_name = '${collection}')
+      SELECT item_id FROM items_collections WHERE collection_name = ?)
     `
   }
 
   db.transaction(tx => {
-    tx.executeSql(sql, null, 
+    tx.executeSql(sql, [collection], 
     (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array))),
     (txObj, error) => console.log('Error ', error)
     ) 
@@ -384,16 +384,24 @@ export const getItemsTotalSum = async (callback) => {
 
 
 // History related
-export const getHistory = (callback) => {
+export const getHistory = async (callback) => {
   // SELECT * FROM history ORDER BY time DESC LIMIT 15 if required
   db.transaction(tx => {
-    tx.executeSql('SELECT * FROM history LIMIT 50', null, 
+    tx.executeSql('SELECT * FROM history ORDER BY time DESC LIMIT 30', null, 
       (txObj, { rows: { _array } }) => {
-        callback(_array)
+        const data = pickn(_array, 25)
+        callback(data.reverse())
       },
       (txObj, error) => console.log('Error ', error)
       ) 
   });
+}
+
+const pickn = (a, n) => {
+  var p = Math.floor(a.length / n)
+  return a.slice(0, p * n).filter(function(_, i) { 
+      return 0 == i % p
+  })
 }
 
 export const recordhistory = async (callback) => {

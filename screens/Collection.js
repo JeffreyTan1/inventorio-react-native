@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import { View, ScrollView, StyleSheet, TextInput, Alert } from 'react-native'
+import { View, ScrollView, StyleSheet, TextInput, Alert, FlatList } from 'react-native'
 import globalStyles from '../styles/globalStyles'
 import SortBy from '../components/SortBy'
 import ItemBubble from '../components/ItemBubble'
@@ -51,47 +51,49 @@ export default function Collection({route, navigation}) {
   // sorting
   const [option, setOption] = useState('Date Created')
 
+  const sortItems = () => {
+    let tempItems = items
+    switch (option) {
+      case 'A-Z':
+        setItems(tempItems.sort(compareAlpha))
+        break;
+      case 'Z-A':
+        setItems(tempItems.sort(compareAlpha).reverse())
+        break;
+      case 'Total Highest':
+        setItems(tempItems.sort(compareTV))
+        break;
+      case 'Total Lowest':
+        setItems(tempItems.sort(compareTV).reverse())
+        break;
+      case 'Last Modified':
+        setItems(tempItems.sort(compareMod))
+        break;
+      case 'Price Highest':
+        setItems(tempItems.sort(comparePrice))
+        break;
+      case 'Price Lowest':
+        setItems(tempItems.sort(comparePrice).reverse())
+        break;
+      case 'Qty Highest':
+        setItems(tempItems.sort(compareQty))
+        break;
+      case 'Qty Lowest':
+        setItems(tempItems.sort(compareQty).reverse())
+        break;
+      case 'Date Created':
+        setItems(tempItems.sort(compareCreated))
+        break;
+      default:
+        break;
+    }
+  }
+
   useEffect(() => {
     if(items) {
-      let tempItems = items
-      switch (option) {
-        case 'A-Z':
-          setItems(tempItems.sort(compareAlpha))
-          break;
-        case 'Z-A':
-          setItems(tempItems.sort(compareAlpha).reverse())
-          break;
-        case 'Total Highest':
-          setItems(tempItems.sort(compareTV))
-          break;
-        case 'Total Lowest':
-          setItems(tempItems.sort(compareTV).reverse())
-          break;
-        case 'Last Modified':
-          setItems(tempItems.sort(compareMod))
-          break;
-        case 'Price Highest':
-          setItems(tempItems.sort(comparePrice))
-          break;
-        case 'Price Lowest':
-          setItems(tempItems.sort(comparePrice).reverse())
-          break;
-        case 'Qty Highest':
-          setItems(tempItems.sort(compareQty))
-          break;
-        case 'Qty Lowest':
-          setItems(tempItems.sort(compareQty).reverse())
-          break;
-        case 'Date Created':
-          setItems(tempItems.sort(compareCreated))
-          break;
-        default:
-          break;
-      }
+      sortItems()
     }
   }, [option])
-
-  
 
   useEffect(() => {
     if(isFocused && collection) {
@@ -118,7 +120,6 @@ export default function Collection({route, navigation}) {
       setItemsTotal(tempItemsTotal)
       setQuantitiesTotal(tempQuantitiesTotal)
     }
-    
   }, [items])
 
   const handleDelete = () => {
@@ -298,17 +299,29 @@ export default function Collection({route, navigation}) {
           <View style={styles.container}>
             {
             items.length > 0 ?
-            <ScrollView style={styles.scrollView}>
-              {
-                items.map((item) => (
-                  <ItemBubble navigation={navigation} key={item.id} 
-                  id={item.id} name={item.name} photo={item.photos[0]} 
-                  price={item.price} quantity={item.quantity} 
-                  total={item.total} reload={reload}
-                  />
-                ))
-              }
-            </ScrollView>
+            // <ScrollView style={styles.scrollView}>
+            //   {
+            //     items.map((item) => (
+            //       <ItemBubble navigation={navigation} key={item.id} 
+            //       id={item.id} name={item.name} photo={item.photos[0]} 
+            //       price={item.price} quantity={item.quantity} 
+            //       total={item.total} reload={reload}
+            //       />
+            //     ))
+            //   }
+            // </ScrollView>
+            <FlatList
+            style={styles.scrollView}
+            data={items}
+            renderItem={({item}) => (
+              <ItemBubble navigation={navigation} key={item.id} 
+                id={item.id} name={item.name} photo={item.photos[0]} 
+                price={item.price} quantity={item.quantity} 
+                total={item.total} reload={reload}
+              />
+            )}
+            keyExtractor={item => item.id}
+            />
             :
             (!editing && collection !== reservedCollection) ?
             <View style={styles.callToActionWrapper}> 

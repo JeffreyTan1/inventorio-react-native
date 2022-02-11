@@ -155,7 +155,8 @@ export default function Main({navigation}) {
             </View>
           </View>
           
-          { startRender && <View
+          { startRender && 
+          <View
             style={styles.container}
           >
             {
@@ -192,7 +193,8 @@ export default function Main({navigation}) {
                 </MotiScrollView>
               </NativeViewGestureHandler>
             }  
-          </View> }
+          </View> 
+          }
       </View >
     )
   }

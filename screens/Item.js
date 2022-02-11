@@ -324,7 +324,11 @@ export default function Item({route, navigation}) {
             style={styles.iconButton}
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
-            onPress={()=>handleSave()}
+            onPress={()=>{
+              if(JSON.stringify(collectionsEdit) !== JSON.stringify({})) {
+                handleSave()
+              }
+            }}
             iconName="save"
             size={35}
             />
@@ -368,7 +372,7 @@ export default function Item({route, navigation}) {
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
             onPress={()=>{
-              if(validateInputs()) {
+              if(validateInputs() && JSON.stringify(collectionsEdit) !== JSON.stringify({})) {
                 handleSave()
               }
               else {
@@ -550,7 +554,7 @@ export default function Item({route, navigation}) {
 
       </ScrollView>
 
-      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%'}}>
+      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%'}}>
         <Dialog.Title>Labels</Dialog.Title>
         <ScrollView>
           {
@@ -571,8 +575,6 @@ export default function Item({route, navigation}) {
             })
           }
         </ScrollView>
-
-        
         <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
       </Dialog.Container>
 
