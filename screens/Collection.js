@@ -96,11 +96,10 @@ export default function Collection({route, navigation}) {
   }, [option])
 
   useEffect(() => {
-    const returnType = route.params?.action
-    const returnDeletedId = route.params?.deletedId
-    const returnItemData = route.params?.itemData
-
     if(isFocused && collection) {
+      const returnType = route.params?.action
+      const returnDeletedId = route.params?.deletedId
+      const returnItemData = route.params?.itemData
       if(returnType === 'delete') {
         const tempItems = [...items]
         const result = tempItems.filter(item => item.id !== returnDeletedId)
