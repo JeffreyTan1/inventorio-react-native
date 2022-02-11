@@ -59,7 +59,7 @@ export default function Main({navigation}) {
 
   useEffect(() => {
     if(collections) {
-      let tempCollections = collections
+      let tempCollections = [...collections]
       switch (option) {
         case 'A-Z':
           setCollections(tempCollections.sort(compareAlpha).reverse())

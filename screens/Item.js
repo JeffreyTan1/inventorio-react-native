@@ -24,6 +24,7 @@ export default function Item({route, navigation}) {
   const [id, setId] = useState(route.params?.id)
   const collection = route.params?.collection
   const returnUri = route.params?.uri
+  const [newItem] = useState(!route.params?.id)
 
   // used to reload after an update
   const [reload, setReload] = useState(0)
@@ -53,7 +54,7 @@ export default function Item({route, navigation}) {
   // set photos after camera has taken it
   useEffect(() => {
     if(returnUri) {
-      const tempPhotos = photos
+      const tempPhotos = [...photos]
       tempPhotos.push(returnUri)
       setPhotos(JSON.parse(JSON.stringify(tempPhotos)));  // cannot explain why
     }
@@ -103,7 +104,7 @@ export default function Item({route, navigation}) {
     });
 
     if (!result.cancelled) {
-      const tempPhotos = photos
+      const tempPhotos = [...photos]
       tempPhotos.push(result.uri)
       setPhotos(JSON.parse(JSON.stringify(tempPhotos)));  // cannot explain why
     }
@@ -132,7 +133,7 @@ export default function Item({route, navigation}) {
   const getNewPhotosArray = async () => {
     const savedFiles = []
     if(!id){
-      const copyingArray = photos
+      const copyingArray = [...photos]
       for (const f of copyingArray) {
         const fileName = await copyPhoto(f)
         savedFiles.push(fileName)
@@ -212,7 +213,7 @@ export default function Item({route, navigation}) {
   // handle delete dialog
   const handleDelete = () => {
     deleteItem(id)
-    navigation.goBack()
+    navigation.navigate('Collection', {action: 'delete', deletedId: id})
   }
 
   // returns list of collections to associate and to dissociate from/to item
@@ -303,6 +304,12 @@ export default function Item({route, navigation}) {
       ]
     );
   }
+
+  const handleGoBack = () => {
+    if(itemData){
+      navigation.navigate('Collection', {action: newItem ? 'create' : 'update', itemData: itemData})
+    }
+  }
   
 
   return (
@@ -313,7 +320,7 @@ export default function Item({route, navigation}) {
           style={styles.iconButton}
           activeOpacity={0.6}
           underlayColor="#DDDDDD"
-          onPress={()=>navigation.goBack()}
+          onPress={()=>handleGoBack()}
           iconName="arrow-back-ios"
           size={35}
         />

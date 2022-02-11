@@ -165,6 +165,9 @@ export default function Settings({navigation}) {
             />
           </View> 
         </View>
+        <View style={styles.field}>
+            <CustomText style={styles.versionText}>V 1.0.0</CustomText>
+        </View> 
       </ScrollView>
 
     </View>
@@ -218,6 +221,10 @@ const styles = StyleSheet.create({
   },
   fieldName: {
     fontSize: 25,
+  },
+  versionText: {
+    fontSize: 25,
+    fontWeight: 'bold',
   },
   button: {
     borderWidth: 0.5,

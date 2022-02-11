@@ -52,34 +52,34 @@ export default function Collection({route, navigation}) {
   const [option, setOption] = useState('Date Created')
 
   const sortItems = () => {
-    let tempItems = items
+    let tempItems = [...items]
     switch (option) {
       case 'A-Z':
-        setItems(tempItems.sort(compareAlpha))
-        break;
-      case 'Z-A':
         setItems(tempItems.sort(compareAlpha).reverse())
         break;
+      case 'Z-A':
+        setItems(tempItems.sort(compareAlpha))
+        break;
       case 'Total Highest':
-        setItems(tempItems.sort(compareTV))
+        setItems(tempItems.sort(compareTV).reverse())
         break;
       case 'Total Lowest':
-        setItems(tempItems.sort(compareTV).reverse())
+        setItems(tempItems.sort(compareTV))
         break;
       case 'Last Modified':
         setItems(tempItems.sort(compareMod))
         break;
       case 'Price Highest':
-        setItems(tempItems.sort(comparePrice))
-        break;
-      case 'Price Lowest':
         setItems(tempItems.sort(comparePrice).reverse())
         break;
+      case 'Price Lowest':
+        setItems(tempItems.sort(comparePrice))
+        break;
       case 'Qty Highest':
-        setItems(tempItems.sort(compareQty))
+        setItems(tempItems.sort(compareQty).reverse())
         break;
       case 'Qty Lowest':
-        setItems(tempItems.sort(compareQty).reverse())
+        setItems(tempItems.sort(compareQty))
         break;
       case 'Date Created':
         setItems(tempItems.sort(compareCreated))
@@ -96,14 +96,33 @@ export default function Collection({route, navigation}) {
   }, [option])
 
   useEffect(() => {
+    const returnType = route.params?.action
+    const returnDeletedId = route.params?.deletedId
+    const returnItemData = route.params?.itemData
+
     if(isFocused && collection) {
-      if(collection === reservedCollection) {
-        getItemsWithoutCollection(setItems)
+      if(returnType === 'delete') {
+        const tempItems = [...items]
+        const result = tempItems.filter(item => item.id !== returnDeletedId)
+        setItems(result)
+      } else if (returnType === 'update') {
+        const tempItems = [...items]
+        const updatedItem = [returnItemData]
+        const result = tempItems.map(obj => updatedItem.find(o => o.id === obj.id) || obj);
+        setItems(result)
+      } else if (returnType === 'create') {
+        const tempItems = [...items]
+        tempItems.push(returnItemData)
+        setItems(tempItems)
       }
       else {
-        getFromItems(collection, setItems)
+        if(collection === reservedCollection) {
+          getItemsWithoutCollection(setItems)
+        }
+        else {
+          getFromItems(collection, setItems)
+        }
       }
-      setReload((val) => val + 1)
     }
   }, [isFocused])
 
