@@ -357,9 +357,9 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   header: {
-    marginLeft: 25,
-    marginRight: 25,
-    marginBottom: 10
+    marginLeft: '5.5%',
+    marginRight: '5.5%',
+    marginBottom: '2.5%',
   },
   headingContainer: {
     flexDirection: 'row',
@@ -368,7 +368,7 @@ const styles = StyleSheet.create({
   },
   subHeadingContainer: {
     marginTop: 0,
-    marginBottom: 15,
+    marginBottom: '3%',
     flexDirection: 'row',
   },
   subHeading: {
@@ -380,13 +380,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   ml: {
-    marginLeft: 10,
+    marginLeft: '2.5%',
   },
   mr: {
-    marginRight: 10,
+    marginRight: '2.5%',
   },
   mr2: {
-    marginRight: 20,
+    marginRight: '5%',
   },
   panel: {
     borderTopLeftRadius: 25,
@@ -428,8 +428,8 @@ const styles = StyleSheet.create({
   },
   callToAction : {
     fontSize: 20,
-    marginRight: 5, 
-    marginLeft:5,
+    marginRight: '1.5%', 
+    marginLeft: '1.5%',
     textAlign: "center"
 
   },
@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#cf2c06',
     fontSize: 18,
-    marginVertical: 5,
+    marginVertical: '1.5%',
   }
   
 })

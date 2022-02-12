@@ -1,18 +1,14 @@
-import React, {useState, useEffect, useMemo} from 'react'
-import { View, ScrollView, StyleSheet, TextInput, Alert } from 'react-native'
+import React, {useState, useEffect} from 'react'
+import { View, ScrollView, StyleSheet, TextInput } from 'react-native'
 import globalStyles from '../styles/globalStyles'
 import SortBy from '../components/SortBy'
 import ItemBubble from '../components/ItemBubble'
 import CustomText from '../components/CustomText'
 import IconButton from '../components/IconButton'
-import { getFromItems, updateCollection, createCollection, getItemsWithoutCollection, collectionDBSuccess, searchItems } from '../utils/DAO'
+import { searchItems } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
 import { numberWithCommas } from '../utils/utils'
-
-const reservedCollection = 'Items Without Collections'
-const reservedCollectionError = 'Cannot use this reserved name!'
-const emptyCollectionError = 'Cannot be empty!'
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -48,43 +44,47 @@ export default function Search({route, navigation}) {
   // sorting
   const [option, setOption] = useState('Date Created');
 
+  const sortItems = (array) => {
+    let tempItems = [...array]
+    switch (option) {
+      case 'A-Z':
+        setItems(tempItems.sort(compareAlpha).reverse())
+        break;
+      case 'Z-A':
+        setItems(tempItems.sort(compareAlpha))
+        break;
+      case 'Total Highest':
+        setItems(tempItems.sort(compareTV).reverse())
+        break;
+      case 'Total Lowest':
+        setItems(tempItems.sort(compareTV))
+        break;
+      case 'Last Modified':
+        setItems(tempItems.sort(compareMod))
+        break;
+      case 'Price Highest':
+        setItems(tempItems.sort(comparePrice).reverse())
+        break;
+      case 'Price Lowest':
+        setItems(tempItems.sort(comparePrice))
+        break;
+      case 'Qty Highest':
+        setItems(tempItems.sort(compareQty).reverse())
+        break;
+      case 'Qty Lowest':
+        setItems(tempItems.sort(compareQty))
+        break;
+      case 'Date Created':
+        setItems(tempItems.sort(compareCreated))
+        break;
+      default:
+        break;
+    }
+  }
+
   useEffect(() => {
     if(items) {
-      let tempItems = items
-      switch (option) {
-        case 'A-Z':
-          setItems(tempItems.sort(compareAlpha))
-          break;
-        case 'Z-A':
-          setItems(tempItems.sort(compareAlpha).reverse())
-          break;
-        case 'Total Highest':
-          setItems(tempItems.sort(compareTV))
-          break;
-        case 'Total Lowest':
-          setItems(tempItems.sort(compareTV).reverse())
-          break;
-        case 'Last Modified':
-          setItems(tempItems.sort(compareMod))
-          break;
-        case 'Price Highest':
-          setItems(tempItems.sort(comparePrice))
-          break;
-        case 'Price Lowest':
-          setItems(tempItems.sort(comparePrice).reverse())
-          break;
-        case 'Qty Highest':
-          setItems(tempItems.sort(compareQty))
-          break;
-        case 'Qty Lowest':
-          setItems(tempItems.sort(compareQty).reverse())
-          break;
-        case 'Date Created':
-          setItems(tempItems.sort(compareCreated))
-          break;
-        default:
-          break;
-      }
+      sortItems(items)
     }
   }, [option])
 
@@ -97,6 +97,7 @@ export default function Search({route, navigation}) {
 
   useEffect(() => {
     runSearch()
+    setOption('Date Created')
   }, [query]);
   
   const runSearch = () => {
@@ -145,9 +146,11 @@ export default function Search({route, navigation}) {
         </View>
         <CustomText style={styles.subHeadingText}>Search Results: {items?.length}</CustomText>
         <View style={styles.subHeadingContainer}>
-          <CustomText style={[styles.mr]}>Total: ${numberWithCommas(itemsTotal)}</CustomText>
-          <CustomText>Qty: {quantitiesTotal}</CustomText>
+          <CustomText style={[styles.mr, styles.infoText]}>Total: ${numberWithCommas(itemsTotal)}</CustomText>
+          <CustomText style={styles.infoText}>Qty: {quantitiesTotal}</CustomText>
         </View>
+        <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
+        
       </View>
 
       
@@ -199,8 +202,8 @@ const styles = StyleSheet.create({
   },
   searchBarContainer: {
     marginHorizontal: 20,
-    marginTop: 30,
-    marginBottom: 30,
+    marginTop: 20,
+    marginBottom: 6,
   },
   searchText: {
     fontSize: 30,
@@ -209,24 +212,29 @@ const styles = StyleSheet.create({
   searchIcon: {
     position: 'absolute',
     fontSize: 30,
-    right: 15,
-    top: 12.5,
+    right: '4%',
+    top: '30%',
     color: '#c4c4c4'
   },
   panel: {
     flex: 1,
     backgroundColor: '#fcca47',
     borderTopLeftRadius: 25,
-    borderTopRightRadius: 25
+    borderTopRightRadius: 25,
+    overflow: 'hidden'
   },
   subHeadingText: {
-    fontSize: 20
+    fontSize: 16.5
+  },
+  infoText: {
+    fontSize: 15,
   },
   mr:{
-    marginRight: 10
+    marginRight: '2.5%'
   },
   subHeadingContainer: {
     flexDirection: 'row',
+    marginTop: '1%'
   },
 })
 

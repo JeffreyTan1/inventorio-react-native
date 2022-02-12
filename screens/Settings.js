@@ -1,5 +1,5 @@
 import React,{useState} from 'react'
-import { View, StyleSheet, ScrollView, Alert, BackHandler } from 'react-native'
+import { View, StyleSheet, ScrollView, Alert, BackHandler, Linking } from 'react-native'
 import CustomText from '../components/CustomText';
 import globalStyles from '../styles/globalStyles';
 import { clearHistory, createTables, dropTables, recordhistory } from './../utils/DAO';
@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system';
 import IconButton from '../components/IconButton';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 export default function Settings({navigation}) {
 
@@ -95,6 +96,10 @@ export default function Settings({navigation}) {
     );
   }
 
+  const openWebsite = () => {
+    Linking.openURL('https://jeffreytan.dev')
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.navBar}>
@@ -166,6 +171,15 @@ export default function Settings({navigation}) {
           </View> 
         </View>
         <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Contact</CustomText>
+            <TouchableOpacity
+              onPress={() => openWebsite()}
+            >
+              <CustomText style={styles.contactText}>jeffreytan.dev</CustomText>
+            </TouchableOpacity>
+        </View> 
+
+        <View style={styles.field}>
             <CustomText style={styles.versionText}>V 1.0.0</CustomText>
         </View> 
       </ScrollView>
@@ -181,43 +195,39 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     borderRadius: 100,
-    padding: 10
   },
   navBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginLeft: 20,
-    marginRight: 20,
-    marginTop: 20,
+    marginLeft: '5%',
+    marginRight: '5%',
+    marginTop: '5%',
   },
   header: {
     marginLeft: 25,
     marginRight: 25,
-    marginTop: 5,
+    marginTop: '1%',
     height: '9%'
   },
   headingContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  ml: {
-    marginLeft: 10,
-  },
   content: {
-    marginTop: 15
+    marginTop: '4%'
   },
   panel: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',
     flex: 1,
-    padding: 20,
+    padding: '5%',
   },
   field: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 50,
+    marginBottom: '13%',
   },
   fieldName: {
     fontSize: 25,
@@ -231,9 +241,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
-    paddingHorizontal: 40,
+    paddingHorizontal: '11%',
     paddingVertical: 5,
     backgroundColor: '#fff'
   },
-
+  contactText: {
+    fontSize: 20,
+    color: '#189ef2',
+  },
 })

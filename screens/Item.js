@@ -18,6 +18,7 @@ import * as FileSystem from 'expo-file-system';
 const placeholderUri = Image.resolveAssetSource(placeholder).uri
 const priceError = 'Must only contain numbers, an optional decimal point, and two numbers after the decimal point.'
 const quantityError = 'Must only contain numbers.'
+const { width, height } = Dimensions.get('window');
 
 export default function Item({route, navigation}) {
   // data from navigation
@@ -306,10 +307,17 @@ export default function Item({route, navigation}) {
   }
 
   const handleGoBack = () => {
-    if(itemData) {
+    const routes = navigation.getState()?.routes;
+    const prevRoute = routes[routes.length - 2];
+    if (prevRoute.name === 'Search') {
+      navigation.goBack()
+    } 
+    else {
+      if(itemData) {
       navigation.navigate('Collection', {action: newItem ? 'create' : 'update', itemData: itemData})
-    } else if(newItem && editing) {
-      navigation.navigate('Collection', {action: 'cancelCreate'})
+      } else if(newItem && editing) {
+        navigation.navigate('Collection', {action: 'cancelCreate'})
+      }
     }
   }
   
@@ -412,8 +420,8 @@ export default function Item({route, navigation}) {
           {
             editing ?
             <Carousel
-            style={{height: 280}}
-            width={450}
+            style={{height: height * 0.38}}
+            width={width * 1.159}
             data={
               photos &&
               photos.map((photo, index) => ({img: photo, index: index})).concat({img: placeholderUri, index: null})
@@ -462,8 +470,8 @@ export default function Item({route, navigation}) {
             itemData?.photos?.length > 0 ?
             <Carousel
             autoPlay={false}
-            style={{height: 280}}
-            width={450}
+            style={{height: height * 0.38}}
+            width={width * 1.159}
             data={
               itemData &&
               itemData.photos?.map((photo, index) => ({img: photo, index: index}))
@@ -614,16 +622,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   imagePressableContainer: {
-    marginLeft: 50,
-    marginRight: 50,
-    marginTop: 10,
+    marginLeft: '10%',
+    marginRight: '10%',
+    marginVertical: '2.5%',
+    borderRadius: 30,
   },
   bubble: {
     borderRadius: 30,
   },
   image: {
     width: '100%',
-    height: 250,
+    height: '100%',
     borderRadius: 30,
   },
   panel: {
@@ -642,12 +651,11 @@ const styles = StyleSheet.create({
     elevation: 7,
   },
   textContainer: {
-    marginLeft: 25,
-    marginRight: 25,
+    marginHorizontal: '5.8%',
   },
   subHeading: {
-    marginTop: 10,
-    marginLeft: 25,
+    marginTop: '2.8%',
+    marginLeft: '6.5%',
   },
   subHeadingText: {
     fontSize: 25
@@ -655,17 +663,16 @@ const styles = StyleSheet.create({
   notesPanel: {
     borderRadius: 16,
     backgroundColor: '#fff',
-    marginLeft: 25,
-    marginRight: 25
+    marginHorizontal: '6.5%',
   },
   notesText: {
-    margin: 10,
+    margin: '3%',
     fontSize: 20,
     fontFamily: 'Montserrat'
   },
   plus: {
-    marginTop: 9,
-    padding: 5,
+    marginTop: '25%',
+    padding: '2.5%',
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
@@ -683,8 +690,8 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
   noImagesWrapper: {
-    height: 250,
-    width: 450,
+    height: height * 0.38,
+    width: width * 1.159,
     justifyContent:'center',
     alignItems: 'center'
   },
@@ -726,18 +733,17 @@ const styles = StyleSheet.create({
   },
   itemInfoBubbleGroup: {
     flexDirection: 'row',
-    marginLeft: 20,
-    marginRight: 20, 
-
+    marginLeft: '5%',
+    marginRight: '5%', 
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
   },
   labelsGroup: {
     flexDirection: 'row',
-    marginLeft: 20, 
-    marginRight: 20, 
-    marginBottom: 60, 
+    marginLeft: '5%', 
+    marginRight: '5%', 
+    marginBottom: '15%', 
     flexWrap: 'wrap'
   }
 

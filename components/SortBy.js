@@ -31,19 +31,19 @@ const styles = {
   },
   sortByText: {
     marginRight: 19,
-    fontSize: 20
+    fontSize: 15
   },
 
   pickerStyle: {
     inputIOS:
     {
-      fontSize: 20,
+      fontSize: 15,
       color: '#000',
       paddingTop: 0,
       fontFamily: 'Montserrat'
     },
     inputIOSContainer: {
-      paddingLeft: 20,
+      paddingLeft: 15,
       paddingRight: 25,
       borderRadius: 4,
       borderWidth: 0.5,
@@ -51,12 +51,12 @@ const styles = {
     },
 
     inputAndroid: {
-      fontSize: 20,
+      fontSize: 15,
       color: '#000',
       fontFamily: 'Montserrat'
     },
     inputAndroidContainer: {
-      paddingLeft: 20,
+      paddingLeft: 15,
       paddingRight: 25,
       borderRadius: 4,
       borderWidth: 0.5,

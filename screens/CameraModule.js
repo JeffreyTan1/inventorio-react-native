@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react'
 import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import { Camera } from 'expo-camera';
 import IconButton from '../components/IconButton';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function CameraModule({navigation}) {
@@ -32,7 +33,7 @@ export default function CameraModule({navigation}) {
     return <Text>No access to camera</Text>;
   }
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.positionIndicator}/>
       <View style={styles.cameraContainer}>
         <Camera 
@@ -86,16 +87,19 @@ export default function CameraModule({navigation}) {
         /> 
       </View>
       
-      <IconButton
-        style={[styles.iconButton, styles.back]}
-        activeOpacity={0.6}
-        underlayColor="#DDDDDD"
-        onPress={()=>navigation.goBack()}
-        iconName="arrow-back-ios"
-        size={35}
-        color="#fff"
-      /> 
-    </View>
+      <View style={styles.backWrapper}>
+        <IconButton
+          style={[styles.iconButton]}
+          activeOpacity={0.6}
+          underlayColor="#000"
+          onPress={()=>navigation.goBack()}
+          iconName="arrow-back-ios"
+          size={35}
+          color="#fff"
+        />  
+      </View>
+      
+    </SafeAreaView>
   )
 }
 
@@ -129,9 +133,10 @@ const styles = StyleSheet.create({
     width: deviceWidth,
     height: 1.33 * deviceWidth
   },
-  back: {
+  backWrapper: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    top: '5%',
+    left: '5%',
   },
+
 })

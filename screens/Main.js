@@ -269,7 +269,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
   iconButton: {
     borderRadius: 100,
     padding: 5,
@@ -293,12 +292,12 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   bottomSheetHeader: {
-    paddingHorizontal: 20,
+    paddingHorizontal: '5%',
   },
   bottomSheetTitle: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
+    marginBottom: '2.5%',
   },
   summaryStatisticsWrapper: {
     position: 'absolute',
@@ -308,7 +307,7 @@ const styles = StyleSheet.create({
     height: height * 0.83,
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    paddingTop: 10,
+    paddingTop: '2.5%',
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -324,18 +323,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingBottom: 20,
+    paddingBottom: '5%',
     height: '29%'
   },
   summaryStatisticItem: {
     flexBasis: '43%',
-    margin: 10,
+    margin: '2.5%',
   },
   collections: {
     flex: 1,
-    marginHorizontal: 10,
-    marginVertical: 10,
-    paddingBottom: 50,
+    marginHorizontal: '2.5%',
+    marginVertical: '2.5%',
   },
   callToActionWrapper: {
     flex: 1,
@@ -344,8 +342,8 @@ const styles = StyleSheet.create({
   },
   callToAction : {
     fontSize: 20,
-    marginRight: 5, 
-    marginLeft:5,
+    marginRight: '2.5%', 
+    marginLeft: '2.5%',
     textAlign: "center"
   },
   callToActionEmoji : {
@@ -359,10 +357,6 @@ const styles = StyleSheet.create({
   },
   mr: {
     marginRight: 10
-  },
-  graphs: {
-    alignItems: 'center',
-    marginTop: 60
   },
   totalValueLabel: {
     fontSize: 25,
@@ -384,7 +378,7 @@ const styles = StyleSheet.create({
   reservedBubble: {
     borderRadius: 10,
     borderWidth: 0.5,
-    marginRight: 4,
+    marginRight: '2%',
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -392,8 +386,8 @@ const styles = StyleSheet.create({
   },
   reservedText: {
     fontSize: 17,
-    paddingHorizontal: 10,
-    paddingVertical: 7
+    paddingHorizontal: '2.5%',
+    paddingVertical: '2%'
   },
   bottomSheet: {
     flex: 1,
@@ -405,7 +399,7 @@ const styles = StyleSheet.create({
     marginTop: '9%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 20,
+    marginHorizontal: '5%',
   },
   headerText: {
     fontSize: 40
@@ -417,7 +411,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 10
+    paddingBottom: '2.5%'
   }
 })
 
