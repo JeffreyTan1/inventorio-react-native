@@ -391,7 +391,11 @@ export const getHistory = async (allTime, callback) => {
   db.transaction(tx => {
     tx.executeSql(sql, null, 
       (txObj, { rows: { _array } }) => {
-        const data = pickn(_array, 25)
+        let data = _array
+        if(data.length >= 27) {
+          data = pickn(_array, 25)
+        }
+        
         callback(data.reverse())
       },
       (txObj, error) => console.log('Error ', error)

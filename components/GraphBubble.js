@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     position: 'absolute',
-    bottom: 0,
+    top: '-15%',
     right: 0
   },
   dataOption: {
