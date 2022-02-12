@@ -627,6 +627,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   panel: {
+    paddingBottom: '30%',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',
