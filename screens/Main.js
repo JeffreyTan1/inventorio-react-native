@@ -15,6 +15,7 @@ import {abbreviate} from './../utils/utils'
 import Logo from './../assets/INVENTORIO.svg';
 import SortBy from "../components/SortBy";
 import { MotiScrollView, MotiView, AnimatePresence } from "moti";
+import { useSelector } from "react-redux";
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -32,6 +33,7 @@ export default function Main({navigation}) {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '96.5%'], []);
   const [collections, setCollections] = useState(null);
+
 
   // sorting
   const [option, setOption] = useState('Oldest')
@@ -199,68 +201,80 @@ export default function Main({navigation}) {
     )
   }
 
+  const appState = useSelector(state => state);
+  const [authenticated, setAuthenticated] = useState(!appState.settings.settings.localAuthRequired);
+
   return (
-    <View style={[styles.container, {backgroundColor: '#fff'}]}>
-      <View style={styles.header}>
-        <Logo width={width * 0.6}/>
-        <View style={styles.headerOptions}>
-          <IconButton
-            style={[styles.headerOptionButton, styles.mr]}
-            activeOpacity={0.6}
-            underlayColor="#DDDDDD"
-            onPress={()=>navigation.navigate('Search')}
-            iconName="search"
-            size={33} 
-          />
-          <IconButton
-            style={styles.headerOptionButton}
-            activeOpacity={0.6}
-            underlayColor="#DDDDDD"
-            onPress={()=>navigation.navigate('Settings')}
-            iconName="settings"
-            size={33} 
-          />
+    <View style={{flex: 1}}>
+    {
+      authenticated ?
+      <View style={[styles.container, {backgroundColor: '#fff'}]}>
+        <View style={styles.header}>
+          <Logo width={width * 0.6}/>
+          <View style={styles.headerOptions}>
+            <IconButton
+              style={[styles.headerOptionButton, styles.mr]}
+              activeOpacity={0.6}
+              underlayColor="#DDDDDD"
+              onPress={()=>navigation.navigate('Search')}
+              iconName="search"
+              size={33} 
+            />
+            <IconButton
+              style={styles.headerOptionButton}
+              activeOpacity={0.6}
+              underlayColor="#DDDDDD"
+              onPress={()=>navigation.navigate('Settings')}
+              iconName="settings"
+              size={33} 
+            />
+          </View>
+
         </View>
 
-      </View>
+        <Animated.View style={[styles.summaryStatisticsWrapper, 
+          animStats
+          ]}>
+          <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
+          <View style={styles.summaryStatisticsGroup}>
+            {
+              fields.map((field, index) => (
+                <View key={field} style={styles.summaryStatisticItem}>
+                  <SummaryStatistic
+                  title={field}
+                  value={values[index]}
+                  onPress={() => {setGraphIndex(index)}}
+                  index={index}
+                  />
+                </View>
+              )) 
+            }
+          </View>
+          <GraphBubble graphIndex={graphIndex}/>
+        </Animated.View>
 
-      <Animated.View style={[styles.summaryStatisticsWrapper, 
-        animStats
-        ]}>
-        <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
-        <View style={styles.summaryStatisticsGroup}>
-          {
-            fields.map((field, index) => (
-              <View key={field} style={styles.summaryStatisticItem}>
-                <SummaryStatistic
-                title={field}
-                value={values[index]}
-                onPress={() => {setGraphIndex(index)}}
-                index={index}
-                />
-              </View>
-            )) 
-          }
+        <View style={styles.bottomSheet}>
+          <BottomSheet
+            ref={bottomSheetRef}
+            index={1}
+            snapPoints={snapPoints}
+            containerStyle={styles.container}
+            overDragResistanceFactor={1}
+            backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 25, borderTopLeftRadius: 25}}
+            handleStyle={{borderTopRightRadius: 25, borderTopLeftRadius: 25, height: 15}}
+            handleIndicatorStyle={{width: '10%', height: 4}}
+            animateOnMount={false}
+          >
+            <BottomSheetContent/>
+          </BottomSheet>
         </View>
-        <GraphBubble graphIndex={graphIndex}/>
-      </Animated.View>
-
-      <View style={styles.bottomSheet}>
-        <BottomSheet
-          ref={bottomSheetRef}
-          index={1}
-          snapPoints={snapPoints}
-          containerStyle={styles.container}
-          overDragResistanceFactor={1}
-          backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 25, borderTopLeftRadius: 25}}
-          handleStyle={{borderTopRightRadius: 25, borderTopLeftRadius: 25, height: 15}}
-          handleIndicatorStyle={{width: '10%', height: 4}}
-          animateOnMount={false}
-        >
-          <BottomSheetContent/>
-        </BottomSheet>
+      </View>  
+      :
+      <View style={{flex: 1000, backgroundColor: '#fcca47'}}>
+        <CustomText>Authenticate</CustomText>
       </View>
-    </View>  
+    }
+    </View>
   )
 }
 

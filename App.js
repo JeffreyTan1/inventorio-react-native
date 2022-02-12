@@ -15,6 +15,9 @@ import * as FileSystem from 'expo-file-system';
 import {SafeAreaView} from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Search from './screens/Search';
+import { Provider } from 'react-redux';
+import store, {persistor}  from './redux/store';
+import {PersistGate} from 'redux-persist/integration/react';
 
 const Stack = createNativeStackNavigator();
 
@@ -54,23 +57,28 @@ export default function App() {
  
   return (
     <GestureHandlerRootView style={{flex: 1}}>
-      <StatusBar style="dark" translucent={true}/>
-      <NavigationContainer>
-        <SafeAreaView style={{flex: 1}}>
-          <Stack.Navigator
-          screenOptions={{
-            headerShown: false
-          }}
-          >
-            <Stack.Screen name="Main" component={Main} />
-            <Stack.Screen name="Collection" component={Collection} />
-            <Stack.Screen name="Item" component={Item} />
-            <Stack.Screen name="Settings" component={Settings} />
-            <Stack.Screen name="Search" component={Search} />
-            <Stack.Screen name="CameraModule" component={CameraModule} />
-          </Stack.Navigator>
-        </SafeAreaView>
-      </NavigationContainer>
+      <Provider store={store}>
+        <PersistGate persistor={persistor}>
+          <StatusBar style="dark" translucent={true}/>
+          <NavigationContainer>
+            <SafeAreaView style={{flex: 1}}>
+              
+              <Stack.Navigator
+              screenOptions={{
+                headerShown: false
+              }}
+              >
+                <Stack.Screen name="Main" component={Main} />
+                <Stack.Screen name="Collection" component={Collection} />
+                <Stack.Screen name="Item" component={Item} />
+                <Stack.Screen name="Settings" component={Settings} />
+                <Stack.Screen name="Search" component={Search} />
+                <Stack.Screen name="CameraModule" component={CameraModule} />
+              </Stack.Navigator>
+            </SafeAreaView>
+          </NavigationContainer>
+        </PersistGate>
+      </Provider>
     </GestureHandlerRootView>
   );
 }

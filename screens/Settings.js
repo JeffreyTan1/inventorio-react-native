@@ -1,5 +1,5 @@
-import React,{useState} from 'react'
-import { View, StyleSheet, ScrollView, Alert, BackHandler, Linking } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { View, StyleSheet, ScrollView, Alert, BackHandler, Linking, Switch } from 'react-native'
 import CustomText from '../components/CustomText';
 import globalStyles from '../styles/globalStyles';
 import { clearHistory, createTables, dropTables, recordhistory } from './../utils/DAO';
@@ -8,8 +8,22 @@ import IconButton from '../components/IconButton';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useSelector, useDispatch } from 'react-redux';
+import { changeLocalAuthReducer } from '../redux/settingsSlice';
+import { changeThemeReducer } from '../redux/themeSlice';
+
+const deleteAllDataAnswer = "delete all data";
+const deleteHistoryAnswer = "delete history";
 
 export default function Settings({navigation}) {
+  const appState = useSelector(state => state);
+  const dispatch = useDispatch();
+  const [deleteInput, setDeleteInput] = useState('');
+
+  useEffect(() => {
+
+  }, [appState])
+  
 
   const deleteDirContents = async (dir) => {
     const files = await FileSystem.readDirectoryAsync(dir)
@@ -120,9 +134,22 @@ export default function Settings({navigation}) {
       
       <ScrollView style={styles.panel}>
         <View style={styles.content}>
-             
           <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Export data</CustomText>
+            <CustomText style={styles.fieldName}>Authentication</CustomText>
+            <Switch
+              value={appState.settings.settings.localAuthRequired} 
+              onChange={() => dispatch(changeLocalAuthReducer(appState.settings.settings.localAuthRequired ? 'off' : 'on'))}
+            />
+          </View>
+          <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Dark Mode</CustomText>
+            <Switch 
+              value={appState.theme.theme.type === 'dark'} 
+              onChange={() => dispatch(changeThemeReducer(appState.theme.theme.type === 'dark' ? 'light' : 'dark'))}
+            />
+          </View> 
+          <View style={styles.field}>
+            <CustomText style={styles.fieldName}>Export Data</CustomText>
             <IconButton
             onPress={() => handleExport()}
             style={styles.button}
@@ -134,7 +161,7 @@ export default function Settings({navigation}) {
             />
           </View> 
           <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Import data</CustomText>
+            <CustomText style={styles.fieldName}>Import Data</CustomText>
             <IconButton
             onPress={() => handleImport()}
             style={styles.button}
@@ -146,7 +173,7 @@ export default function Settings({navigation}) {
             />
           </View> 
           <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Clear history</CustomText>
+            <CustomText style={styles.fieldName}>Clear History</CustomText>
             <IconButton
             onPress={() => handleClearHistory()}
             style={styles.button}
@@ -158,7 +185,7 @@ export default function Settings({navigation}) {
             />
           </View> 
           <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Delete all data</CustomText>
+            <CustomText style={styles.fieldName}>Delete All Data</CustomText>
             <IconButton
             onPress={() => deleteDialog()}
             style={styles.button}
@@ -229,7 +256,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '13%',
+    marginBottom: '10%',
   },
   fieldName: {
     fontSize: 25,
@@ -243,8 +270,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
-    paddingHorizontal: '11%',
-    paddingVertical: 5,
+    paddingHorizontal: '10%',
+    paddingVertical: '3%',
     backgroundColor: '#fff'
   },
   contactText: {
