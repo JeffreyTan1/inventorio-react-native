@@ -200,7 +200,7 @@ export default function Main({navigation}) {
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: '#ffffff'}]}>
+    <View style={[styles.container, {backgroundColor: '#fff'}]}>
       <View style={styles.header}>
         <Logo width={width * 0.6}/>
         <View style={styles.headerOptions}>
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.43,
     shadowRadius: 5.51,
-    elevation: 2,
+    elevation: 5,
     backgroundColor: '#fff'
   },
   summaryStatisticsGroup: {
@@ -411,7 +411,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: '2.5%'
+    paddingBottom: '2.5%',
+    marginTop: '2.5%',
   }
 })
 

@@ -119,7 +119,7 @@ export default function Search({route, navigation}) {
   }, [items])
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: '#fff'}]}>
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <View style={styles.navBarContent}>

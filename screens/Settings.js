@@ -195,6 +195,8 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   navBar: {
     flexDirection: 'row',
