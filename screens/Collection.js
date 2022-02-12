@@ -203,7 +203,7 @@ export default function Collection({route, navigation}) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: '#fff'}]}>
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <IconButton

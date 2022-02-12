@@ -315,7 +315,7 @@ export default function Item({route, navigation}) {
   
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: '#fff'}]}>
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <IconButton
@@ -627,7 +627,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   panel: {
-    paddingBottom: '30%',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     backgroundColor: '#fcca47',

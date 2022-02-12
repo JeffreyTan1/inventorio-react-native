@@ -16,14 +16,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
   }, [reload])
 
   return (
-    <MotiView
-    from={{ scale: 0 }}
-    animate={{ scale: 1 }}
-    transition={{
-      type: 'timing',
-      duration: 175
-    }}
-    >
+    <View>
 
     <TouchableHighlight
     style={styles.pressableContainer}
@@ -78,7 +71,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
         
       </View>
     </TouchableHighlight>
-    </MotiView>
+    </View>
   )
 }
 
