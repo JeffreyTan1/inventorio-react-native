@@ -51,8 +51,8 @@ export default function Collection({route, navigation}) {
   // sorting
   const [option, setOption] = useState('Date Created')
 
-  const sortItems = () => {
-    let tempItems = [...items]
+  const sortItems = (array) => {
+    let tempItems = [...array]
     switch (option) {
       case 'A-Z':
         setItems(tempItems.sort(compareAlpha).reverse())
@@ -91,7 +91,7 @@ export default function Collection({route, navigation}) {
 
   useEffect(() => {
     if(items) {
-      sortItems()
+      sortItems(items)
     }
   }, [option])
 
@@ -111,8 +111,11 @@ export default function Collection({route, navigation}) {
         setItems(result)
       } else if (returnType === 'create') {
         const tempItems = [...items]
-        tempItems.push(returnItemData)
-        setItems(tempItems)
+        const createdItem = [returnItemData]
+        const result = createdItem.concat(tempItems)
+        setItems(result)
+      } else if (returnType === 'cancelCreate') {
+        //do nothing
       }
       else {
         if(collection === reservedCollection) {
@@ -308,8 +311,6 @@ export default function Collection({route, navigation}) {
       </View>
 
       
-
-      
       {/* Items */}
       <View style={styles.panel}>
         {
@@ -317,17 +318,6 @@ export default function Collection({route, navigation}) {
           <View style={styles.container}>
             {
             items.length > 0 ?
-            // <ScrollView style={styles.scrollView}>
-            //   {
-            //     items.map((item) => (
-            //       <ItemBubble navigation={navigation} key={item.id} 
-            //       id={item.id} name={item.name} photo={item.photos[0]} 
-            //       price={item.price} quantity={item.quantity} 
-            //       total={item.total} reload={reload}
-            //       />
-            //     ))
-            //   }
-            // </ScrollView>
             <FlatList
             style={styles.scrollView}
             data={items}

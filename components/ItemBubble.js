@@ -113,7 +113,8 @@ const styles = StyleSheet.create({
     paddingBottom: 5,
     paddingLeft: 10,
     paddingRight: 8,
-    width: '50%'
+    width: '50%',
+    minHeight: 80
   },
   title: {
     flexDirection: 'row',

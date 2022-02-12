@@ -8,9 +8,11 @@
         "buildType": "apk"
       }
     },
-    "production": {}
-  },
-  "submit": {
-    "production": {}
+    "testing": {
+      "releaseChannel": "testing"
+    },
+    "production": {
+      "releaseChannel": "production"
+    }
   }
 }

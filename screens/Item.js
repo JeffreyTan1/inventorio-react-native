@@ -306,8 +306,10 @@ export default function Item({route, navigation}) {
   }
 
   const handleGoBack = () => {
-    if(itemData){
+    if(itemData) {
       navigation.navigate('Collection', {action: newItem ? 'create' : 'update', itemData: itemData})
+    } else if(newItem && editing) {
+      navigation.navigate('Collection', {action: 'cancelCreate'})
     }
   }
   
@@ -356,10 +358,13 @@ export default function Item({route, navigation}) {
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
             onPress={()=>{
-              setEditData(itemData)
-              setPriceErrorMsg(null)
-              setQuantityErrorMsg(null)
-              setEditing(true)}}
+              if(itemData) {
+                setEditData(itemData)
+                setPriceErrorMsg(null)
+                setQuantityErrorMsg(null)
+                setEditing(true)
+              }
+              }}
             iconName="edit"
             size={35}
             />
