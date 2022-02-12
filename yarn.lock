@@ -3203,22 +3203,22 @@ expo-constants@~13.0.0:
     "@expo/config" "^6.0.6"
     uuid "^3.3.2"
 
-expo-dev-client@~0.8.3:
-  version "0.8.3"
-  resolved "https://registry.yarnpkg.com/expo-dev-client/-/expo-dev-client-0.8.3.tgz#98a7dfc045abbf9758c71f17c6708b7c7790d33f"
-  integrity sha512-Eun+e+OdBPa2YINRBRle2wGnlV5aU7+T6Ipq8NJpqpxrlhBux2BZEF589UT/FYZWCugWAKRacJ9gep19e9lyhw==
+expo-dev-client@~0.8.4:
+  version "0.8.4"
+  resolved "https://registry.yarnpkg.com/expo-dev-client/-/expo-dev-client-0.8.4.tgz#c521da0818ee846e24bfc96a901350342eba5ded"
+  integrity sha512-FB5ouz9dMyccnuYbuAi0EcTNdRh+5vPGuOuhYWo5Fq3SBTU8ZdKQmcMidAoHOrYgMzQWiT+S7ypt0AjxPSgHnA==
   dependencies:
     "@expo/config-plugins" "^4.0.14"
-    expo-dev-launcher "0.10.3"
+    expo-dev-launcher "0.10.4"
     expo-dev-menu "0.9.3"
     expo-dev-menu-interface "0.5.3"
     expo-manifests "~0.2.2"
     expo-updates-interface "~0.5.0"
 
-expo-dev-launcher@0.10.3:
-  version "0.10.3"
-  resolved "https://registry.yarnpkg.com/expo-dev-launcher/-/expo-dev-launcher-0.10.3.tgz#d71a4880471b9b101d74355ce2cf12c779a8ee48"
-  integrity sha512-pIYHvOPZC2hDiAAqEy92dimVcjmtjVfsO09QrBc9tB7eNSbE3B/sjEEzqvQsi1F8hbN9MxyPpM+pU93a426Smw==
+expo-dev-launcher@0.10.4:
+  version "0.10.4"
+  resolved "https://registry.yarnpkg.com/expo-dev-launcher/-/expo-dev-launcher-0.10.4.tgz#b4a6f01b3aa10afa142fb6c91b18c6983433d8fd"
+  integrity sha512-ItqkxzzwgeK4+o9hyV3/YAvPxiVIXtcOWPcjpuPxYDtLigF4D4sMSqRb1aBA+7Nmxoc6EuLASZnvge0WPco+cA==
   dependencies:
     "@expo/config-plugins" "^4.0.14"
     expo-dev-menu "0.9.3"
@@ -3238,10 +3238,10 @@ expo-dev-menu@0.9.3:
     "@expo/config-plugins" "^4.0.14"
     expo-dev-menu-interface "0.5.3"
 
-expo-document-picker@~10.1.1:
-  version "10.1.1"
-  resolved "https://registry.yarnpkg.com/expo-document-picker/-/expo-document-picker-10.1.1.tgz#e71cbcd30fbf607eb587161ccb214142eb381acd"
-  integrity sha512-/ge49Qb5yDr3NKymK/ZR0lmfO3S1zEd4laW00IYhaT0E6okuHqqPg/HXxQM3ULXoEHcnzpy1+LRxuwD8Z6op3g==
+expo-document-picker@~10.1.3:
+  version "10.1.3"
+  resolved "https://registry.yarnpkg.com/expo-document-picker/-/expo-document-picker-10.1.3.tgz#68a82635e9473eb19f128193f1111e7400055a7d"
+  integrity sha512-JKARJBnQ5Aug92hg2MFKrM2LqiMQabcUBYJwBhwSuc0A7dNUeprw0hkaOK0D9Fk7Ae9t+flRX0N5R/aADek3HA==
   dependencies:
     "@expo/config-plugins" "^4.0.2"
     uuid "^3.3.2"
@@ -3256,10 +3256,18 @@ expo-face-detector@~11.1.3:
   resolved "https://registry.yarnpkg.com/expo-face-detector/-/expo-face-detector-11.1.3.tgz#494d50f6475db2168b75d1cff1597e870fdc0284"
   integrity sha512-NBxoOv4bWtVCrYFpRt8K24zWiJWRdXd+wE+4RPImMU5aW42MzL2JMjXoCRrjjIXlC9JBzo5SRM02COGrpmum1g==
 
-expo-file-system@~13.1.0, expo-file-system@~13.1.2:
+expo-file-system@~13.1.0:
   version "13.1.2"
   resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-13.1.2.tgz#04112d95cf3bdc151894c31d17900c6ff5a4f1ed"
   integrity sha512-TA0LZTi8ZlnmyB2q6rEuTEo7b63e2luBzNhR5h/ow2J55xxRTXQLeaoK9m69XgazLVq6Ys7wiJma/q+Hg38hrQ==
+  dependencies:
+    "@expo/config-plugins" "^4.0.2"
+    uuid "^3.4.0"
+
+expo-file-system@~13.1.4:
+  version "13.1.4"
+  resolved "https://registry.yarnpkg.com/expo-file-system/-/expo-file-system-13.1.4.tgz#08fc20d49b2182e1fd195d95c40cf7eddfe7bd91"
+  integrity sha512-/C2FKCzrdWuEt4m8Pzl9J4MhKgfU0denVLbqoKjidv8DnsLQrscFNlLhXuiooqWwsxB2OWAtGEVnPGJBWVuNEQ==
   dependencies:
     "@expo/config-plugins" "^4.0.2"
     uuid "^3.4.0"

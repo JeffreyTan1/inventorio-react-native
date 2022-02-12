@@ -6,6 +6,7 @@ import { LineChart } from 'react-native-wagmi-charts';
 import * as haptics from 'expo-haptics';
 import IconButton from './IconButton';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -22,6 +23,7 @@ export default function GraphBubble({graphIndex}) {
   const [data, setData] = useState(null);
   const fields = ['Total Value', 'Items', 'Collections',  'Total Quantity'];
   const [history, setHistory] = useState(null);
+  const [useAllTimeData, setUseAllTimeData] = useState(false);
   const [itemCountHistory, setItemCountHistory] = useState(null);
   const [collectionCountHistory, setCollectionCountHistory] = useState(null);
   const [itemQuantityHistory, setItemQuantityHistory] = useState(null);
@@ -30,14 +32,15 @@ export default function GraphBubble({graphIndex}) {
   const integerDisplay = [false, true, true, true]
   const refreshRotation = useSharedValue(0);
   const isRotating = useSharedValue(false);
+
   
   const loadHistory = () => {
-    getHistory(setHistory)
+    getHistory(useAllTimeData, setHistory)
   }
 
   useEffect(() => {
     loadHistory()
-  }, []);
+  }, [useAllTimeData]);
   
   useEffect(() => {
     if(history) {
@@ -66,6 +69,18 @@ export default function GraphBubble({graphIndex}) {
       transform: [{ rotateZ: `${refreshRotation.value}deg`}]
     }
   })
+
+  const DataOptionButton = ({name, onPress, isActive}) => {
+    return (
+      <TouchableOpacity 
+      style={[styles.dataOption, styles.mr, {backgroundColor: isActive ? '#E0E0E0' : '#FFFFFF'}]}
+      activeOpacity={0.5}
+      onPress={onPress}
+      >
+        <CustomText>{name}</CustomText>
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <View style={styles.container}>
@@ -106,7 +121,6 @@ export default function GraphBubble({graphIndex}) {
                     }}
                   />
                   <CustomText style={styles.statText}>{fields[graphIndex]}</CustomText>
-                  
                 </View>
               }
               
@@ -114,10 +128,17 @@ export default function GraphBubble({graphIndex}) {
             </View>
             {
               data.length > 1 ? 
-              <LineChart width={width * 0.85} height={width * 0.5}>
-                <LineChart.Path color="#000"/>
-                <LineChart.CursorCrosshair onActivated={invokeHaptic} onEnded={invokeHaptic} color="#fcca47"/>
-              </LineChart> 
+              <View>
+
+                <LineChart width={width * 0.85} height={width * 0.5}>
+                  <LineChart.Path color="#000"/>
+                  <LineChart.CursorCrosshair onActivated={invokeHaptic} onEnded={invokeHaptic} color="#fcca47"/>
+                </LineChart> 
+                <View style={styles.dataOptionGroup}>
+                  <DataOptionButton name="Recent" isActive={!useAllTimeData} onPress={() => setUseAllTimeData(false)}/>
+                  <DataOptionButton name="All Time" isActive={useAllTimeData} onPress={() => setUseAllTimeData(true)}/>
+                </View>
+              </View>
               :
               <View style={styles.callToActionWrapper}>
                 <CustomText style={styles.callToActionEmoji}>📈</CustomText>
@@ -145,7 +166,7 @@ export default function GraphBubble({graphIndex}) {
                  
                 }}
                 iconName='refresh'
-                size={40}
+                size={25}
                 color="#fff"
                 />
             </Animated.View>
@@ -218,4 +239,23 @@ const styles = StyleSheet.create({
   callToActionEmoji : {
     fontSize: 50,
   },
+  dataOptionGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    position: 'absolute',
+    bottom: 0,
+    right: 0
+  },
+  dataOption: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 30,
+    borderWidth: 0.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mr: {
+    marginRight: '3%'
+  }
+
 })

@@ -342,7 +342,7 @@ export default function Item({route, navigation}) {
             activeOpacity={0.6}
             underlayColor="#DDDDDD"
             onPress={()=>{
-              if(JSON.stringify(collectionsEdit) !== JSON.stringify({})) {
+              if(validateInputs() && JSON.stringify(collectionsEdit) !== JSON.stringify({})) {
                 handleSave()
               }
             }}

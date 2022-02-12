@@ -384,10 +384,11 @@ export const getItemsTotalSum = async (callback) => {
 
 
 // History related
-export const getHistory = async (callback) => {
+export const getHistory = async (allTime, callback) => {
   // SELECT * FROM history ORDER BY time DESC LIMIT 15 if required
+  const sql = allTime ? 'SELECT * FROM history ORDER BY time DESC' : 'SELECT * FROM history ORDER BY time DESC LIMIT 25'
   db.transaction(tx => {
-    tx.executeSql('SELECT * FROM history ORDER BY time DESC LIMIT 30', null, 
+    tx.executeSql(sql, null, 
       (txObj, { rows: { _array } }) => {
         const data = pickn(_array, 25)
         callback(data.reverse())
