@@ -539,11 +539,27 @@ export const getCollectionInfo = (collection_name, callback) => {
 }
 
 // Query
-export const searchItems = (query, callback) => {
-  const result = []
-  const sql = `SELECT * FROM items WHERE name LIKE ?`
+export const searchItems = (query, callback, queryCollections) => {
+  let sql = `SELECT * FROM items WHERE name LIKE ? `
+
+  let additionalSql = ''
+  
+  for (let index = 1; index < queryCollections.length; index++) {
+    additionalSql += ` OR collection_name = ? `
+  }
+
+  const collectionsQuery = queryCollections.length > 0 ? `AND id IN (
+    SELECT item_id FROM items_collections WHERE collection_name = ? ${additionalSql} )` : ``
+
+  sql = sql + collectionsQuery
+  
+  let params = [`%${query}%`]
+  queryCollections.forEach(element => {
+    params.push(element)
+  });
+
   db.transaction(tx => {
-    tx.executeSql(sql, ['%' + query + '%'], 
+    tx.executeSql(sql, params, 
     (txObj, resultSet) => (callback(parseJSONToArray(resultSet.rows._array))),
     (txObj, error) => console.log('Error ', error)
     ) 

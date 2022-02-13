@@ -8,7 +8,11 @@ import IconButton from '../components/IconButton'
 import { searchItems } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
 import Icon from 'react-native-vector-icons/MaterialIcons'
-import { numberWithCommas } from '../utils/utils'
+import { abbreviate } from '../utils/utils'
+import { getAllCollections } from '../utils/DAO'
+import Dialog from 'react-native-dialog'
+import CustomCheckBox from '../components/CustomCheckBox'
+import { TouchableOpacity } from 'react-native-gesture-handler'
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -43,6 +47,9 @@ export default function Search({route, navigation}) {
 
   // sorting
   const [option, setOption] = useState('Date Created');
+  const [allCollections, setAllCollections] = useState(null);
+  const [selectedCollections, setSelectedCollections] = useState(null);
+  const [collectionsDialogVis, setCollectionsDialogVis] = useState(false);
 
   const sortItems = (array) => {
     let tempItems = [...array]
@@ -96,15 +103,40 @@ export default function Search({route, navigation}) {
   }, [isFocused])
 
   useEffect(() => {
+    getAllCollections(setAllCollections)
+  }, [])
+
+  useEffect(() => {
+    if(allCollections) {
+      const tempObj = {}
+      allCollections.forEach((collection) => { tempObj[collection.name] = false })
+      setSelectedCollections({...tempObj})
+    }
+  }, [allCollections])
+
+  const handleSelectedCollectionsChange = (collection) => {
+    const tempObj = {}
+    tempObj[collection] = !selectedCollections[collection]
+    setSelectedCollections({...selectedCollections, ...tempObj})
+  }
+
+  useEffect(() => {
     runSearch()
     setOption('Date Created')
   }, [query]);
   
   const runSearch = () => {
     if(query !== '') {
-      searchItems(query, setItems)
+      const queryCollections = []
+      Object.keys(selectedCollections).forEach((collection) => {
+        if(selectedCollections[collection]) {
+          queryCollections.push(collection)
+        }
+      })
+      searchItems(query, setItems, queryCollections)
     }
   }
+
   useEffect(() => {
     if(items) {
       let tempItemsTotal = 0
@@ -136,25 +168,31 @@ export default function Search({route, navigation}) {
       </View>
 
       <View style={styles.searchBarContainer}>
-        <View style={styles.searchBar}>
-          <TextInput 
-            style={styles.searchText} 
-            value={query} 
-            onChangeText={setQuery}
+        <View style={styles.searchActions}>
+          <View style={styles.searchBar}>
+            <TextInput 
+              style={styles.searchText} 
+              value={query} 
+              onChangeText={setQuery}
+            />
+            <Icon name='search' style={styles.searchIcon}/>
+          </View>
+          <IconButton
+            style={styles.filterButton}
+            activeOpacity={0.6}
+            underlayColor="#DDDDDD"
+            onPress={()=>setCollectionsDialogVis(true)}
+            iconName="filter-list"
+            size={30}
           />
-          <Icon name='search' style={styles.searchIcon}/>
         </View>
-        <CustomText style={styles.subHeadingText}>Search Results: {items?.length}</CustomText>
-        <View style={styles.subHeadingContainer}>
-          <CustomText style={[styles.mr, styles.infoText]}>Total: ${numberWithCommas(itemsTotal)}</CustomText>
-          <CustomText style={styles.infoText}>Qty: {quantitiesTotal}</CustomText>
+        <View style={styles.infoGroup}>
+          <CustomText style={[styles.infoText, styles.mr]}>Search Results: {items?.length ? abbreviate(items?.length) : 0}</CustomText>
+          <CustomText style={[styles.mr, styles.infoText]}>Total: ${abbreviate(itemsTotal)}</CustomText>
+          <CustomText style={styles.infoText}>Qty: {abbreviate(quantitiesTotal)}</CustomText>
         </View>
         <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
-        
       </View>
-
-      
-
 
       <View style={styles.panel}>
         {
@@ -176,6 +214,34 @@ export default function Search({route, navigation}) {
           }
         </View>
         }
+
+        {
+          selectedCollections &&
+          <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%'}}>
+            <Dialog.Title>Collections</Dialog.Title>
+              <ScrollView>
+                { 
+                  Object.keys(selectedCollections).map((collection) => {
+                    if(selectedCollections[collection]){
+                      return(
+                        <CustomCheckBox key={collection} isChecked={true} onPress={() => handleSelectedCollectionsChange(collection)}>
+                          {collection}
+                        </CustomCheckBox>
+                      )
+                    } else {
+                      return (
+                        <CustomCheckBox key={collection} isChecked={false} onPress={() => handleSelectedCollectionsChange(collection)}>
+                          {collection}
+                        </CustomCheckBox>
+                      )
+                    }
+                  })
+                }
+              </ScrollView>
+            <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
+          </Dialog.Container>
+        }
+        
       </View>
     </View>
   )
@@ -189,6 +255,10 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     padding: 10,
   },
+  filterButton: {
+    borderRadius: 5 ,
+    padding: 10,
+  },
   navBarContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -196,24 +266,24 @@ const styles = StyleSheet.create({
   searchBar: {
     borderWidth: 2,
     borderRadius: 5,
-    padding: 7,
+    padding: '1.5%',
     borderColor: '#bababa',
-    marginBottom: 10
+    flex: 1
   },
   searchBarContainer: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 6,
+    marginHorizontal: '5%',
+    marginTop: '1%',
+    marginBottom: '1%',
   },
   searchText: {
-    fontSize: 30,
+    fontSize: 25,
     fontFamily: 'Montserrat'
   },
   searchIcon: {
     position: 'absolute',
     fontSize: 30,
     right: '4%',
-    top: '30%',
+    top: '20%',
     color: '#c4c4c4'
   },
   panel: {
@@ -232,10 +302,13 @@ const styles = StyleSheet.create({
   mr:{
     marginRight: '2.5%'
   },
-  subHeadingContainer: {
+  infoGroup: {
     flexDirection: 'row',
-    marginTop: '1%'
   },
+  searchActions: {
+    flexDirection: 'row',
+    marginBottom: '2.5%',
+  }
 })
 
 

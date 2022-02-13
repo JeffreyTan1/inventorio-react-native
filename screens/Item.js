@@ -575,7 +575,7 @@ export default function Item({route, navigation}) {
       </ScrollView>
 
       <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%'}}>
-        <Dialog.Title>Labels</Dialog.Title>
+        <Dialog.Title>Collections</Dialog.Title>
         <ScrollView>
           {
             Object.keys(collectionsEdit).map((collection) => {
