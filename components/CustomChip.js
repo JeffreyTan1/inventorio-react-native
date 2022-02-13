@@ -20,14 +20,6 @@ export default function CustomChip({children, onPress, chipStyle, chipTextStyle,
 }
 
 const styles = StyleSheet.create({
-  chip: {
-    margin: 5,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: 'black',
-    padding: 5,
-    borderRadius: 16
-  },
   chipText: {
     fontSize: 18,
     fontFamily: 'Montserrat',

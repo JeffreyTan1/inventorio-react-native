@@ -12,7 +12,8 @@ import { abbreviate } from '../utils/utils'
 import { getAllCollections } from '../utils/DAO'
 import Dialog from 'react-native-dialog'
 import CustomCheckBox from '../components/CustomCheckBox'
-import { TouchableOpacity } from 'react-native-gesture-handler'
+import { useSelector } from 'react-redux'
+import CustomTextInput from '../components/CustomTextInput'
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -29,6 +30,8 @@ const sortingLabels = [
 
 
 export default function Search({route, navigation}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
+  
   // data from navigation
   const isFocused = useIsFocused();
 
@@ -151,14 +154,13 @@ export default function Search({route, navigation}) {
   }, [items])
 
   return (
-    <View style={[styles.container, {backgroundColor: '#fff'}]}>
+    <View style={[styles.container, {backgroundColor: colorState.background}]}>
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <View style={styles.navBarContent}>
           <IconButton
           style={styles.iconButton}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={()=>navigation.goBack()}
           iconName="arrow-back-ios"
           size={35}
@@ -169,18 +171,17 @@ export default function Search({route, navigation}) {
 
       <View style={styles.searchBarContainer}>
         <View style={styles.searchActions}>
-          <View style={styles.searchBar}>
-            <TextInput 
+          <View style={[styles.searchBar, {borderColor: colorState.grey}]}>
+            <CustomTextInput 
               style={styles.searchText} 
               value={query} 
               onChangeText={setQuery}
             />
-            <Icon name='search' style={styles.searchIcon}/>
+            <Icon name='search' style={[styles.searchIcon, {color: colorState.grey}]}/>
           </View>
           <IconButton
             style={styles.filterButton}
             activeOpacity={0.6}
-            underlayColor="#DDDDDD"
             onPress={()=>setCollectionsDialogVis(true)}
             iconName="filter-list"
             size={30}
@@ -194,7 +195,7 @@ export default function Search({route, navigation}) {
         <SortBy value={option} setValue={setOption} labels={sortingLabels}/>
       </View>
 
-      <View style={styles.panel}>
+      <View style={[styles.panel, {backgroundColor: colorState.primary}]}>
         {
         items &&
         <View style={styles.container}>
@@ -217,8 +218,8 @@ export default function Search({route, navigation}) {
 
         {
           selectedCollections &&
-          <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%'}}>
-            <Dialog.Title>Collections</Dialog.Title>
+          <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%', backgroundColor: colorState.background}}>
+            <Dialog.Title style={{color: colorState.text}}>Collections</Dialog.Title>
               <ScrollView>
                 { 
                   Object.keys(selectedCollections).map((collection) => {
@@ -238,7 +239,7 @@ export default function Search({route, navigation}) {
                   })
                 }
               </ScrollView>
-            <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
+            <Dialog.Button bold={true} color={colorState.primary}  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
           </Dialog.Container>
         }
         
@@ -267,7 +268,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 5,
     padding: '1.5%',
-    borderColor: '#bababa',
     flex: 1
   },
   searchBarContainer: {
@@ -284,11 +284,9 @@ const styles = StyleSheet.create({
     fontSize: 30,
     right: '4%',
     top: '20%',
-    color: '#c4c4c4'
   },
   panel: {
     flex: 1,
-    backgroundColor: '#fcca47',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     overflow: 'hidden'

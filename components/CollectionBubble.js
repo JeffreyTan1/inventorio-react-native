@@ -4,8 +4,10 @@ import {TouchableHighlight} from 'react-native-gesture-handler'
 import CustomText from './CustomText'
 import { getCollectionInfo } from '../utils/DAO'
 import { abbreviate } from '../utils/utils'
+import { useSelector } from 'react-redux'
 
 export default function CollectionBubble({navigation, name}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
   const [collectionData, setCollectionData] = useState(null);
   
   useEffect(() => {
@@ -15,9 +17,10 @@ export default function CollectionBubble({navigation, name}) {
   return (
     collectionData &&
     <TouchableHighlight
-    style={styles.pressableContainer}
+    style={[styles.pressableContainer, {backgroundColor: colorState.background,
+    shadowColor: colorState.text}]}
     activeOpacity={0.9}
-    underlayColor="#f2f2f2"
+    underlayColor={colorState.underlayLight}
     onPress={()=>navigation.navigate('Collection', {collection: name})}>
       <View style={styles.container}>
         <CustomText style={styles.collectionText} numberOfLines={2}>{name}</CustomText>
@@ -70,9 +73,7 @@ const styles = StyleSheet.create({
     marginVertical: 7,
     paddingVertical: 13,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
     borderRadius: 10,
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 1,

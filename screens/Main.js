@@ -12,11 +12,12 @@ import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantity
 import { useIsFocused } from "@react-navigation/native";
 import { NativeViewGestureHandler, ScrollView } from "react-native-gesture-handler";
 import {abbreviate} from './../utils/utils'
-import Logo from './../assets/INVENTORIO.svg';
 import SortBy from "../components/SortBy";
 import { MotiScrollView, MotiView } from "moti";
 import { useSelector } from "react-redux";
 import { authenticateAsync } from "expo-local-authentication";
+import Logo from "../components/Logo";
+import { setStatusBarStyle } from "expo-status-bar";
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -57,7 +58,6 @@ export default function Main({navigation}) {
       setOption('Oldest')
     }
   }, [isFocused])
-  
 
   useEffect(() => {
     if(collections) {
@@ -116,9 +116,8 @@ export default function Main({navigation}) {
               <CustomText style={globalStyles.headingText}>Collections</CustomText>
               <CustomText style={[globalStyles.headingText, globalStyles.halfOpacity]}>{collections && collections.length}</CustomText>
               <IconButton
-                style={[styles.iconButton, styles.plus]}
+                style={[styles.iconButton, styles.plus, {backgroundColor: colorState.background, shadowColor: colorState.text}]}
                 activeOpacity={0.6}
-                underlayColor="#DDDDDD"
                 onPress={()=>navigation.navigate('Collection')}
                 iconName="add"
                 size={40}
@@ -142,9 +141,8 @@ export default function Main({navigation}) {
                 </MotiView>
               <View>
                 <TouchableHighlight
-                  style={styles.reservedBubble}
-                  activeOpacity={0.9}
-                  underlayColor="#f2f2f2"
+                  style={[styles.reservedBubble, {backgroundColor: colorState.background}]}
+                  activeOpacity={0.5}
                   onPress={()=>navigation.navigate('Collection', {collection: reservedCollection})}>
                     <CustomText style={styles.reservedText}>🗑️</CustomText>
                 </TouchableHighlight>
@@ -197,8 +195,14 @@ export default function Main({navigation}) {
   }
 
   const appState = useSelector(state => state);
+  const colorState = useSelector(state => state.theme.theme.value.colors);
   const [authenticated, setAuthenticated] = useState(!appState.settings.settings.localAuthRequired);
 
+  useEffect(() => {
+    console.log(appState.theme.theme.type)
+    setStatusBarStyle(appState.theme.theme.type === 'dark' ? 'light' : 'dark')
+  }, [appState.theme.theme.type])
+  
   useEffect(() => {
     if(!authenticated) {
       triggerAuth()
@@ -211,22 +215,20 @@ export default function Main({navigation}) {
 
   return (
     <View style={{flex: 1}}>
-      <View style={[styles.container, {backgroundColor: '#fff'}]}>
+      <View style={[styles.container, {backgroundColor: colorState.background}]}>
         <View style={styles.header}>
-          <Logo width={width * 0.6}/>
+          <Logo/>
           <View style={styles.headerOptions}>
             <IconButton
-              style={[styles.headerOptionButton, styles.mr]}
+              style={[styles.headerOptionButton, styles.mr, {backgroundColor: colorState.background}]}
               activeOpacity={0.6}
-              underlayColor="#DDDDDD"
               onPress={()=>navigation.navigate('Search')}
               iconName="search"
               size={33} 
             />
             <IconButton
-              style={styles.headerOptionButton}
+              style={[styles.headerOptionButton, {backgroundColor: colorState.background}]}
               activeOpacity={0.6}
-              underlayColor="#DDDDDD"
               onPress={()=>navigation.navigate('Settings')}
               iconName="settings"
               size={33} 
@@ -235,7 +237,7 @@ export default function Main({navigation}) {
 
         </View>
 
-        <Animated.View style={[styles.summaryStatisticsWrapper, 
+        <Animated.View style={[styles.summaryStatisticsWrapper, {backgroundColor: colorState.background, shadowColor: colorState.text, borderColor: colorState.text},
           animStats
           ]}>
           <CustomText style={[globalStyles.headingText, styles.ml]}>Analytics</CustomText>
@@ -263,7 +265,7 @@ export default function Main({navigation}) {
             snapPoints={snapPoints}
             containerStyle={styles.container}
             overDragResistanceFactor={1}
-            backgroundStyle={{backgroundColor: '#fcca47', borderTopRightRadius: 25, borderTopLeftRadius: 25}}
+            backgroundStyle={{backgroundColor: colorState.primary, borderTopRightRadius: 25, borderTopLeftRadius: 25}}
             handleStyle={{borderTopRightRadius: 25, borderTopLeftRadius: 25, height: 15}}
             handleIndicatorStyle={{width: '10%', height: 4}}
             animateOnMount={false}
@@ -275,12 +277,11 @@ export default function Main({navigation}) {
       
       {
         !authenticated &&
-        <View style={styles.authScreen}>
+        <View style={[styles.authScreen, {backgroundColor: colorState.primary}]}>
           <View style={styles.authContent}>
             <IconButton
               style={styles.lockButton}
               activeOpacity={0.6}
-              underlayColor="#d4a939"
               onPress={()=>triggerAuth()}
               iconName="lock"
               size={33} 
@@ -312,13 +313,12 @@ const styles = StyleSheet.create({
   headerOptionButton: {
     padding: 3,
     borderRadius: 9,
-    backgroundColor: '#FFF',
+
     borderWidth: 0.5,
   },
   plus: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    shadowColor: "#000",
+
     shadowOffset: {
       width: 0,
       height: 3,
@@ -344,7 +344,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
     paddingTop: '2.5%',
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 7,
@@ -352,7 +351,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.43,
     shadowRadius: 5.51,
     elevation: 5,
-    backgroundColor: '#fff'
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
   },
   summaryStatisticsGroup: {
     justifyContent: 'space-evenly',
@@ -415,7 +416,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 0.5,
     marginRight: '2%',
-    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     alignSelf: 'center',
@@ -456,7 +456,6 @@ const styles = StyleSheet.create({
     left: 0,
     height: '100%',
     width: '100%',
-    backgroundColor: '#fcca47',
   },
   authContent:{
     width: '100%',

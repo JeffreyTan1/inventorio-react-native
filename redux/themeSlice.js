@@ -3,17 +3,23 @@ import { createSlice } from '@reduxjs/toolkit'
 
 const CustomLightTheme = {
   colors: {
-    primary: '#30c2b0',
-    accent: '#30c2b0',
-    highlight: '#2ca899'
+    primary: '#fcca47',
+    underlayDark: '#d4a939',
+    underlayLight: '#DDDDDD',
+    text: '#000',
+    background: '#fff',
+    grey: '#c4c4c4'
   },
 };
 
 const CustomDarkTheme = {
   colors: {
-    primary: '#30c2b0',
-    accent: '#30c2b0',
-    highlight: '#2ca899'
+    primary: '#fcca47',
+    underlayDark: '#d4a939',
+    underlayLight: '#3d3d3d',
+    text: '#fff',
+    background: '#000',
+    grey: '#c4c4c4'
   },
 };
 
@@ -44,6 +50,9 @@ const themeSlice = createSlice({
       }
       state.theme = theme
     },
+    // changePrimaryColorReducer: (state, action) => {
+    //   state.theme.value.primary = action.payload
+    // },
   },
 
 })

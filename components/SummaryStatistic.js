@@ -2,10 +2,14 @@ import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import CustomText from '../components/CustomText'
 import { MotiPressable } from 'moti/interactions'
+import { useSelector } from 'react-redux'
 
 export default function SummaryStatistic({title, value, onPress, index}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {shadowColor: colorState.text,
+      backgroundColor: colorState.background}]}>
       <MotiPressable 
         style={{alignItems: 'center', height: '100%', justifyContent: 'center'}}
         animate={({ hovered, pressed }) => {
@@ -27,9 +31,7 @@ export default function SummaryStatistic({title, value, onPress, index}) {
 const styles = StyleSheet.create({
   container: {
     height: '50%',
-    backgroundColor: '#fff',
     borderRadius: 10,
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 1,

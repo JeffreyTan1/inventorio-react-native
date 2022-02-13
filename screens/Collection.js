@@ -9,6 +9,8 @@ import { getFromItems, deleteCollection, updateCollection, createCollection, get
 collectionDuplicateError, collectionDBSuccess } from '../utils/DAO'
 import { useIsFocused } from '@react-navigation/native'
 import { abbreviate, numberWithCommas } from '../utils/utils'
+import { useSelector } from 'react-redux'
+import CustomTextInput from '../components/CustomTextInput'
 
 const reservedCollection = 'Items Without Collections'
 const reservedCollectionError = 'Cannot use this reserved name!'
@@ -29,6 +31,8 @@ const sortingLabels = [
 
 
 export default function Collection({route, navigation}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
+
   // data from navigation
   const isFocused = useIsFocused();
   const [collection, setCollection] = useState(route.params?.collection);
@@ -203,13 +207,12 @@ export default function Collection({route, navigation}) {
   }
 
   return (
-    <View style={[styles.container, {backgroundColor: '#fff'}]}>
+    <View style={[styles.container, {backgroundColor: colorState.background}]}>
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <IconButton
           style={styles.iconButton}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={()=>navigation.goBack()}
           iconName="arrow-back-ios"
           size={35}
@@ -222,7 +225,6 @@ export default function Collection({route, navigation}) {
               <IconButton
                 style={styles.iconButton}
                 activeOpacity={0.6}
-                underlayColor="#DDDDDD"
                 onPress={()=>deleteDialog()}
                 iconName="delete"
                 size={35}
@@ -235,7 +237,6 @@ export default function Collection({route, navigation}) {
                 <IconButton
                 style={styles.iconButton}
                 activeOpacity={0.6}
-                underlayColor="#DDDDDD"
                 onPress={()=>handleCancelEdit()}
                 iconName="cancel"
                 size={35}
@@ -243,7 +244,6 @@ export default function Collection({route, navigation}) {
                 <IconButton
                 style={styles.iconButton}
                 activeOpacity={0.6}
-                underlayColor="#DDDDDD"
                 onPress={()=>handleEdit()}
                 iconName="save"
                 size={35}
@@ -253,7 +253,6 @@ export default function Collection({route, navigation}) {
               <IconButton
               style={styles.iconButton}
               activeOpacity={0.6}
-              underlayColor="#DDDDDD"
               onPress={()=>{
                 setNewName(collection)
                 setEditing(true)
@@ -273,7 +272,7 @@ export default function Collection({route, navigation}) {
         <View style={styles.headingContainer}>
           {editing ?
             <View style={styles.container}> 
-              <TextInput style={[globalStyles.headingTextEdit]} value={newName} onChangeText={val => setNewName(val)} placeholder='Collection Name'/>
+              <CustomTextInput style={[globalStyles.headingTextEdit]} value={newName} onChangeText={val => setNewName(val)} placeholder='Collection Name'/>
               {
                 errorMsg && errorMsg !== collectionDBSuccess &&
                 <CustomText style={styles.errorText}>{errorMsg}</CustomText>
@@ -299,7 +298,8 @@ export default function Collection({route, navigation}) {
           (!editing && collection !== reservedCollection) &&
           <View style={styles.plusWrapper}>
             <IconButton
-            style={styles.plus}
+            style={[styles.plus, {backgroundColor: colorState.primary,
+            shadowColor: colorState.text}]}
             activeOpacity={0.6}
             underlayColor="#ffdd85"
             onPress={()=>navigation.navigate('Item', {collection: collection})}
@@ -312,7 +312,7 @@ export default function Collection({route, navigation}) {
 
       
       {/* Items */}
-      <View style={styles.panel}>
+      <View style={[styles.panel, {backgroundColor: colorState.primary}]}>
         {
           items &&
           <View style={styles.container}>
@@ -391,7 +391,6 @@ const styles = StyleSheet.create({
   panel: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    backgroundColor: '#fcca47',
     flex: 1,
     overflow: 'hidden',
   },
@@ -409,8 +408,6 @@ const styles = StyleSheet.create({
   },
   plus: {
     alignItems: 'center',
-    backgroundColor: '#fcca47',
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 3,

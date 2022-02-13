@@ -7,6 +7,7 @@ import * as haptics from 'expo-haptics';
 import IconButton from './IconButton';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { TouchableOpacity } from 'react-native-gesture-handler';
+import { useSelector } from 'react-redux';
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -20,6 +21,7 @@ function invokeHaptic() {
 }
 
 export default function GraphBubble({graphIndex}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
   const [data, setData] = useState(null);
   const fields = ['Total Value', 'Items', 'Collections',  'Total Quantity'];
   const [history, setHistory] = useState(null);
@@ -73,7 +75,7 @@ export default function GraphBubble({graphIndex}) {
   const DataOptionButton = ({name, onPress, isActive}) => {
     return (
       <TouchableOpacity 
-      style={[styles.dataOption, styles.mr, {backgroundColor: isActive ? '#E0E0E0' : '#FFFFFF'}]}
+      style={[styles.dataOption, styles.mr, {backgroundColor: isActive ? colorState.grey : colorState.background}]}
       activeOpacity={0.5}
       onPress={onPress}
       >
@@ -83,7 +85,7 @@ export default function GraphBubble({graphIndex}) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: colorState.background}]}>
         {
           
           data &&
@@ -93,7 +95,7 @@ export default function GraphBubble({graphIndex}) {
               {
                 data.length > 1 &&
                 <View>
-                  <LineChart.PriceText style={styles.valText}
+                  <LineChart.PriceText style={[styles.valText, {color: colorState.text}]}
                     format={({ value }) => {
                       'worklet';
                       let formattedPrice = (value);
@@ -109,7 +111,7 @@ export default function GraphBubble({graphIndex}) {
                       return `${formattedPrice}`;
                     }}
                   />
-                  <LineChart.DatetimeText style={styles.dateText}
+                  <LineChart.DatetimeText style={[styles.dateText, {color: colorState.text}]}
                     format={({ value }) => {
                       'worklet';
                       let formattedDate = (value);
@@ -131,8 +133,8 @@ export default function GraphBubble({graphIndex}) {
               <View>
 
                 <LineChart width={width * 0.85} height={width * 0.5}>
-                  <LineChart.Path color="#000"/>
-                  <LineChart.CursorCrosshair onActivated={invokeHaptic} onEnded={invokeHaptic} color="#fcca47"/>
+                  <LineChart.Path color={colorState.text}/>
+                  <LineChart.CursorCrosshair onActivated={invokeHaptic} onEnded={invokeHaptic} color={colorState.primary} />
                 </LineChart> 
                 <View style={styles.dataOptionGroup}>
                   <DataOptionButton name="Recent" isActive={!useAllTimeData} onPress={() => setUseAllTimeData(false)}/>
@@ -148,9 +150,9 @@ export default function GraphBubble({graphIndex}) {
             
             <Animated.View style={[refreshButtonAnim, styles.refreshButtonContainer]}>
                 <IconButton 
-                style={styles.refreshButton}
+                style={[styles.refreshButton, {backgroundColor: colorState.text,
+                shadowColor: colorState.text}]}
                 activeOpacity={0.8} 
-                underlayColor="#6e6e6e"
                 onPress={() => {
                   loadHistory()
                   if(!isRotating.value){
@@ -167,7 +169,7 @@ export default function GraphBubble({graphIndex}) {
                 }}
                 iconName='refresh'
                 size={25}
-                color="#fff"
+                color={colorState.background}
                 />
             </Animated.View>
           </View>
@@ -182,7 +184,6 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 15,
     flex: 1,
-    backgroundColor: '#fff',
   },
   graph: {
     alignItems: 'center',
@@ -215,8 +216,6 @@ const styles = StyleSheet.create({
   refreshButton: {
     padding: 5,
     borderRadius: 100,
-    backgroundColor: '#000',
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,

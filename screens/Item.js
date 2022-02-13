@@ -14,6 +14,8 @@ import ImageView from 'react-native-image-viewing'
 import { TouchableHighlight } from 'react-native-gesture-handler'
 import placeholder from './../assets/plus-placeholder.png'
 import * as FileSystem from 'expo-file-system';
+import { useSelector } from 'react-redux'
+import CustomTextInput from '../components/CustomTextInput'
 
 const placeholderUri = Image.resolveAssetSource(placeholder).uri
 const priceError = 'Must only contain numbers, an optional decimal point, and two numbers after the decimal point.'
@@ -21,11 +23,13 @@ const quantityError = 'Must only contain numbers.'
 const { width, height } = Dimensions.get('window');
 
 export default function Item({route, navigation}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
+
   // data from navigation
-  const [id, setId] = useState(route.params?.id)
-  const collection = route.params?.collection
-  const returnUri = route.params?.uri
-  const [newItem] = useState(!route.params?.id)
+  const [id, setId] = useState(route.params?.id);
+  const collection = route.params?.collection;
+  const returnUri = route.params?.uri;
+  const [newItem] = useState(!route.params?.id);
 
   // used to reload after an update
   const [reload, setReload] = useState(0)
@@ -323,13 +327,13 @@ export default function Item({route, navigation}) {
   
 
   return (
-    <View style={[styles.container, {backgroundColor: '#fff'}]}>
+    <View style={[styles.container, {backgroundColor: colorState.background }]}>
+      
       {/* Navbar */}
       <View style={globalStyles.navBar}>
         <IconButton
           style={styles.iconButton}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={()=>handleGoBack()}
           iconName="arrow-back-ios"
           size={35}
@@ -340,7 +344,6 @@ export default function Item({route, navigation}) {
             <IconButton
             style={styles.iconButton}
             activeOpacity={0.6}
-            underlayColor="#DDDDDD"
             onPress={()=>{
               if(validateInputs() && JSON.stringify(collectionsEdit) !== JSON.stringify({})) {
                 handleSave()
@@ -356,7 +359,7 @@ export default function Item({route, navigation}) {
             <IconButton
             style={styles.iconButton}
             activeOpacity={0.6}
-            underlayColor="#DDDDDD"
+            
             onPress={()=>deleteDialog()}
             iconName="delete"
             size={35}
@@ -364,7 +367,7 @@ export default function Item({route, navigation}) {
             <IconButton
             style={styles.iconButton}
             activeOpacity={0.6}
-            underlayColor="#DDDDDD"
+            
             onPress={()=>{
               if(itemData) {
                 setEditData(itemData)
@@ -382,7 +385,6 @@ export default function Item({route, navigation}) {
             <IconButton
             style={styles.iconButton}
             activeOpacity={0.6}
-            underlayColor="#DDDDDD"
             onPress={()=>setEditing(false)}
             iconName="cancel"
             size={35}
@@ -390,7 +392,6 @@ export default function Item({route, navigation}) {
             <IconButton
             style={styles.iconButton}
             activeOpacity={0.6}
-            underlayColor="#DDDDDD"
             onPress={()=>{
               if(validateInputs() && JSON.stringify(collectionsEdit) !== JSON.stringify({})) {
                 handleSave()
@@ -410,7 +411,7 @@ export default function Item({route, navigation}) {
       {/* Name of item */}
       {
         editing ? 
-        <TextInput style={[globalStyles.headingTextEdit, styles.textContainer]} value={name} onChangeText={(val) => setName(val)}/>
+        <CustomTextInput style={[globalStyles.headingTextEdit, styles.textContainer]} value={name} onChangeText={(val) => setName(val)}/>
         : 
         <CustomText style={[globalStyles.headingText, styles.textContainer]}>{itemData?.name}</CustomText>
       }
@@ -493,7 +494,7 @@ export default function Item({route, navigation}) {
                       imageStyle={styles.bubble}
                       source={{uri: item.img}} 
                       >
-                        <View style={styles.indexTextContainer}>
+                        <View style={[styles.indexTextContainer, {backgroundColor: colorState.background}]}>
                           <CustomText style={styles.indexText}>{item.index + 1}/{itemData?.photos?.length}</CustomText>
                         </View>
                       </ImageBackground>
@@ -514,7 +515,7 @@ export default function Item({route, navigation}) {
 
         {/* Yellow panel */}
         <View style={{flex: 1, overflow: 'hidden', borderTopLeftRadius: 25, borderTopRightRadius: 25}}>
-          <View style={styles.panel}>
+          <View style={[styles.panel, {backgroundColor: colorState.primary, shadowColor: colorState.text,}]}>
             <CustomText style={[styles.subHeading, styles.subHeadingText]}>Details</CustomText>
               {
                 editing ? 
@@ -532,10 +533,10 @@ export default function Item({route, navigation}) {
               }
             <CustomText style={[styles.subHeading, styles.subHeadingText]}>Notes</CustomText>
             <View style={{overflow: 'hidden'}}>
-              <ScrollView style={styles.notesPanel}>
+              <ScrollView style={[styles.notesPanel, {backgroundColor: colorState.background}]}>
                 {
                   editing ? 
-                  <TextInput multiline={true} style={styles.notesText} value={notes} onChangeText={(val) => setNotes(val)}/>
+                  <CustomTextInput multiline={true} style={styles.notesText} value={notes} onChangeText={(val) => setNotes(val)}/>
                   :
                   <CustomText style={styles.notesText}>{itemData?.notes === '' ? 'No notes...' : itemData?.notes}</CustomText>
                 }
@@ -549,23 +550,23 @@ export default function Item({route, navigation}) {
                 {Object.keys(collectionsEdit).map((collection) => {
                   if(collectionsEdit[collection]){
                     return(
-                      <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection}>{collection}</CustomChip>
+                      <CustomChip chipStyle={[styles.chip, {backgroundColor: colorState.background}]} chipTextStyle={styles.chipText} key={collection}>{collection}</CustomChip>
                     )
                   }
                 })}
                 <IconButton 
-                  style={[styles.plus]} 
+                  style={[styles.plus, {backgroundColor: colorState.background, shadowColor: colorState.text}]} 
                   iconName='add' 
                   size={25} 
                   onPress={()=>setCollectionsDialogVis(true)}
                   activeOpacity={0.6}
-                  underlayColor="#DDDDDD"
+                  
                 />
               </View>
               :
               <View style={styles.labelsGroup}>
                 {collectionsIn?.map((collection) => (
-                  <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
+                  <CustomChip chipStyle={[styles.chip, {backgroundColor: colorState.background}]} chipTextStyle={styles.chipText} key={collection.collection_name}>{collection.collection_name}</CustomChip>
                 ))}
               </View>
               }
@@ -574,8 +575,8 @@ export default function Item({route, navigation}) {
 
       </ScrollView>
 
-      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%'}}>
-        <Dialog.Title>Collections</Dialog.Title>
+      <Dialog.Container visible={collectionsDialogVis} onBackdropPress={() => setCollectionsDialogVis(false)} contentStyle={{width: '90%', height: '85%', backgroundColor: colorState.background}}>
+        <Dialog.Title style={{color: colorState.text}}>Collections</Dialog.Title>
         <ScrollView>
           {
             Object.keys(collectionsEdit).map((collection) => {
@@ -595,7 +596,7 @@ export default function Item({route, navigation}) {
             })
           }
         </ScrollView>
-        <Dialog.Button bold={true} color='#fcca47'  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
+        <Dialog.Button bold={true} color={colorState.primary}  label="Done" onPress={() => setCollectionsDialogVis(false)}/>
       </Dialog.Container>
 
       <ImageView
@@ -639,9 +640,7 @@ const styles = StyleSheet.create({
     paddingBottom: '30%',
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    backgroundColor: '#fcca47',
     flex: 1,
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 3,
@@ -662,7 +661,6 @@ const styles = StyleSheet.create({
   },
   notesPanel: {
     borderRadius: 16,
-    backgroundColor: '#fff',
     marginHorizontal: '6.5%',
   },
   notesText: {
@@ -678,8 +676,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: 35,
     height: 35,
-    backgroundColor: '#fff',
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 3,
@@ -708,7 +704,6 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   indexTextContainer: {
-    backgroundColor: '#fff',
     padding: 6,
     height: '20%',
     borderRadius: 30,
@@ -716,11 +711,9 @@ const styles = StyleSheet.create({
   },
   indexText: {
     fontSize: 25,
-    color: '#000',
   },
   chip: {
     margin: 5,
-    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: 'black',
     padding: 5,

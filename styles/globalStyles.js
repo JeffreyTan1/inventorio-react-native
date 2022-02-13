@@ -7,7 +7,7 @@ const globalStyles = StyleSheet.create({
     fontWeight: 'bold'
   },
   halfOpacity: {
-    opacity: 0.5
+    opacity: 0.7
   },
   headingTextEdit: {
     borderWidth: 0.5,

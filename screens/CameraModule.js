@@ -3,9 +3,10 @@ import { View, Text, StyleSheet, Dimensions } from 'react-native'
 import { Camera } from 'expo-camera';
 import IconButton from '../components/IconButton';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { useSelector } from 'react-redux';
 
 export default function CameraModule({navigation}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
   const [hasPermission, setHasPermission] = useState(null);
   const [camera, setCamera] = useState(null)
   const [type, setType] = useState(Camera.Constants.Type.back);
@@ -45,11 +46,10 @@ export default function CameraModule({navigation}) {
         />
       </View>
       
-      <View style={styles.cameraButtons}>
+      <View style={[styles.cameraButtons, {backgroundColor: colorState.primary}]}>
         <IconButton
           style={styles.cameraIcon}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={() => {
             setFlashMode(
               flashMode === Camera.Constants.FlashMode.on
@@ -64,7 +64,6 @@ export default function CameraModule({navigation}) {
         <IconButton
           style={styles.cameraIcon}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={takePicture}
           iconName="circle"
           size={60}
@@ -73,7 +72,6 @@ export default function CameraModule({navigation}) {
         <IconButton
           style={styles.cameraIcon}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={() => {
             setType(
               type === Camera.Constants.Type.back
@@ -91,7 +89,6 @@ export default function CameraModule({navigation}) {
         <IconButton
           style={[styles.iconButton]}
           activeOpacity={0.6}
-          underlayColor="#000"
           onPress={()=>navigation.goBack()}
           iconName="arrow-back-ios"
           size={35}
@@ -121,7 +118,6 @@ const styles = StyleSheet.create({
   },
   cameraButtons: {
     flex: 1,
-    backgroundColor: '#fcca47',
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center'

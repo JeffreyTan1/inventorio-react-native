@@ -1,14 +1,14 @@
 import React, {useEffect, useState} from 'react'
-import { View, Text, StyleSheet, Image, TouchableHighlight } from 'react-native'
-import Icon from 'react-native-vector-icons/FontAwesome5'
-import globalStyles from '../styles/globalStyles'
+import { View, StyleSheet, Image, TouchableHighlight } from 'react-native'
 import CustomText from '../components/CustomText'
 import { getItemCollections } from '../utils/DAO'
 import CustomChip from './CustomChip'
-import { abbreviate, numberWithCommas } from '../utils/utils'
-import { MotiView } from 'moti'
+import { abbreviate } from '../utils/utils'
+import { useSelector } from 'react-redux'
+import Bag from './Bag'
 
 export default function ItemBubble({navigation, id, name, photo, price, quantity, total, reload}) {
+  const colorState = useSelector(state => state.theme.theme.value.colors);
   const [collections, setCollections] = useState([])
 
   useEffect(() => {
@@ -16,20 +16,18 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
   }, [reload])
 
   return (
-    <View>
+
 
     <TouchableHighlight
-    style={styles.pressableContainer}
+    style={[styles.pressableContainer, {backgroundColor: colorState.background,
+    shadowColor: colorState.text}]}
     activeOpacity={0.95}
-    underlayColor="#f2f2f2"
+    underlayColor={colorState.underlayLight}
     onPress={()=>navigation.navigate('Item', {id: id})}>
       <View style={styles.container}>
         {
           photo === undefined ?
-          <Image
-            style={styles.image}
-            source={require('./../assets/adaptive-icon.png')}
-          />
+          <Bag/>
           :
           <Image
             style={styles.image}
@@ -62,7 +60,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
           <View style={styles.chipGroup}>
             {
               collections.map((collection) => (
-                <CustomChip chipStyle={styles.chip} chipTextStyle={styles.chipText} key={collection.collection_name} numberOfLines={1}>{collection.collection_name}</CustomChip>
+                <CustomChip chipStyle={[styles.chip, {backgroundColor: colorState.grey}]} chipTextStyle={styles.chipText} key={collection.collection_name} numberOfLines={1}>{collection.collection_name}</CustomChip>
               )
               )
             }
@@ -71,7 +69,7 @@ export default function ItemBubble({navigation, id, name, photo, price, quantity
         
       </View>
     </TouchableHighlight>
-    </View>
+   
   )
 }
 
@@ -81,12 +79,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   pressableContainer: {
-    backgroundColor: '#fff',
     borderRadius: 15,
     marginHorizontal: 10,
     marginTop: 10,
     marginBottom: 5,
-    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 3,
@@ -137,7 +133,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   chip: {
-    backgroundColor: '#ebebeb',
     borderColor: 'black',
     paddingHorizontal: 3,
     borderRadius: 10,

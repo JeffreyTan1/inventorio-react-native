@@ -1,13 +1,15 @@
-import React, {useEffect} from 'react'
-import { View, StyleSheet, TextInput } from 'react-native'
+import React from 'react'
+import { View, StyleSheet } from 'react-native'
 import CustomText from './CustomText'
 import { numberWithCommas } from '../utils/utils'
-import { useState } from 'react'
+import { useSelector } from 'react-redux'
+import CustomTextInput from './CustomTextInput'
 
 export default function ItemInfoBubble({label, data, editing, value, onChangeText, keyboardType, errorMsg}) {
-  
+  const colorState = useSelector(state => state.theme.theme.value.colors);
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: colorState.background}]}>
       <CustomText style={styles.label}>{label}</CustomText>
       {
         editing ? 
@@ -16,7 +18,7 @@ export default function ItemInfoBubble({label, data, editing, value, onChangeTex
             errorMsg &&
             <CustomText style={styles.errorText}>{errorMsg}</CustomText>
           }
-          <TextInput style={[styles.data, styles.edit]} value={value} onChangeText={onChangeText} keyboardType={keyboardType}/>
+          <CustomTextInput style={[styles.data, styles.edit]} value={value} onChangeText={onChangeText} keyboardType={keyboardType}/>
         </View>
         :
         <CustomText style={styles.data}>{data && numberWithCommas(data)}</CustomText>
@@ -30,7 +32,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     borderRadius: 13,
     padding: 10,
-    backgroundColor: '#fff',
     margin: 8,
     alignItems: 'center',
     shadowColor: "#000",
@@ -44,7 +45,6 @@ const styles = StyleSheet.create({
   },
   data: {
     fontSize: 24,
-    fontFamily: 'Montserrat',
     fontWeight: 'bold'
   },
   edit: {

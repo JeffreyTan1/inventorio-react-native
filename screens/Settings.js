@@ -17,13 +17,9 @@ const deleteHistoryAnswer = "delete history";
 
 export default function Settings({navigation}) {
   const appState = useSelector(state => state);
+  const colorState = useSelector(state => state.theme.theme.value.colors);
   const dispatch = useDispatch();
   const [deleteInput, setDeleteInput] = useState('');
-
-  useEffect(() => {
-
-  }, [appState])
-  
 
   const deleteDirContents = async (dir) => {
     const files = await FileSystem.readDirectoryAsync(dir)
@@ -115,12 +111,11 @@ export default function Settings({navigation}) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: colorState.background}]}>
       <View style={styles.navBar}>
         <IconButton
           style={styles.iconButton}
           activeOpacity={0.6}
-          underlayColor="#DDDDDD"
           onPress={()=>navigation.goBack()}
           iconName="arrow-back-ios" 
           size={35}
@@ -132,85 +127,79 @@ export default function Settings({navigation}) {
         </View>
       </View>
       
-      <ScrollView style={styles.panel}>
-        <View style={styles.content}>
-          <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Authentication</CustomText>
-            <Switch
-              value={appState.settings.settings.localAuthRequired} 
-              onChange={() => dispatch(changeLocalAuthReducer(appState.settings.settings.localAuthRequired ? 'off' : 'on'))}
-            />
-          </View>
-          <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Dark Mode</CustomText>
-            <Switch 
-              value={appState.theme.theme.type === 'dark'} 
-              onChange={() => dispatch(changeThemeReducer(appState.theme.theme.type === 'dark' ? 'light' : 'dark'))}
-            />
-          </View> 
-          <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Export Data</CustomText>
-            <IconButton
-            onPress={() => handleExport()}
-            style={styles.button}
-            activeOpacity={0.9}
-            underlayColor="#e0e0e0"
-            iconName='publish'
-            size={30} 
-            color='#000'
-            />
-          </View> 
-          <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Import Data</CustomText>
-            <IconButton
-            onPress={() => handleImport()}
-            style={styles.button}
-            activeOpacity={0.9}
-            underlayColor="#e0e0e0"
-            iconName='vertical-align-bottom'
-            size={30} 
-            color='#000'
-            />
-          </View> 
-          <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Clear History</CustomText>
-            <IconButton
-            onPress={() => handleClearHistory()}
-            style={styles.button}
-            activeOpacity={0.9}
-            underlayColor="#e0e0e0"
-            iconName='close'
-            size={30} 
-            color='#000'
-            />
-          </View> 
-          <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Delete All Data</CustomText>
-            <IconButton
-            onPress={() => deleteDialog()}
-            style={styles.button}
-            activeOpacity={0.9}
-            underlayColor="#e0e0e0"
-            iconName='delete'
-            size={30} 
-            color='#000'
-            />
-          </View> 
+      <View style={[styles.panel, {backgroundColor: colorState.primary}]}>
+
+          <ScrollView style={styles.content}>
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Authentication</CustomText>
+              <Switch
+                value={appState.settings.settings.localAuthRequired} 
+                onChange={() => dispatch(changeLocalAuthReducer(appState.settings.settings.localAuthRequired ? 'off' : 'on'))}
+              />
+            </View>
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Dark Mode</CustomText>
+              <Switch 
+                value={appState.theme.theme.type === 'dark'} 
+                onChange={() => dispatch(changeThemeReducer(appState.theme.theme.type === 'dark' ? 'light' : 'dark'))}
+              />
+            </View> 
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Export Data</CustomText>
+              <IconButton
+              onPress={() => handleExport()}
+              style={[styles.button, {backgroundColor: colorState.background}]}
+              activeOpacity={0.9}
+              iconName='publish'
+              size={30} 
+              />
+            </View> 
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Import Data</CustomText>
+              <IconButton
+              onPress={() => handleImport()}
+              style={[styles.button, {backgroundColor: colorState.background}]}
+              activeOpacity={0.9}
+              iconName='vertical-align-bottom'
+              size={30} 
+              />
+            </View> 
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Clear History</CustomText>
+              <IconButton
+              onPress={() => handleClearHistory()}
+              style={[styles.button, {backgroundColor: colorState.background}]}
+              activeOpacity={0.9}
+              iconName='close'
+              size={30} 
+              />
+            </View> 
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Delete All Data</CustomText>
+              <IconButton
+              onPress={() => deleteDialog()}
+              style={[styles.button, {backgroundColor: colorState.background}]}
+              activeOpacity={0.9}
+              iconName='delete'
+              size={30} 
+              />
+            </View> 
+            <View style={styles.field}>
+              <CustomText style={styles.fieldName}>Contact</CustomText>
+              <TouchableOpacity
+                onPress={() => openWebsite()}
+              >
+                <CustomText style={styles.contactText}>jeffreytan.dev</CustomText>
+              </TouchableOpacity>
+            </View> 
+
+            <View style={styles.field}>
+                <CustomText style={styles.versionText}>V 1.0.0</CustomText>
+            </View> 
+          </ScrollView>
+          
         </View>
-        <View style={styles.field}>
-            <CustomText style={styles.fieldName}>Contact</CustomText>
-            <TouchableOpacity
-              onPress={() => openWebsite()}
-            >
-              <CustomText style={styles.contactText}>jeffreytan.dev</CustomText>
-            </TouchableOpacity>
-        </View> 
-
-        <View style={styles.field}>
-            <CustomText style={styles.versionText}>V 1.0.0</CustomText>
-        </View> 
-      </ScrollView>
-
+ 
     </View>
   )
 }
@@ -218,7 +207,6 @@ export default function Settings({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff'
   },
   iconButton: {
     borderRadius: 100,
@@ -248,9 +236,8 @@ const styles = StyleSheet.create({
   panel: {
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-    backgroundColor: '#fcca47',
     flex: 1,
-    padding: '5%',
+    paddingHorizontal: '5%',
   },
   field: {
     flexDirection: 'row',
@@ -272,7 +259,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: '10%',
     paddingVertical: '3%',
-    backgroundColor: '#fff'
   },
   contactText: {
     fontSize: 20,
