@@ -199,7 +199,6 @@ export default function Main({navigation}) {
   const [authenticated, setAuthenticated] = useState(!appState.settings.settings.localAuthRequired);
 
   useEffect(() => {
-    console.log(appState.theme.theme.type)
     setStatusBarStyle(appState.theme.theme.type === 'dark' ? 'light' : 'dark')
   }, [appState.theme.theme.type])
   
