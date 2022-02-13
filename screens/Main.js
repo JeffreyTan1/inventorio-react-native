@@ -8,14 +8,15 @@ import IconButton from "../components/IconButton";
 import Animated, { useAnimatedStyle, interpolate, useSharedValue, withTiming, withDelay, Extrapolate } from "react-native-reanimated";
 import BottomSheet, { useBottomSheet } from '@gorhom/bottom-sheet';
 import GraphBubble from "../components/GraphBubble";
-import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum, getHistory } from "../utils/DAO";
+import { getAllCollections, getItemsCount, getCollectionsCount, getItemsQuantitySum, getItemsTotalSum } from "../utils/DAO";
 import { useIsFocused } from "@react-navigation/native";
 import { NativeViewGestureHandler, ScrollView } from "react-native-gesture-handler";
 import {abbreviate} from './../utils/utils'
 import Logo from './../assets/INVENTORIO.svg';
 import SortBy from "../components/SortBy";
-import { MotiScrollView, MotiView, AnimatePresence } from "moti";
+import { MotiScrollView, MotiView } from "moti";
 import { useSelector } from "react-redux";
+import { authenticateAsync } from "expo-local-authentication";
 
 const sortingLabels = [
   {label: 'A-Z', value: 'A-Z'},
@@ -33,7 +34,6 @@ export default function Main({navigation}) {
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ['13%', '96.5%'], []);
   const [collections, setCollections] = useState(null);
-
 
   // sorting
   const [option, setOption] = useState('Oldest')
@@ -82,11 +82,6 @@ export default function Main({navigation}) {
   }, [option])
   
   const bottomSheetDataSHARED = useSharedValue(0)
-  const scaleIn = useSharedValue(0)
-
-  useEffect(() => {
-    scaleIn.value = withDelay(1000, withTiming(1, {duration: 500}))
-  }, [])
 
   const animStats = useAnimatedStyle(()=> {
     return {
@@ -204,10 +199,18 @@ export default function Main({navigation}) {
   const appState = useSelector(state => state);
   const [authenticated, setAuthenticated] = useState(!appState.settings.settings.localAuthRequired);
 
+  useEffect(() => {
+    if(!authenticated) {
+      triggerAuth()
+    }
+  }, [])
+  
+  const triggerAuth = () => {
+    authenticateAsync().then((res) => setAuthenticated(res.success)).catch((err)=>{throw Error(err)});
+  }
+
   return (
     <View style={{flex: 1}}>
-    {
-      authenticated ?
       <View style={[styles.container, {backgroundColor: '#fff'}]}>
         <View style={styles.header}>
           <Logo width={width * 0.6}/>
@@ -269,11 +272,25 @@ export default function Main({navigation}) {
           </BottomSheet>
         </View>
       </View>  
-      :
-      <View style={{flex: 1000, backgroundColor: '#fcca47'}}>
-        <CustomText>Authenticate</CustomText>
-      </View>
-    }
+      
+      {
+        !authenticated &&
+        <View style={styles.authScreen}>
+          <View style={styles.authContent}>
+            <IconButton
+              style={styles.lockButton}
+              activeOpacity={0.6}
+              underlayColor="#d4a939"
+              onPress={()=>triggerAuth()}
+              iconName="lock"
+              size={33} 
+            />
+            <CustomText>Authenticate to access Inventorio</CustomText>
+          </View>
+        </View>
+      }
+      
+
     </View>
   )
 }
@@ -286,6 +303,11 @@ const styles = StyleSheet.create({
   iconButton: {
     borderRadius: 100,
     padding: 5,
+  },
+  lockButton: {
+    borderRadius: 100,
+    padding: 5,
+    marginBottom: '5%'
   },
   headerOptionButton: {
     padding: 3,
@@ -427,6 +449,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: '2.5%',
     marginTop: '2.5%',
+  },
+  authScreen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: '100%',
+    width: '100%',
+    backgroundColor: '#fcca47',
+  },
+  authContent:{
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 })
 
